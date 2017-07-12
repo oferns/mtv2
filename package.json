@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/nlsltd/mtv2/issues"
   },
-  "homepage": "https://github.com/nlsltd/mtv2#readme"
+  "homepage": "https://github.com/nlsltd/mtv2#readme",
+  "devDependencies": {
+    "@angular/cli": "^1.2.0"
+  }
 }
