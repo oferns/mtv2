@@ -1,0 +1,19 @@
+{
+  "name": "mtv2",
+  "version": "1.0.0",
+  "description": "Mapping Tool Prototype",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nlsltd/mtv2.git"
+  },
+  "author": "OJF",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nlsltd/mtv2/issues"
+  },
+  "homepage": "https://github.com/nlsltd/mtv2#readme"
+}
