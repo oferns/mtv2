@@ -1,19 +1,17 @@
 import { TRANSLATIONS, TRANSLATIONS_FORMAT, LOCALE_ID } from '@angular/core';
+import { env } from '../../env/env';
 
 declare var System: any;
 const noProviders: Object[] = [];
 
-export function getTranslationProviders(): Promise<Object[]> {
+export function getTranslationProvider(): Promise<Object[]> {
 
-  let locale = document['locale'] as string;
+  let locale = document['locale'] as string || 'en';
 
-  if (locale === undefined) {
-    return new Promise((res, rej) => { return res(noProviders) });
-  }
 
   var filename = `app.${locale}.xlf`;
 
-  return System.import('raw-loader!.' + filename)
+  return System.import('raw-loader!./' + filename)
     .then((translations: string) => {
       return [
         { provide: TRANSLATIONS, useValue: translations },
@@ -21,5 +19,5 @@ export function getTranslationProviders(): Promise<Object[]> {
         { provide: LOCALE_ID, useValue: locale }
       ];
     })
-    .catch((ex) => noProviders);
+    .catch((ex) => { noProviders });
 }
