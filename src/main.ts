@@ -1,6 +1,6 @@
 import { enableProdMode } from '@angular/core';
 import { platformBrowserDynamic } from '@angular/platform-browser-dynamic';
-import { getTranslationProviders } from './app/i18n-providers';
+import { getTranslationProviders } from './app/i18n/i18n-providers';
 
 import { AppModule } from './app/app.module';
 import { environment } from './environments/environment';

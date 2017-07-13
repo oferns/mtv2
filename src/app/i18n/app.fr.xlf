@@ -3,11 +3,8 @@
   <file source-language="fr" datatype="plaintext" original="ng2.template">
     <body>
       <trans-unit id="site_header" datatype="html">
-        <source>
-    Mapping Tool v2
-  </source>
         <target>
-    Le Mapping Tool v2
+          Le Mapping Tool v2
         </target>
         <context-group purpose="location">
           <context context-type="sourcefile">app\app.component.ts</context>
