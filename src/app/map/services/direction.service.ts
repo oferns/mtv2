@@ -5,16 +5,16 @@ import { Injectable } from '@angular/core';
 @Injectable()
 export class DirectionService {
 
-    private dirService: gm.DirectionsService;
-    constructor() { this.dirService = new gm.DirectionsService(); }
 
-    public getDirections(searchPoints: gm.DirectionsRequest): Promise<Object[]> {
+    constructor(private dirService: gm.DirectionsService) { }
 
-        return new Promise(function (res, rj) {
-            this.dirService.route(searchPoints, function (result, status) {
+    public getDirections(searchPoints: gm.DirectionsRequest): Promise<gm.DirectionsResult> {
+
+        return new Promise(function (res, rej) {
+            this.dirService.route(searchPoints, function (results, status) {
                 switch (status) {
                     case gm.DirectionsStatus.OK:
-                        return res(result);
+                        return res(results);
                     case gm.DirectionsStatus.NOT_FOUND:
                         break;
                     case gm.DirectionsStatus.ZERO_RESULTS:
@@ -29,6 +29,7 @@ export class DirectionService {
                     default:
                         break;
                 }
+                return rej(results);
 
             })
         })

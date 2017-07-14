@@ -8,21 +8,21 @@ import { DirectionService } from './services/direction.service';
   selector: 'hco-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
-  providers: [ DirectionService ],  
+  providers: [DirectionService],
 })
 
 export class MapComponent implements OnInit {
-  
-  private map;
 
-  constructor(private readonly el: ElementRef, private dirService: DirectionService) { 
-    let x = 1;
-  }
+  private map;
+  private container: Element;
+
+  constructor(private readonly parentRef: ElementRef, private dirService: DirectionService) { }
 
   // OnInit implementation
   ngOnInit(): void {
-    let el = this.el.nativeElement.getElementsByClassName('map')[0];
-    let m = this.map = new google.maps.Map(el, {
+    this.container = this.parentRef.nativeElement.getElementsByClassName('map')[0];
+
+    let m = this.map = new google.maps.Map(this.container, {
       center: new google.maps.LatLng(38.468589, 21.143545),
       zoom: 8,
       disableDefaultUI: true,
@@ -48,5 +48,17 @@ export class MapComponent implements OnInit {
   // Map Event Handlers
   private dragendHandler() {
 
+  }
+
+  private pinSymbol(color) {
+    return {
+      path: 'M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z',
+      fillColor: color,
+      fillOpacity: 1,
+      strokeColor: '#000',
+      strokeWeight: 1,
+      scale: 1,
+      labelOrigin: new google.maps.Point(0, -29)
+    };
   }
 }
