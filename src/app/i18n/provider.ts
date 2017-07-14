@@ -8,8 +8,7 @@ export function getTranslationProvider(): Promise<Object[]> {
 
   let locale = document['locale'] as string || 'en';
 
-
-  var filename = `app.${locale}.xlf`;
+  let filename = `app.${locale}.xlf`;
 
   return System.import('raw-loader!./' + filename)
     .then((translations: string) => {
@@ -19,5 +18,5 @@ export function getTranslationProvider(): Promise<Object[]> {
         { provide: LOCALE_ID, useValue: locale }
       ];
     })
-    .catch((ex) => { noProviders });
+    .catch(() => { noProviders });
 }
