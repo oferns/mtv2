@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Chrome",
+            "name": "Launch (Chrome)",
             "type": "chrome",
             "request": "launch",
-            "url": "http://localhost:4200/#",
+            "url": "http://localhost:4200",
             "port": 9223,
             "sourceMaps": true,
             "trace": "verbose",
@@ -17,9 +17,17 @@
             "userDataDir": "${workspaceRoot}/.vscode/chrome"
         },
         {
+            "name": "Debug Tests (Chrome)",
+            "type": "chrome",
+            "request": "attach",
+            "port": 9222,
+            "sourceMaps": true,
+            "webRoot": "${workspaceRoot}"
+        },
+        {
             "type": "edge",
             "request": "launch",
-            "name": "Launch Edge against localhost",
+            "name": "Launch (Edge)",
             "url": "http://localhost:4200",
             "webRoot": "${workspaceRoot}"
         },
