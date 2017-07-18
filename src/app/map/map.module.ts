@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { MapComponent } from './map.component';
-import { DirectionService } from './services/direction.service';
+
+import { MapComponent} from './map.component';
 
 @NgModule({
     declarations: [
@@ -10,11 +10,11 @@ import { DirectionService } from './services/direction.service';
     imports: [
         BrowserModule
     ],
-    providers: [DirectionService],
-    exports: [MapComponent],
+    providers: [
+    ],
+    exports: [MapComponent]
 })
 
 export class MapModule {
-
 
 }

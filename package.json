@@ -24,7 +24,6 @@
   },
   "private": true,
   "dependencies": {
-    "@agm/core": "^1.0.0-beta.0",
     "@angular/animations": "^4.2.6",
     "@angular/common": "^4.2.6",
     "@angular/compiler": "^4.2.6",
@@ -34,6 +33,7 @@
     "@angular/platform-browser": "^4.2.6",
     "@angular/platform-browser-dynamic": "^4.2.6",
     "@angular/router": "^4.2.6",
+    "@types/bingmaps": "0.0.0",
     "@types/googlemaps": "^3.26.16",
     "code-point-at": "^1.1.0",
     "core-js": "^2.4.1",

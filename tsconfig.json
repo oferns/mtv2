@@ -12,6 +12,10 @@
     "typeRoots": [
       "node_modules/@types"
     ],
+    "angularCompilerOptions": {
+      "genDir": "aot",
+      "skipMetadataEmit": true
+    },
     "lib": [
       "es2016",
       "dom"

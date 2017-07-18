@@ -2,6 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { MapModule } from './map/map.module';
+import { } from '@types/googlemaps';
 
 @NgModule({
   declarations: [
@@ -10,11 +11,9 @@ import { MapModule } from './map/map.module';
   imports: [
     BrowserModule,
     MapModule
-    ],
+  ],
   providers: [],
   bootstrap: [AppComponent]
 })
-export class AppModule {
 
-
-}
+export class AppModule {}
