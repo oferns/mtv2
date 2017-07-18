@@ -87,4 +87,18 @@ export class BingMapService implements IMapService {
             return res(this.searchManager.geocode(address));
         });
     }
+
+    setMarker(marker: Microsoft.Maps.Pushpin): Microsoft.Maps.Pushpin {
+        this.map.entities.push(marker);
+        return marker;
+    };
+
+    getMarker(options: any): Microsoft.Maps.Pushpin {
+        return new Microsoft.Maps.Pushpin(options.bounds, options);
+    };
+
+    removeMarker(marker: Microsoft.Maps.Pushpin): Microsoft.Maps.Pushpin {
+        this.map.entities.remove(marker);
+        return marker;
+    };
 }

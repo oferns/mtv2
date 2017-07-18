@@ -8,4 +8,7 @@ export interface IMapService {
     setZoom(zoom: number): void;
     addListener(event: string, handler: (...args: any[]) => void): void;
     geocode(addressObj: Object): Promise<any[]>;
+    setMarker(marker: any): any;
+    getMarker(bounds: any): any;
+    removeMarker(marker: any): any;
 }

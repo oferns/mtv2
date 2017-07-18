@@ -95,11 +95,23 @@ export class GoogleMapService implements IMapService {
     }
 
     geocode(address: Object): Promise<google.maps.GeocoderResult[]> {
-        console.log('geocode called');
         return new Promise((res, rej) => {
-            this.geocoder.geocode(address, (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
-                return res(results);
-            })
+            this.geocoder.geocode(address,
+                (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => res(results));
         });
     }
+
+    setMarker(marker: google.maps.Marker): google.maps.Marker {
+        marker.setMap(this.map);
+        return marker;
+    };
+
+    getMarker(options: google.maps.MarkerOptions): google.maps.Marker {
+        return new google.maps.Marker(options);
+    };
+
+    removeMarker(marker: google.maps.Marker): google.maps.Marker {
+        marker.setMap(null);
+        return marker;
+    };
 }

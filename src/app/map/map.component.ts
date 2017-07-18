@@ -46,13 +46,29 @@ export class MapComponent implements OnInit {
   }
   // End OnInit
 
+  private getHCOs(countryId: number): Promise<any[]> {
+    return this.hcoService.getHospitals(countryId)
+  }
 
   // Event Handlers
   countryChanged(country: any): void {
-    if (country.id && country.id > -1) {
-      this.mapService.geocode({ address: country.name }).then((results) => {
-        this.mapService.setBounds(results[0].geometry.bounds);
-      })
-    }
+    const p1 = new Promise((res, rej) => {
+      if (country.id && country.id > -1) {
+        this.mapService.geocode({ address: country.name }).then((results) => {
+          this.mapService.setBounds(results[0].geometry.bounds);
+          return res();
+        }).catch((err) => rej(err))
+      }
+    });
+
+    Promise.all([p1, this.hcoService.getHospitals(country.id)]).
+      then((results: any[]) => {
+
+        for (const result of results[1]) {
+          const marker = this.mapService.getMarker({ position: result.location })
+          this.mapService.setMarker(marker);
+        }
+      });
+
   }
 }
