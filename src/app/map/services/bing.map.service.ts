@@ -1,4 +1,5 @@
 import { } from '@types/bingmaps';
+import { } from '@types/bingmaps/search';
 
 import { IMapService } from '../../services/imap.service';
 import { env } from '../../../env/env';
@@ -9,6 +10,7 @@ declare var Microsoft: any;
 export class BingMapService implements IMapService {
 
     private map: Microsoft.Maps.Map;
+    private searchManager: any;
     private scriptLoadingPromise: Promise<void>;
 
     constructor() {
@@ -29,6 +31,9 @@ export class BingMapService implements IMapService {
         window.document.body.appendChild(script);
 
         this.onReady().then(() => {
+            Microsoft.Maps.loadModule('Microsoft.Maps.Search', () => {
+                this.searchManager = new Microsoft.Maps.Search.SearchManager(this.map);
+            })
             // this.geocoder = new google.maps.Geocoder();
             // this.dirService = new google.maps.DirectionsService();
         });
@@ -69,7 +74,17 @@ export class BingMapService implements IMapService {
         });
     }
 
+    setBounds(points: Object[]): void {
+
+    }
+
     addListener(event: string, handler: (...args: any[]) => void): void {
         Microsoft.Maps.Events.addHandler(this.map, event, handler)
+    }
+
+    geocode(address: Object): Promise<Object[]> {
+        return new Promise((res, rej) => {
+            return res(this.searchManager.geocode(address));
+        });
     }
 }

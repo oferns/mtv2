@@ -1,4 +1,4 @@
 export interface IHcoService {
-    getCountries(): Promise<Object[]>;
+    getCountries(): Promise<any[]>;
     getHospitals(country_code: number): Promise<Object[]>;
 }

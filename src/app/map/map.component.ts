@@ -49,11 +49,10 @@ export class MapComponent implements OnInit {
 
   // Event Handlers
   countryChanged(country: any): void {
-    console.log('fuck me');
-  }
-
-  // Map Event Handlers
-  private dragendHandler() {
-
+    if (country.id && country.id > -1) {
+      this.mapService.geocode({ address: country.name }).then((results) => {
+        this.mapService.setBounds(results[0].geometry.bounds);
+      })
+    }
   }
 }

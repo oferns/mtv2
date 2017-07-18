@@ -1,6 +1,11 @@
 import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular/core';
 import { IHcoService } from '../../services/ihco.service';
 
+export interface ICountry {
+    name: string;
+    id: number;
+}
+
 @Component({
     selector: 'app-map-country',
     templateUrl: './countrypicker.component.html',
@@ -10,10 +15,10 @@ import { IHcoService } from '../../services/ihco.service';
 
 export class CountryPickerComponent implements OnInit {
 
-    countries: Object[] = [];
+    countries: ICountry[] = [];
 
     @Output()
-    selectionChanged: EventEmitter<Object> = new EventEmitter();
+    selectionChanged: EventEmitter<ICountry> = new EventEmitter();
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService) { }
 

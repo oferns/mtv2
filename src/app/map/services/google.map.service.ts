@@ -88,4 +88,18 @@ export class GoogleMapService implements IMapService {
     addListener(event: string, handler: (...args: any[]) => void): void {
         this.map.addListener(event, handler);
     }
+
+    setBounds(bounds: google.maps.LatLngBounds): void {
+        this.map.fitBounds(bounds);
+        this.map.setCenter(bounds.getCenter());
+    }
+
+    geocode(address: Object): Promise<google.maps.GeocoderResult[]> {
+        console.log('geocode called');
+        return new Promise((res, rej) => {
+            this.geocoder.geocode(address, (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
+                return res(results);
+            })
+        });
+    }
 }
