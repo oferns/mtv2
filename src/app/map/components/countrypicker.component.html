@@ -1,0 +1,5 @@
+<select (change)="selectItem($event.target.selectedIndex)">
+  <option *ngFor="let country of countries" value= {{country.id}}>
+    {{country.name}}
+  </option>
+</select>

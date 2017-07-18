@@ -2,7 +2,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { AppComponent } from './app.component';
 import { MapModule } from './map/map.module';
-import { } from '@types/googlemaps';
+import { TestHcoService } from './services/test.hco.service';
 
 @NgModule({
   declarations: [
@@ -12,7 +12,7 @@ import { } from '@types/googlemaps';
     BrowserModule,
     MapModule
   ],
-  providers: [],
+  providers: [{ provide: 'IHcoService', useClass: TestHcoService }],
   bootstrap: [AppComponent]
 })
 

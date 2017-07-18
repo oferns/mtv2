@@ -51,14 +51,25 @@ export class BingMapService implements IMapService {
         });
     }
 
-    getLocation(lat: number, lng: number): any {
+    getLocation(lat: number, lng: number): Microsoft.Maps.Location {
         return new Microsoft.Maps.Location(lat, lng);
     }
 
-    setCenter(map: Microsoft.Maps.Map, lat: number, lng: number): any {
+    setCenter(lat: number, lng: number): Microsoft.Maps.Location {
         const center = this.getLocation(lat, lng);
-        map.setView({
+        this.map.setView({
             center: center
         });
+        return center;
+    }
+
+    setZoom(zoom: number): void {
+        this.map.setView({
+            zoom: zoom
+        });
+    }
+
+    addListener(event: string, handler: (...args: any[]) => void): void {
+        Microsoft.Maps.Events.addHandler(this.map, event, handler)
     }
 }

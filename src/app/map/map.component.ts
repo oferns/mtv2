@@ -1,29 +1,30 @@
-import { Component, ElementRef, OnInit, OnDestroy, ViewChild, Inject } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, Inject } from '@angular/core';
 import { GoogleMapService } from './services/google.map.service';
 import { BingMapService } from './services/bing.map.service';
 
 import { IMapService } from '../services/imap.service';
+import { IHcoService } from '../services/ihco.service';
 
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
-  providers: [{ provide: 'IMapService', useClass: BingMapService }],
+  providers: [{ provide: 'IMapService', useClass: GoogleMapService }]
 })
 
-export class MapComponent implements OnInit, OnDestroy {
-
-  private map;
+export class MapComponent implements OnInit {
 
   @ViewChild('map')
   private mapDivRef: ElementRef
 
-  constructor( @Inject('IMapService') private readonly mapService: IMapService) { }
+  constructor(
+    @Inject('IMapService') private readonly mapService: IMapService,
+    @Inject('IHcoService') private readonly hcoService: IHcoService
+  ) { }
 
   // OnInit implementation
   ngOnInit(): void {
-    this.map = this.mapService.initMap(this.mapDivRef.nativeElement, {
-      zoom: 8,
+    this.mapService.initMap(this.mapDivRef.nativeElement, {
       disableDefaultUI: true,
       zoomControl: true,
       zoomControlOptions: {
@@ -35,21 +36,20 @@ export class MapComponent implements OnInit, OnDestroy {
       rotateControl: true,
       fullscreenControl: false
     }).then((_map) => {
-      this.map = _map;
-      this.mapService.setCenter(this.map, 38.468589, 21.143545);
+      this.mapService.setCenter(38.468589, 21.143545);
+      this.mapService.setZoom(4);
+
     }).catch((err) => {
       console.log(err);
       throw err;
     });
-
-
   }
   // End OnInit
 
-  // OnDestroy implementation
-  ngOnDestroy(): void {
-    // remove private event handlers
 
+  // Event Handlers
+  countryChanged(country: any): void {
+    console.log('fuck me');
   }
 
   // Map Event Handlers

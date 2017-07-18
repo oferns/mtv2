@@ -75,9 +75,17 @@ export class GoogleMapService implements IMapService {
         return new google.maps.LatLng(lat, lng);
     }
 
-    setCenter(map: google.maps.Map, lat: number, lng: number): google.maps.LatLng {
-        const center =  this.getLocation(lat, lng);
-        map.setCenter(center);
+    setCenter(lat: number, lng: number): google.maps.LatLng {
+        const center = this.getLocation(lat, lng);
+        this.map.setCenter(center);
         return center;
+    }
+
+    setZoom(zoom: number): void {
+        this.map.setZoom(zoom);
+    }
+
+    addListener(event: string, handler: (...args: any[]) => void): void {
+        this.map.addListener(event, handler);
     }
 }
