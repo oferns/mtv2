@@ -9,7 +9,7 @@ import { IHcoService } from '../services/ihco.service';
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
-  providers: [{ provide: 'IMapService', useClass: GoogleMapService }]
+  providers: [{ provide: 'IMapService', useClass: BingMapService }]
 })
 
 export class MapComponent implements OnInit {

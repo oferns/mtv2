@@ -34,8 +34,11 @@ export class BingMapService implements IMapService {
             Microsoft.Maps.loadModule('Microsoft.Maps.Search', () => {
                 this.searchManager = new Microsoft.Maps.Search.SearchManager(this.map);
             })
+
             // this.geocoder = new google.maps.Geocoder();
             // this.dirService = new google.maps.DirectionsService();
+        }).catch(err => {
+            throw err;
         });
     }
 
