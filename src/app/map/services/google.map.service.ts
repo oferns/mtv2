@@ -1,7 +1,10 @@
 import { } from '@types/googlemaps';
 
-import { IMapService } from '../../services/imap.service';
+import { IMapService } from '../abstractions/imap.service';
+import { IGeoCodeResult } from '../abstractions/igeocode.result';
+
 import { env } from '../../../env/env';
+
 
 declare var google: any;
 
@@ -46,7 +49,7 @@ export class GoogleMapService implements IMapService {
         });
     }
 
-    directions(searchPoints: google.maps.DirectionsRequest): Promise<Object[]> {
+    directions(searchPoints: google.maps.DirectionsRequest): Promise<object[]> {
 
         return new Promise(function (res, rj) {
             this.dirService.route(searchPoints, function (result, status) {
@@ -81,6 +84,10 @@ export class GoogleMapService implements IMapService {
         return center;
     }
 
+    getCenter(): google.maps.LatLng {
+        return this.map.getCenter();
+    }
+
     setZoom(zoom: number): void {
         this.map.setZoom(zoom);
     }
@@ -94,10 +101,50 @@ export class GoogleMapService implements IMapService {
         this.map.setCenter(bounds.getCenter());
     }
 
-    geocode(address: Object): Promise<google.maps.GeocoderResult[]> {
+    getBounds(): google.maps.LatLngBounds {
+        return this.map.getBounds();
+    }
+
+    getBoundsObj(nw: google.maps.LatLng, se: google.maps.LatLng): google.maps.LatLngBounds {
+        return new google.maps.LatLngBounds(nw, se)
+    }
+
+    private convertGeoResults(results: google.maps.GeocoderResult[]): IGeoCodeResult[] {
+        return <IGeoCodeResult[]>results.map(function (r) {
+            return {
+                address: r.formatted_address,
+                bounds: r.geometry.bounds,
+                view: r.geometry.viewport,
+                center: r.geometry.location,
+                name: r.place_id
+            };
+        })
+    }
+    geocode(location: string | google.maps.LatLng | google.maps.LatLngBounds): Promise<IGeoCodeResult[]> {
+        const options: google.maps.GeocoderRequest = {};
+
+        if (typeof location === 'string') {
+            options.address = location;
+        } else if (location instanceof google.maps.LatLng) {
+            options.location = <google.maps.LatLng>location;
+        } else if (location instanceof google.maps.LatLngBounds) {
+            options.bounds = <google.maps.LatLngBounds>location;
+        }
+
         return new Promise((res, rej) => {
-            this.geocoder.geocode(address,
-                (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => res(results));
+            this.geocoder.geocode(options,
+                (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
+                    switch (status) {
+                        case google.maps.GeocoderStatus.OK: return res(this.convertGeoResults(results));
+                        case google.maps.GeocoderStatus.ZERO_RESULTS: return res([]);
+                        case google.maps.GeocoderStatus.ERROR: return rej(results);
+                        case google.maps.GeocoderStatus.INVALID_REQUEST: return rej(results);
+                        case google.maps.GeocoderStatus.OVER_QUERY_LIMIT: return rej(results);
+                        case google.maps.GeocoderStatus.OVER_QUERY_LIMIT: return rej(results);
+                        case google.maps.GeocoderStatus.UNKNOWN_ERROR:
+                        default: return rej(results);
+                    }
+                });
         });
     }
 
@@ -106,7 +153,8 @@ export class GoogleMapService implements IMapService {
         return marker;
     };
 
-    getMarker(options: google.maps.MarkerOptions): google.maps.Marker {
+    getMarker(lat: number, lng: number, options: google.maps.MarkerOptions): google.maps.Marker {
+        options.position = this.getLocation(lat, lng);
         return new google.maps.Marker(options);
     };
 

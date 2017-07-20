@@ -2,8 +2,8 @@ import { IHcoService } from './ihco.service';
 
 export class TestHcoService implements IHcoService {
 
-    getCountries(): Promise<Object[]> {
-        return new Promise<Object[]>(function (res, rej) {
+    getCountries(): Promise<object[]> {
+        return new Promise<object[]>(function (res, rej) {
             return res([
                 { id: 1489, name: 'Czech' },
                 { id: 1490, name: 'France' },
@@ -13,8 +13,8 @@ export class TestHcoService implements IHcoService {
         });
     }
 
-    getHospitals(country_code: number): Promise<Object[]> {
-        return new Promise<Object[]>(function (res, rej) {
+    getHospitals(country_code: number): Promise<object[]> {
+        return new Promise<object[]>(function (res, rej) {
             let hcos = [];
             switch (country_code) {
                 case 1489:

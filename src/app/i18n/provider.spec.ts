@@ -4,7 +4,7 @@ import { getTranslationProvider } from './provider';
 
 
 describe('getTranslationProviders', () => {
-  it('should return a Promise<Object[]>', async(() => {
+  it('should return a Promise<object[]>', async(() => {
     const fixture = getTranslationProvider().then(() => {
       expect(fixture instanceof Promise).toBe(true);
     });

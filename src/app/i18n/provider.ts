@@ -2,13 +2,13 @@ import { TRANSLATIONS, TRANSLATIONS_FORMAT, LOCALE_ID } from '@angular/core';
 import { env } from '../../env/env';
 
 declare var System: any;
-const noProviders: Object[] = [];
+const noProviders: object[] = [];
 
-export function getTranslationProvider(): Promise<Object[]> {
+export function getTranslationProvider(): Promise<object[]> {
 
-  let locale = document['locale'] as string || 'en';
+  const locale = document['locale'] as string || 'en';
 
-  let filename = `app.${locale}.xlf`;
+  const filename = `app.${locale}.xlf`;
 
   return System.import('raw-loader!./' + filename)
     .then((translations: string) => {
@@ -18,5 +18,5 @@ export function getTranslationProvider(): Promise<Object[]> {
         { provide: LOCALE_ID, useValue: locale }
       ];
     })
-    .catch(() => { noProviders });
+    .catch(() => noProviders );
 }

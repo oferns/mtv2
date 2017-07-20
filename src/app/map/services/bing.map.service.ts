@@ -1,7 +1,8 @@
 import { } from '@types/bingmaps';
-import { } from '@types/bingmaps/search';
 
-import { IMapService } from '../../services/imap.service';
+import { IGeoCodeResult } from '../abstractions/igeocode.result';
+import { IMapService } from '../abstractions/imap.service';
+
 import { env } from '../../../env/env';
 
 
@@ -18,8 +19,7 @@ export class BingMapService implements IMapService {
         const callback = 'cb';
 
         script.type = 'text/javascript';
-        script.async = true;
-        script.defer = true;
+        script.async = script.defer = true;
         script.src = `//www.bing.com/api/maps/mapcontrol?callback=${callback}`;
 
         this.scriptLoadingPromise = new Promise<void>((resolve: Function, reject: Function) => {
@@ -53,7 +53,7 @@ export class BingMapService implements IMapService {
         });
     }
 
-    directions(searchPoints: any): Promise<Object[]> {
+    directions(searchPoints: any): Promise<object[]> {
         return new Promise(function (res, rj) {
             return res();
         });
@@ -71,23 +71,63 @@ export class BingMapService implements IMapService {
         return center;
     }
 
+    getCenter(): Microsoft.Maps.Location {
+        return this.map.getCenter();
+    }
+
     setZoom(zoom: number): void {
         this.map.setView({
             zoom: zoom
         });
     }
 
-    setBounds(points: Object[]): void {
+    setBounds(bounds: Microsoft.Maps.LocationRect): void {
+        this.map.setView({
+            bounds: bounds
+        });
+    }
 
+    getBounds(): Microsoft.Maps.LocationRect {
+        return this.map.getBounds();
+    }
+
+    getBoundsObj(nw: Microsoft.Maps.Location, se: Microsoft.Maps.Location): Microsoft.Maps.LocationRect {
+        return Microsoft.Maps.LocationRect.fromCorners(nw, se);
     }
 
     addListener(event: string, handler: (...args: any[]) => void): void {
         Microsoft.Maps.Events.addHandler(this.map, event, handler)
     }
 
-    geocode(address: Object): Promise<Object[]> {
-        return new Promise((res, rej) => {
-            return res(this.searchManager.geocode(address));
+    private convertGeoResults(results: any): IGeoCodeResult[] {
+        return results.map(function (r) {
+            return {
+                address: r.address,
+                bounds: r.bestView,
+                view: r.bestView,
+                center: r.location,
+                name: r.name
+            };
+        });
+    }
+
+    geocode(location: string | Microsoft.Maps.LocationRect): Promise<any[]> {
+        return this.onReady().then(() => {
+            return new Promise<any[]>((res, rej) => {
+
+                const options = {
+                    callback: (result: any, data: any) => res(this.convertGeoResults(result.results)),
+                    error: (result: any, data: any) => rej(result.results)
+                };
+
+                if (typeof location === 'string') {
+                    options['where'] = location;
+                } else if (location instanceof Microsoft.Maps.LocationRect) {
+                    options['bounds'] = <Microsoft.Maps.LocationRect>location;
+                }
+
+                this.searchManager.geocode(options);
+            });
         });
     }
 
@@ -96,8 +136,8 @@ export class BingMapService implements IMapService {
         return marker;
     };
 
-    getMarker(options: any): Microsoft.Maps.Pushpin {
-        return new Microsoft.Maps.Pushpin(options.bounds, options);
+    getMarker(lat: number, lng: number, options: any): Microsoft.Maps.Pushpin {
+        return new Microsoft.Maps.Pushpin(this.getLocation(lat, lng), options);
     };
 
     removeMarker(marker: Microsoft.Maps.Pushpin): Microsoft.Maps.Pushpin {

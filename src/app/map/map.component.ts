@@ -1,15 +1,16 @@
 import { Component, ElementRef, OnInit, ViewChild, Inject } from '@angular/core';
+
 import { GoogleMapService } from './services/google.map.service';
 import { BingMapService } from './services/bing.map.service';
 
-import { IMapService } from '../services/imap.service';
+import { IMapService } from './abstractions/imap.service';
 import { IHcoService } from '../services/ihco.service';
 
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
-  providers: [{ provide: 'IMapService', useClass: BingMapService }]
+  providers: [{ provide: 'IMapService', useClass: GoogleMapService }]
 })
 
 export class MapComponent implements OnInit {
@@ -38,7 +39,6 @@ export class MapComponent implements OnInit {
     }).then((_map) => {
       this.mapService.setCenter(38.468589, 21.143545);
       this.mapService.setZoom(4);
-
     }).catch((err) => {
       console.log(err);
       throw err;
@@ -46,16 +46,12 @@ export class MapComponent implements OnInit {
   }
   // End OnInit
 
-  private getHCOs(countryId: number): Promise<any[]> {
-    return this.hcoService.getHospitals(countryId)
-  }
-
   // Event Handlers
   countryChanged(country: any): void {
     const p1 = new Promise((res, rej) => {
       if (country.id && country.id > -1) {
-        this.mapService.geocode({ address: country.name }).then((results) => {
-          this.mapService.setBounds(results[0].geometry.bounds);
+        this.mapService.geocode(country.name).then((results) => {
+          this.mapService.setBounds(results[0].view);
           return res();
         }).catch((err) => rej(err))
       }
@@ -65,7 +61,7 @@ export class MapComponent implements OnInit {
       then((results: any[]) => {
 
         for (const result of results[1]) {
-          const marker = this.mapService.getMarker({ position: result.location })
+          const marker = this.mapService.getMarker(result.lat, result.lng, {});
           this.mapService.setMarker(marker);
         }
       });
