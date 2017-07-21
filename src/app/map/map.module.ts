@@ -17,10 +17,8 @@ import { BingMapService } from './services/bing.map.service';
         BrowserModule
     ],
     providers: [
-        { provide: PROVIDERS, useClass: BingMapService, multi: true, },
-        { provide: PROVIDERS, useClass: GoogleMapService, multi: true }
-
-
+        { provide: PROVIDERS, useClass: GoogleMapService, multi: true },
+        { provide: PROVIDERS, useClass: BingMapService, multi: true, }
     ],
 
     exports: [MapComponent]
