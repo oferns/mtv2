@@ -1,48 +1,57 @@
-import { Component, ElementRef, OnInit, ViewChild, Inject } from '@angular/core';
-
-import { GoogleMapService } from './services/google.map.service';
-import { BingMapService } from './services/bing.map.service';
+import { Component, ElementRef, AfterViewInit, ViewChild, ViewChildren, Inject, InjectionToken, QueryList } from '@angular/core';
 
 import { IMapService } from './abstractions/imap.service';
 import { IHcoService } from '../services/ihco.service';
+
+export const PROVIDERS = new InjectionToken<IMapService>('IMapService');
 
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
-  providers: [{ provide: 'IMapService', useClass: GoogleMapService }]
 })
 
-export class MapComponent implements OnInit {
+export class MapComponent implements AfterViewInit {
 
-  @ViewChild('map')
-  private mapDivRef: ElementRef
+  @ViewChildren('map') private mapContainersRef: QueryList<any>
+
+  private mapService: IMapService;
 
   constructor(
-    @Inject('IMapService') private readonly mapService: IMapService,
+    @Inject(PROVIDERS) private readonly providers: IMapService[],
     @Inject('IHcoService') private readonly hcoService: IHcoService
   ) { }
 
   // OnInit implementation
-  ngOnInit(): void {
-    this.mapService.initMap(this.mapDivRef.nativeElement, {
-      disableDefaultUI: true,
-      zoomControl: true,
-      zoomControlOptions: {
-        position: 'TOP_RIGHT'
-      },
-      mapTypeControl: true,
-      scaleControl: true,
-      streetViewControl: false,
-      rotateControl: true,
-      fullscreenControl: false
-    }).then((_map) => {
-      this.mapService.setCenter(38.468589, 21.143545);
-      this.mapService.setZoom(4);
-    }).catch((err) => {
-      console.log(err);
-      throw err;
-    });
+  ngAfterViewInit(): void {
+    this.mapContainersRef.forEach((div: ElementRef, index: number) => {
+      const provider = this.providers[index];
+      provider.initMap(div.nativeElement, {}).then((_map) => {
+        provider.setCenter(38.468589, 21.143545);
+        provider.setZoom(8);
+      }).catch((err) => {
+        throw err;
+      });
+    })
+
+    // this.mapService.initMap(this.mapsContainerRef.nativeElement, {
+    //   disableDefaultUI: true,
+    //   zoomControl: true,
+    //   zoomControlOptions: {
+    //     position: 'TOP_RIGHT'
+    //   },
+    //   mapTypeControl: true,
+    //   scaleControl: true,
+    //   streetViewControl: false,
+    //   rotateControl: true,
+    //   fullscreenControl: false
+    // }).then((_map) => {
+    //   this.mapService.setCenter(38.468589, 21.143545);
+    //   this.mapService.setZoom(4);
+    // }).catch((err) => {
+    //   console.log(err);
+    //   throw err;
+    // });
   }
   // End OnInit
 

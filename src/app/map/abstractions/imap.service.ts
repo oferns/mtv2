@@ -1,6 +1,8 @@
 import { IGeoCodeResult } from './igeocode.result';
+import { IMapOptions } from '../abstractions/imap.options';
 
 export interface IMapService {
+    provider: string;
     initMap(mapElement: HTMLElement, options: any): Promise<any>;
     onReady(): Promise<void>;
     directions(searchPoints: any): Promise<any[]>;
@@ -16,4 +18,5 @@ export interface IMapService {
     setMarker(marker: any): any;
     getMarker(lat: number, lng: number, options: any): any;
     removeMarker(marker: any): any;
+    getOptions(options: IMapOptions): any;
 }

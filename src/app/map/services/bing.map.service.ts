@@ -1,31 +1,39 @@
+import { Injectable } from '@angular/core';
+
 import { } from '@types/bingmaps';
 
-import { IGeoCodeResult } from '../abstractions/igeocode.result';
 import { IMapService } from '../abstractions/imap.service';
+import { IMapOptions } from '../abstractions/imap.options';
+import { IGeoCodeResult } from '../abstractions/igeocode.result';
 
 import { env } from '../../../env/env';
 
-
 declare var Microsoft: any;
 
+@Injectable()
 export class BingMapService implements IMapService {
 
     private map: Microsoft.Maps.Map;
     private searchManager: any;
     private scriptLoadingPromise: Promise<void>;
 
+    provider = 'Bing';
+
     constructor() {
         const script: HTMLScriptElement = window.document.createElement('script');
-        const callback = 'cb';
 
         script.type = 'text/javascript';
         script.async = script.defer = true;
-        script.src = `//www.bing.com/api/maps/mapcontrol?callback=${callback}`;
+        script.src = `//www.bing.com/api/maps/mapcontrol?callback=${this.provider}`;
 
         this.scriptLoadingPromise = new Promise<void>((resolve: Function, reject: Function) => {
-            (<any>window)[callback] = () => { resolve(); };
+            (<any>window)[this.provider] = () => {
+                resolve();
+            };
 
-            script.onerror = (error: Event) => { reject(error); };
+            script.onerror = (error: Event) => {
+                reject(error);
+            };
         });
 
         window.document.body.appendChild(script);
@@ -34,9 +42,6 @@ export class BingMapService implements IMapService {
             Microsoft.Maps.loadModule('Microsoft.Maps.Search', () => {
                 this.searchManager = new Microsoft.Maps.Search.SearchManager(this.map);
             })
-
-            // this.geocoder = new google.maps.Geocoder();
-            // this.dirService = new google.maps.DirectionsService();
         }).catch(err => {
             throw err;
         });
@@ -51,6 +56,10 @@ export class BingMapService implements IMapService {
             options.credentials = env.BM_API_KEY;
             return this.map = new Microsoft.Maps.Map(mapElement, options);
         });
+    }
+
+    getOptions(options: IMapOptions): any {
+        return {};
     }
 
     directions(searchPoints: any): Promise<object[]> {

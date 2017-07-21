@@ -1,13 +1,17 @@
+import { Injectable } from '@angular/core';
+
 import { } from '@types/googlemaps';
 
 import { IMapService } from '../abstractions/imap.service';
+import { IMapOptions } from '../abstractions/imap.options';
+
 import { IGeoCodeResult } from '../abstractions/igeocode.result';
 
 import { env } from '../../../env/env';
 
-
 declare var google: any;
 
+@Injectable()
 export class GoogleMapService implements IMapService {
 
     private map: google.maps.Map;
@@ -15,19 +19,24 @@ export class GoogleMapService implements IMapService {
     private geocoder: google.maps.Geocoder;
     private dirService: google.maps.DirectionsService;
 
+    provider = 'Google';
+
     constructor() {
         const script: HTMLScriptElement = window.document.createElement('script');
-        const callback = 'cb';
 
         script.type = 'text/javascript';
         script.async = true;
         script.defer = true;
-        script.src = `//maps.googleapis.com/maps/api/js?key=${env.GM_API_KEY}&callback=${callback}`;
+        script.src = `//maps.googleapis.com/maps/api/js?key=${env.GM_API_KEY}&callback=${this.provider}`;
 
         this.scriptLoadingPromise = new Promise<void>((resolve: Function, reject: Function) => {
-            (<any>window)[callback] = () => { resolve(); };
+            (<any>window)[this.provider] = (a) => {
+                resolve();
+            };
 
-            script.onerror = (error: Event) => { reject(error); };
+            script.onerror = (error: Event) => {
+                reject(error);
+            };
         });
 
         window.document.body.appendChild(script);
@@ -47,6 +56,10 @@ export class GoogleMapService implements IMapService {
         return this.onReady().then(() => {
             return this.map = new google.maps.Map(mapElement, options);
         });
+    }
+
+    getOptions(options: IMapOptions): google.maps.MapOptions {
+        return new google.maps.MapOptions();
     }
 
     directions(searchPoints: google.maps.DirectionsRequest): Promise<object[]> {
