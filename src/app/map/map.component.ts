@@ -1,4 +1,14 @@
-import { Component, ElementRef, AfterViewInit, ViewChild, ViewChildren, Inject, InjectionToken, QueryList } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  AfterViewInit,
+  AfterViewChecked,
+  ViewChild,
+  ViewChildren,
+  Inject,
+  InjectionToken,
+  QueryList
+} from '@angular/core';
 
 import { IMapService } from './abstractions/imap.service';
 import { IHcoService } from '../services/ihco.service';
@@ -13,9 +23,10 @@ export const PROVIDERS = new InjectionToken<IMapService>('IMapService');
 
 export class MapComponent implements AfterViewInit {
 
-  @ViewChildren('map') private mapContainersRef: QueryList<any>
+  @ViewChildren('map') private mapContainersRef: QueryList<ElementRef>
 
   private mapService: IMapService;
+  private currentProviderIndex = 0;
 
   constructor(
     @Inject(PROVIDERS) private readonly providers: IMapService[],
@@ -75,5 +86,9 @@ export class MapComponent implements AfterViewInit {
         }
       });
 
+  }
+
+  providerChanged(index: number): void {
+    this.currentProviderIndex = index;
   }
 }

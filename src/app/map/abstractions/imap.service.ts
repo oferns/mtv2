@@ -19,4 +19,5 @@ export interface IMapService {
     getMarker(lat: number, lng: number, options: any): any;
     removeMarker(marker: any): any;
     getOptions(options: IMapOptions): any;
+    resize(): void;
 }

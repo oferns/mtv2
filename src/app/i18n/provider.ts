@@ -18,5 +18,14 @@ export function getTranslationProvider(): Promise<object[]> {
         { provide: LOCALE_ID, useValue: locale }
       ];
     })
-    .catch(() => noProviders );
+    .catch(() => {
+      System.import('raw-loader!./app.en.xlf')
+        .then((translations: string) => {
+          return [
+            { provide: TRANSLATIONS, useValue: translations },
+            { provide: TRANSLATIONS_FORMAT, useValue: 'xlf' },
+            { provide: LOCALE_ID, useValue: locale }
+          ];
+        }).catch((err) => noProviders)
+    });
 }

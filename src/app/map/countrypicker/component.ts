@@ -8,8 +8,8 @@ export interface ICountry {
 
 @Component({
     selector: 'app-map-country',
-    templateUrl: './countrypicker.component.html',
-    styleUrls: ['./countrypicker.component.scss'],
+    templateUrl: './component.html',
+    styleUrls: ['./component.scss'],
     providers: []
 })
 

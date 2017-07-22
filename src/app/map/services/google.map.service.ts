@@ -44,6 +44,7 @@ export class GoogleMapService implements IMapService {
         this.onReady().then(() => {
             this.geocoder = new google.maps.Geocoder();
             this.dirService = new google.maps.DirectionsService();
+           // google.maps.event.addListener(this.map, 'idle', () => google.maps.event.trigger(this.map, 'resize'));
         });
     }
 
@@ -175,4 +176,10 @@ export class GoogleMapService implements IMapService {
         marker.setMap(null);
         return marker;
     };
+
+    resize(): void {
+        this.setCenter(38.468589, 21.143545);
+
+        google.maps.event.trigger(this.map, 'resize');
+    }
 }

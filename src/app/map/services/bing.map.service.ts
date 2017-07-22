@@ -153,4 +153,12 @@ export class BingMapService implements IMapService {
         this.map.entities.remove(marker);
         return marker;
     };
+
+    resize(): void {
+        this.map.setView({
+            bounds : this.getBounds(),
+            zoom: 5,
+            center: this.getCenter()
+        })
+    }
 }

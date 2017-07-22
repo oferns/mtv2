@@ -1,0 +1,4 @@
+<label *ngFor='let provider of providers; let i = index' [for]='RadioGroupName + i'>
+    <input type='radio' [name]='RadioGroupName' [id]='RadioGroupName + i' [value]='provider.provider' [checked]='i === 0' (change)="selectItem(i)">        
+        {{provider.provider}}
+</label>
