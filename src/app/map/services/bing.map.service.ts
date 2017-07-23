@@ -157,4 +157,16 @@ export class BingMapService implements IMapService {
         this.map.entities.remove(marker);
         return marker;
     };
+
+    removeMarkers(): Microsoft.Maps.Pushpin[] {
+        const pins: Microsoft.Maps.Pushpin[] = [];
+        for (let i = this.map.entities.getLength() - 1; i >= 0; i--) {
+            const pushpin = this.map.entities.get(i);
+            if (pushpin instanceof Microsoft.Maps.Pushpin) {
+                this.map.entities.removeAt(i);
+                pins.push(<Microsoft.Maps.Pushpin>pushpin);
+            }
+        }
+        return pins;
+    }
 }

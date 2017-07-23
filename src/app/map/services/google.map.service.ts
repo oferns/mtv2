@@ -19,6 +19,7 @@ export class GoogleMapService implements IMapService {
     private geocoder: google.maps.Geocoder;
     private dirService: google.maps.DirectionsService;
 
+    private _markers: google.maps.Marker[] = [];
     provider = 'Google';
 
     constructor() {
@@ -44,7 +45,7 @@ export class GoogleMapService implements IMapService {
         this.onReady().then(() => {
             this.geocoder = new google.maps.Geocoder();
             this.dirService = new google.maps.DirectionsService();
-           // google.maps.event.addListener(this.map, 'idle', () => google.maps.event.trigger(this.map, 'resize'));
+            // google.maps.event.addListener(this.map, 'idle', () => google.maps.event.trigger(this.map, 'resize'));
         });
     }
 
@@ -162,6 +163,7 @@ export class GoogleMapService implements IMapService {
 
     setMarker(marker: google.maps.Marker): google.maps.Marker {
         marker.setMap(this.map);
+        this._markers.push(marker);
         return marker;
     };
 
@@ -172,6 +174,24 @@ export class GoogleMapService implements IMapService {
 
     removeMarker(marker: google.maps.Marker): google.maps.Marker {
         marker.setMap(null);
+
+        const i = this._markers.indexOf(marker)
+
+        if (i > -1) {
+            this._markers.splice(i, 1);
+        }
+
         return marker;
     };
+
+    removeMarkers(): google.maps.Marker[] {
+        const markers = [];
+        let len = this._markers.length;
+        while (len--) {
+            this._markers[len].setMap(null);
+            markers.push(this._markers.splice(len, 1));
+        }
+        this._markers = [];
+        return markers;
+    }
 }

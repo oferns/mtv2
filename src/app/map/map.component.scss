@@ -1,18 +1,12 @@
 app-map {
-  display: block;
+  display: inline-block;
   position: relative;
-  height: 600px;
-  width: 600px;
+  height: 100%;
+  width: 100%;
 }
 
 .map {
   position: absolute;
-  height: 600px;
-  width: 600px;
-}
-
-.map-container {
-  position: relative;
-  height: 600px;
-  width: 600px;
+  height: 100%;
+  width: 100%;
 }

@@ -71,6 +71,8 @@ export class MapComponent implements AfterViewInit {
   countryChanged(country: any): void {
     const _me = this;
     const promises = this.providers.map((p) => p.geocode(country.name));
+    this.providers.map((p) => p.removeMarkers());
+
     promises.push(this.hcoService.getHospitals(country.id));
     Promise.all(promises).then((results: any[]) => {
       const hcos: any[] = results[2];
