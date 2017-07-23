@@ -13,6 +13,7 @@ import {
 import { IMapService } from './abstractions/imap.service';
 import { IHcoService } from '../services/ihco.service';
 import { IGeoCodeResult } from './abstractions/igeocode.result';
+import { IMarkerOptions } from './abstractions/imarker.options';
 
 export const PROVIDERS = new InjectionToken<IMapService>('IMapService');
 
@@ -83,7 +84,13 @@ export class MapComponent implements AfterViewInit {
 
       const markers = hcos.map((h, i) => {
         _me.providers.map((p) => {
-          return p.setMarker(p.getMarker(h.lat, h.lng, { label: h.title }));
+          const options: IMarkerOptions = {
+            label: h.title,
+            onClick: (args) => {
+              p.drawDrivingRadius(args['marker'], 30);
+            }
+          };
+          return p.setMarker(p.getMarker(p.getLocation(h.lat, h.lng), options));
         })
       })
     }).catch((err) => {

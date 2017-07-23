@@ -4,6 +4,7 @@ import { } from '@types/googlemaps';
 
 import { IMapService } from '../abstractions/imap.service';
 import { IMapOptions } from '../abstractions/imap.options';
+import { IMarkerOptions } from '../abstractions/imarker.options';
 
 import { IGeoCodeResult } from '../abstractions/igeocode.result';
 
@@ -64,26 +65,24 @@ export class GoogleMapService implements IMapService {
         return new google.maps.MapOptions();
     }
 
-    directions(searchPoints: google.maps.DirectionsRequest): Promise<object[]> {
-
-        return new Promise(function (res, rj) {
-            this.dirService.route(searchPoints, function (result, status) {
+    directions(request: google.maps.DirectionsRequest): Promise<google.maps.DirectionsResult> {
+        const _me = this;
+        return new Promise(function (res, rej) {
+            _me.dirService.route(request, function (result, status) {
                 switch (status) {
-                    case google.maps.DirectionsStatus.OK:
-                        return res(result);
-                    case google.maps.DirectionsStatus.NOT_FOUND:
-                        break;
-                    case google.maps.DirectionsStatus.ZERO_RESULTS:
-                        break;
+                    case google.maps.DirectionsStatus.OK: return res(result);
+                    case google.maps.DirectionsStatus.NOT_FOUND: return res(<google.maps.DirectionsResult>null);
+                    case google.maps.DirectionsStatus.ZERO_RESULTS: return res(<google.maps.DirectionsResult>null);
                     case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
                     case google.maps.DirectionsStatus.REQUEST_DENIED:
-                        break;
+                        return rej([{ result: result, status: status }]);
                     case google.maps.DirectionsStatus.UNKNOWN_ERROR:
                         // We should retry.. Retry service impl todo
-                        break;
+                        return rej([{ result: result, status: status }]);
 
                     default:
-                        break;
+                        return rej({ result: result, status: status });
+
                 }
             });
         });
@@ -123,17 +122,6 @@ export class GoogleMapService implements IMapService {
         return new google.maps.LatLngBounds(nw, se)
     }
 
-    private convertGeoResults(results: google.maps.GeocoderResult[]): IGeoCodeResult[] {
-        return <IGeoCodeResult[]>results.map(function (r) {
-            return {
-                address: r.formatted_address,
-                bounds: r.geometry.bounds,
-                view: r.geometry.viewport,
-                center: r.geometry.location,
-                name: r.place_id
-            };
-        })
-    }
     geocode(location: string | google.maps.LatLng | google.maps.LatLngBounds): Promise<IGeoCodeResult[]> {
         const options: google.maps.GeocoderRequest = {};
 
@@ -167,9 +155,22 @@ export class GoogleMapService implements IMapService {
         return marker;
     };
 
-    getMarker(lat: number, lng: number, options: google.maps.MarkerOptions): google.maps.Marker {
-        options.position = this.getLocation(lat, lng);
-        return new google.maps.Marker(options);
+    getMarker(location: google.maps.LatLng, options: IMarkerOptions): google.maps.Marker {
+        const newopts: google.maps.MarkerOptions = {
+            position: location,
+            icon: options.icon,
+            title: options.title
+        };
+
+        const marker = new google.maps.Marker(newopts);
+
+        if (options.onClick) {
+            google.maps.event.addListener(marker, 'click', function (args, e) {
+                options.onClick.apply(this, [{ marker: marker, args: args }])
+            });
+        }
+
+        return marker;
     };
 
     removeMarker(marker: google.maps.Marker): google.maps.Marker {
@@ -193,5 +194,115 @@ export class GoogleMapService implements IMapService {
         }
         this._markers = [];
         return markers;
+    }
+
+    drawDrivingRadius(marker: google.maps.Marker, radius: number): void {
+        const searchPoints = this.getSearchPoints(marker, radius);
+        const _me = this;
+        Promise.all(this.getDirections(marker.getPosition(), searchPoints))
+            .then((results) => {
+                const lines = this.drawRoutes(results);
+                const endpoints = lines.filter((line: google.maps.Polyline[]): google.maps.Polyline => {
+                    return line.length === 0 ? undefined : line[0];
+                }).map<google.maps.LatLng>((l) => {
+                    const path: google.maps.LatLng[] = l[0].getPath().getArray();
+                    const lastPoint = path[path.length - 1];
+                    return this.getLocation(lastPoint.lat(), lastPoint.lng());
+                });
+
+                const shape = new google.maps.Polygon({
+                    paths: endpoints,
+                    strokeColor: 'green',
+                    strokeWeight: 1,
+                    strokeOpacity: 0.2,
+                    fillColor: 'green',
+                    fillOpacity: 0.2
+                });
+
+                shape.setMap(_me.map);
+            })
+            .catch((err) => {
+                throw err;
+            })
+    }
+
+    private convertGeoResults(results: google.maps.GeocoderResult[]): IGeoCodeResult[] {
+        return <IGeoCodeResult[]>results.map(function (r) {
+            return {
+                address: r.formatted_address,
+                bounds: r.geometry.bounds,
+                view: r.geometry.viewport,
+                center: r.geometry.location,
+                name: r.place_id
+            };
+        })
+    }
+
+    private getSearchPoints(marker: google.maps.Marker, radius: number): google.maps.LatLng[] {
+        const center: google.maps.LatLng = marker.getPosition();
+        const searchPoints = [];
+        const rLat = (radius / 3963.189) * (180 / Math.PI); // miles
+        const rLng = rLat / Math.cos(center.lat() * (Math.PI / 180));
+        for (let a = 0; a < 360; a = a + 45) {
+            const aRad = a * (Math.PI / 180);
+            const x = center.lng() + (rLng * Math.cos(aRad));
+            const y = center.lat() + (rLat * Math.sin(aRad));
+            const point = new google.maps.LatLng(y, x, true);
+            searchPoints.push(point);
+        }
+        return searchPoints;
+    }
+
+    private getDirections(center: google.maps.LatLng, searchPoints: google.maps.LatLng[]): Promise<google.maps.DirectionsResult>[] {
+        const routes: google.maps.DirectionsResult[] = [];
+
+        return searchPoints.map((s, i) => {
+            const req: google.maps.DirectionsRequest = {
+                travelMode: google.maps.TravelMode.DRIVING,
+                origin: center,
+                destination: s
+            };
+
+            return this.directions(req);
+        })
+    };
+
+    private drawRoutes(routes: google.maps.DirectionsResult[]): google.maps.Polyline[][] {
+
+        if (!routes) {
+            return [];
+        }
+
+        return routes.map<google.maps.Polyline[]>((directions: google.maps.DirectionsResult) => {
+            if (!directions) {
+                return [];
+            }
+            const paths = []
+
+            return directions.routes.map<google.maps.Polyline>((rr: google.maps.DirectionsRoute, i) => {
+                const opath = rr.overview_path;
+                const legs = rr.legs;
+                let duration = 0;
+
+                rr.legs.map((leg) => {
+                    leg.steps.map((step) => {
+                        if (duration < 1800) {
+                            step.path.map((path) => paths.push(path));
+                        }
+                        duration = duration + step.duration.value;
+                    });
+                });
+
+                const newLine = new google.maps.Polyline({
+                    path: paths,
+                    strokeColor: '#ff0000',
+                    strokeWeight: 2,
+                    strokeOpacity: 1
+                });
+
+                newLine.setMap(this.map)
+                return newLine;
+            });
+        });
     }
 }

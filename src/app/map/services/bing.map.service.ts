@@ -5,6 +5,7 @@ import { } from '@types/bingmaps';
 import { IMapService } from '../abstractions/imap.service';
 import { IMapOptions } from '../abstractions/imap.options';
 import { IGeoCodeResult } from '../abstractions/igeocode.result';
+import { IMarkerOptions } from '../abstractions/imarker.options';
 
 import { env } from '../../../env/env';
 
@@ -149,8 +150,17 @@ export class BingMapService implements IMapService {
         return marker;
     };
 
-    getMarker(lat: number, lng: number, options: any): Microsoft.Maps.Pushpin {
-        return new Microsoft.Maps.Pushpin(this.getLocation(lat, lng), options);
+    getMarker(location: Microsoft.Maps.Location, options: IMarkerOptions): Microsoft.Maps.Pushpin {
+        const newopts: Microsoft.Maps.IPushpinOptions = {};
+        const pin = new Microsoft.Maps.Pushpin(location, newopts);
+
+        if (options.onClick) {
+            Microsoft.Maps.Events.addHandler(pin, 'click', function (args, e) {
+                options.onClick.apply(this, [{ marker: pin, args: args }])
+            });
+        }
+
+        return pin;
     };
 
     removeMarker(marker: Microsoft.Maps.Pushpin): Microsoft.Maps.Pushpin {
@@ -168,5 +178,9 @@ export class BingMapService implements IMapService {
             }
         }
         return pins;
+    }
+
+    drawDrivingRadius(marker: Microsoft.Maps.Pushpin, radius: number): void {
+
     }
 }

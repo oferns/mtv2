@@ -1,11 +1,14 @@
+
 import { IGeoCodeResult } from './igeocode.result';
 import { IMapOptions } from '../abstractions/imap.options';
+import { IMarkerOptions } from '../abstractions/imarker.options';
+
 
 export interface IMapService {
     provider: string;
     initMap(mapElement: HTMLElement, options: any): Promise<any>;
     onReady(): Promise<void>;
-    directions(searchPoints: any): Promise<any[]>;
+    directions(searchPoints: any): Promise<any>;
     getLocation(lat: number, lng: number): any;
     setCenter(location: any): any;
     getCenter(): any;
@@ -16,8 +19,9 @@ export interface IMapService {
     addListener(event: string, handler: (...args: any[]) => void): void;
     geocode(location: string | any): Promise<IGeoCodeResult[]>;
     setMarker(marker: any): any;
-    getMarker(lat: number, lng: number, options: any): any;
+    getMarker(location: any, options: IMarkerOptions): any;
     removeMarker(marker: any): any;
     removeMarkers(): any[];
     getOptions(options: IMapOptions): any;
+    drawDrivingRadius(marker: any, radius: number): void;
 }
