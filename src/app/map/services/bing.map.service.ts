@@ -72,12 +72,11 @@ export class BingMapService implements IMapService {
         return new Microsoft.Maps.Location(lat, lng);
     }
 
-    setCenter(lat: number, lng: number): Microsoft.Maps.Location {
-        const center = this.getLocation(lat, lng);
+    setCenter(location: Microsoft.Maps.Location): Microsoft.Maps.Location {
         this.map.setView({
-            center: center
+            center: location
         });
-        return center;
+        return location;
     }
 
     getCenter(): Microsoft.Maps.Location {
@@ -121,12 +120,17 @@ export class BingMapService implements IMapService {
     }
 
     geocode(location: string | Microsoft.Maps.LocationRect): Promise<any[]> {
+        const _me = this;
         return this.onReady().then(() => {
             return new Promise<any[]>((res, rej) => {
 
                 const options = {
-                    callback: (result: any, data: any) => res(this.convertGeoResults(result.results)),
-                    error: (result: any, data: any) => rej(result.results)
+                    callback: (result: any, data: any): void => {
+                        return res(_me.convertGeoResults(result.results));
+                    },
+                    error: (result: any, data: any): void => {
+                        return rej(result.results);
+                    }
                 };
 
                 if (typeof location === 'string') {
@@ -135,7 +139,7 @@ export class BingMapService implements IMapService {
                     options['bounds'] = <Microsoft.Maps.LocationRect>location;
                 }
 
-                this.searchManager.geocode(options);
+                _me.searchManager.geocode(options);
             });
         });
     }
@@ -153,12 +157,4 @@ export class BingMapService implements IMapService {
         this.map.entities.remove(marker);
         return marker;
     };
-
-    resize(): void {
-        this.map.setView({
-            bounds : this.getBounds(),
-            zoom: 5,
-            center: this.getCenter()
-        })
-    }
 }

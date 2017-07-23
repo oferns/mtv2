@@ -12,6 +12,7 @@ import {
 
 import { IMapService } from './abstractions/imap.service';
 import { IHcoService } from '../services/ihco.service';
+import { IGeoCodeResult } from './abstractions/igeocode.result';
 
 export const PROVIDERS = new InjectionToken<IMapService>('IMapService');
 
@@ -23,7 +24,7 @@ export const PROVIDERS = new InjectionToken<IMapService>('IMapService');
 
 export class MapComponent implements AfterViewInit {
 
-  @ViewChildren('map') private mapContainersRef: QueryList<ElementRef>
+  @ViewChildren('map') private mapDivRefs: QueryList<ElementRef>
 
   private mapService: IMapService;
   private currentProviderIndex = 0;
@@ -35,10 +36,10 @@ export class MapComponent implements AfterViewInit {
 
   // OnInit implementation
   ngAfterViewInit(): void {
-    this.mapContainersRef.forEach((div: ElementRef, index: number) => {
+    this.mapDivRefs.forEach((div: ElementRef, index: number) => {
       const provider = this.providers[index];
       provider.initMap(div.nativeElement, {}).then((_map) => {
-        provider.setCenter(38.468589, 21.143545);
+        provider.setCenter(provider.getLocation(38.468589, 21.143545));
         provider.setZoom(8);
       }).catch((err) => {
         throw err;
@@ -68,24 +69,24 @@ export class MapComponent implements AfterViewInit {
 
   // Event Handlers
   countryChanged(country: any): void {
-    const p1 = new Promise((res, rej) => {
-      if (country.id && country.id > -1) {
-        this.mapService.geocode(country.name).then((results) => {
-          this.mapService.setBounds(results[0].view);
-          return res();
-        }).catch((err) => rej(err))
-      }
+    const _me = this;
+    const promises = this.providers.map((p) => p.geocode(country.name));
+    promises.push(this.hcoService.getHospitals(country.id));
+    Promise.all(promises).then((results: any[]) => {
+      const hcos: any[] = results[2];
+      _me.providers.map((p: IMapService, i: number) => {
+        p.setCenter(results[i][0].center);
+        p.setBounds(results[i][0].view);
+      })
+
+      const markers = hcos.map((h, i) => {
+        _me.providers.map((p) => {
+          return p.setMarker(p.getMarker(h.lat, h.lng, { label: h.title }));
+        })
+      })
+    }).catch((err) => {
+      throw err;
     });
-
-    Promise.all([p1, this.hcoService.getHospitals(country.id)]).
-      then((results: any[]) => {
-
-        for (const result of results[1]) {
-          const marker = this.mapService.getMarker(result.lat, result.lng, {});
-          this.mapService.setMarker(marker);
-        }
-      });
-
   }
 
   providerChanged(index: number): void {

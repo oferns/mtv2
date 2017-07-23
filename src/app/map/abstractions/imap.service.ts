@@ -7,7 +7,7 @@ export interface IMapService {
     onReady(): Promise<void>;
     directions(searchPoints: any): Promise<any[]>;
     getLocation(lat: number, lng: number): any;
-    setCenter(lat: number, lng: number): any;
+    setCenter(location: any): any;
     getCenter(): any;
     setBounds(bounds: any): void;
     getBounds(): any;
@@ -19,5 +19,4 @@ export interface IMapService {
     getMarker(lat: number, lng: number, options: any): any;
     removeMarker(marker: any): any;
     getOptions(options: IMapOptions): any;
-    resize(): void;
 }

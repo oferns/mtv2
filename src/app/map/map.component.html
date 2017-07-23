@@ -2,7 +2,7 @@
   <h1 i18n></h1>
   <app-map-country (selectionChanged)="countryChanged($event)"></app-map-country>
   <app-map-provider (selectionChanged)="providerChanged($event)" [providers]="providers" ></app-map-provider>
-  <div *ngFor="let provider of providers; let i = index;" [hidden]="i !== currentProviderIndex" class="map">
-     <div #map class="map"></div>
+  <div *ngFor="let provider of providers; let i = index;" class="map" [style.zIndex]="(i === currentProviderIndex) ? '1' : '-1'">
+     <div #map class="map" ></div>
   </div>
 </div>

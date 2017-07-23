@@ -92,10 +92,9 @@ export class GoogleMapService implements IMapService {
         return new google.maps.LatLng(lat, lng);
     }
 
-    setCenter(lat: number, lng: number): google.maps.LatLng {
-        const center = this.getLocation(lat, lng);
-        this.map.setCenter(center);
-        return center;
+    setCenter(location: google.maps.LatLng): google.maps.LatLng {
+        this.map.setCenter(location);
+        return location;
     }
 
     getCenter(): google.maps.LatLng {
@@ -144,16 +143,15 @@ export class GoogleMapService implements IMapService {
         } else if (location instanceof google.maps.LatLngBounds) {
             options.bounds = <google.maps.LatLngBounds>location;
         }
-
+        const _me = this;
         return new Promise((res, rej) => {
-            this.geocoder.geocode(options,
+            _me.geocoder.geocode(options,
                 (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
                     switch (status) {
-                        case google.maps.GeocoderStatus.OK: return res(this.convertGeoResults(results));
+                        case google.maps.GeocoderStatus.OK: return res(_me.convertGeoResults(results));
                         case google.maps.GeocoderStatus.ZERO_RESULTS: return res([]);
                         case google.maps.GeocoderStatus.ERROR: return rej(results);
                         case google.maps.GeocoderStatus.INVALID_REQUEST: return rej(results);
-                        case google.maps.GeocoderStatus.OVER_QUERY_LIMIT: return rej(results);
                         case google.maps.GeocoderStatus.OVER_QUERY_LIMIT: return rej(results);
                         case google.maps.GeocoderStatus.UNKNOWN_ERROR:
                         default: return rej(results);
@@ -176,10 +174,4 @@ export class GoogleMapService implements IMapService {
         marker.setMap(null);
         return marker;
     };
-
-    resize(): void {
-        this.setCenter(38.468589, 21.143545);
-
-        google.maps.event.trigger(this.map, 'resize');
-    }
 }
