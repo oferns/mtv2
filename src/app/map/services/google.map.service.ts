@@ -202,16 +202,18 @@ export class GoogleMapService implements IMapService {
         Promise.all(this.getDirections(marker.getPosition(), searchPoints))
             .then((results) => {
                 const lines = this.drawRoutes(results);
-                const endpoints = lines.filter((line: google.maps.Polyline[]): google.maps.Polyline => {
+
+                const endpoints: google.maps.LatLng[][] = lines.filter((line: google.maps.Polyline[]): google.maps.Polyline => {
                     return line.length === 0 ? undefined : line[0];
-                }).map<google.maps.LatLng>((l) => {
+                }).map<google.maps.LatLng[]>((l) => {
                     const path: google.maps.LatLng[] = l[0].getPath().getArray();
-                    const lastPoint = path[path.length - 1];
-                    return this.getLocation(lastPoint.lat(), lastPoint.lng());
+                    return path.map<google.maps.LatLng>((p) => this.getLocation(p.lat(), p.lng()));
                 });
 
+                const shapeLines = this.convexHull([].concat.apply([], endpoints));
+
                 const shape = new google.maps.Polygon({
-                    paths: endpoints,
+                    paths: shapeLines,
                     strokeColor: 'green',
                     strokeWeight: 1,
                     strokeOpacity: 0.2,
@@ -220,6 +222,7 @@ export class GoogleMapService implements IMapService {
                 });
 
                 shape.setMap(_me.map);
+
             })
             .catch((err) => {
                 throw err;
@@ -279,7 +282,7 @@ export class GoogleMapService implements IMapService {
             }
             const paths = []
 
-            return directions.routes.map<google.maps.Polyline>((rr: google.maps.DirectionsRoute, i) => {
+            return directions.routes.map<google.maps.Polyline>((rr: google.maps.DirectionsRoute, i: number): google.maps.Polyline => {
                 const opath = rr.overview_path;
                 const legs = rr.legs;
                 let duration = 0;
@@ -287,9 +290,21 @@ export class GoogleMapService implements IMapService {
                 rr.legs.map((leg) => {
                     leg.steps.map((step) => {
                         if (duration < 1800) {
+                            if (duration + step.duration.value > 1800 && step.duration.value > 90) {
+                                // find out how far over in %
+                                // then get rid of the last x% of points in the path
+                                const shortsteps = step.path.map((p, i2) => {
+
+                                })
+                            }
+
                             step.path.map((path) => paths.push(path));
+                            console.log('> ' + step.duration.value);
+                            console.log(duration + step.duration.value);
+
                         }
                         duration = duration + step.duration.value;
+
                     });
                 });
 
@@ -304,5 +319,36 @@ export class GoogleMapService implements IMapService {
                 return newLine;
             });
         });
+    }
+
+    // SHamelessly ripped from https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain#JavaScript
+    private cross(a: google.maps.LatLng, b: google.maps.LatLng, o: google.maps.LatLng): number {
+        return (a.lat() - o.lat()) * (b.lng() - o.lng()) - (a.lng() - o.lng()) * (b.lat() - o.lat());
+    }
+
+    private convexHull(points: google.maps.LatLng[]): google.maps.LatLng[] {
+
+        points.sort((a: google.maps.LatLng, b: google.maps.LatLng) => a.lat() === b.lat() ? (a.lng() - b.lng()) : a.lat() - b.lat());
+
+        const lower: google.maps.LatLng[] = [];
+        const upper: google.maps.LatLng[] = [];
+
+        for (let i = 0; i < points.length; i++) {
+            while (lower.length >= 2 && this.cross(lower[lower.length - 2], lower[lower.length - 1], points[i]) <= 0) {
+                lower.pop();
+            }
+            lower.push(points[i]);
+        }
+
+        for (let i = points.length - 1; i >= 0; i--) {
+            while (upper.length >= 2 && this.cross(upper[upper.length - 2], upper[upper.length - 1], points[i]) <= 0) {
+                upper.pop();
+            }
+            upper.push(points[i]);
+        }
+
+        upper.pop();
+        lower.pop();
+        return lower.concat(upper);
     }
 }
