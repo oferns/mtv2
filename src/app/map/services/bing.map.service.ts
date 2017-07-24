@@ -154,6 +154,8 @@ export class BingMapService implements IMapService {
         const newopts: Microsoft.Maps.IPushpinOptions = {};
         const pin = new Microsoft.Maps.Pushpin(location, newopts);
 
+        pin.id = options.id;
+
         if (options.onClick) {
             Microsoft.Maps.Events.addHandler(pin, 'click', function (args, e) {
                 options.onClick.apply(this, [{ marker: pin, args: args }])
@@ -183,4 +185,9 @@ export class BingMapService implements IMapService {
     drawDrivingRadius(marker: Microsoft.Maps.Pushpin, radius: number): void {
 
     }
+
+    getRadialPoints(marker: any, points: number, miles: number): any[] {
+        throw new Error('Method not implemented.');
+    }
+
 }

@@ -23,5 +23,7 @@ export interface IMapService {
     removeMarker(marker: any): any;
     removeMarkers(): any[];
     getOptions(options: IMapOptions): any;
+
+    getRadialPoints(marker: any, points: number, miles: number): Array<any>;
     drawDrivingRadius(marker: any, radius: number): void;
 }

@@ -20,7 +20,10 @@ export class GoogleMapService implements IMapService {
     private geocoder: google.maps.Geocoder;
     private dirService: google.maps.DirectionsService;
 
+    // Internal tracking of objects. GM doesnt do this for us
     private _markers: google.maps.Marker[] = [];
+    private _shapes: google.maps.Polygon[] = [];
+    private _lines: google.maps.Polyline[] = [];
     provider = 'Google';
 
     constructor() {
@@ -156,13 +159,15 @@ export class GoogleMapService implements IMapService {
     };
 
     getMarker(location: google.maps.LatLng, options: IMarkerOptions): google.maps.Marker {
+
         const newopts: google.maps.MarkerOptions = {
             position: location,
             icon: options.icon,
-            title: options.title
+            title: options.title,
         };
 
         const marker = new google.maps.Marker(newopts);
+        marker.id = options.id;
 
         if (options.onClick) {
             google.maps.event.addListener(marker, 'click', function (args, e) {
@@ -196,33 +201,135 @@ export class GoogleMapService implements IMapService {
         return markers;
     }
 
-    drawDrivingRadius(marker: google.maps.Marker, radius: number): void {
-        const searchPoints = this.getSearchPoints(marker, radius);
+    getLineOptions(options: any): google.maps.PolylineOptions {
+        const newoptions: google.maps.PolylineOptions = {
+            strokeColor: '#ff0000',
+            strokeWeight: 2,
+            strokeOpacity: 1
+        };
+
+        return newoptions;
+    }
+
+    getLine(path: google.maps.LatLng[], options: google.maps.PolylineOptions): google.maps.Polyline {
+        options.path = path;
+        const line = new google.maps.Polyline(options);
+        this._lines.push(line);
+        return line;
+    }
+
+    drawLine(line: google.maps.Polyline): google.maps.Polyline {
+
+        if (this._lines.indexOf(line) === -1) {
+            this._lines.push(line);
+        }
+
+        line.setMap(this.map);
+        return line;
+    }
+
+    hideLine(line: google.maps.Polyline): google.maps.Polyline {
+        if (this._lines.indexOf(line) === -1) {
+            this._lines.push(line);
+        }
+        line.setMap(null);
+        return line;
+    }
+
+    removeLine(line: google.maps.Polyline): void {
+        const index = this._lines.indexOf(line);
+        if (index > -1) {
+            this._lines.splice(index, 1);
+        }
+
+        line.setMap(null);
+        line = null;
+    }
+
+    removeLines(): void {
+        let len = this._lines.length;
+        while (len--) {
+            this.removeLine(this._lines[len]);
+        }
+        this._lines = [];
+    }
+
+    getShapeOptions(options: any): google.maps.PolygonOptions {
+        const newoptions: google.maps.PolygonOptions = {
+            strokeColor: 'green',
+            strokeWeight: 1,
+            strokeOpacity: 0.2,
+            fillColor: 'green',
+            fillOpacity: 0.2
+        };
+        return newoptions;
+    }
+
+    getShape(paths: google.maps.LatLng[], options: google.maps.PolygonOptions): google.maps.Polygon {
+        options.paths = paths;
+        const shape = new google.maps.Polygon(options);
+        this._shapes.push(shape);
+        return shape;
+    }
+
+    drawShape(shape: google.maps.Polygon): google.maps.Polygon {
+        if (this._shapes.indexOf(shape) === -1) {
+            this._shapes.push(shape);
+        }
+
+        shape.setMap(this.map);
+        return shape;
+    }
+
+    hideShape(shape: google.maps.Polygon): google.maps.Polygon {
+        if (this._shapes.indexOf(shape) === -1) {
+            this._shapes.push(shape);
+        }
+        shape.setMap(null);
+        return shape;
+    }
+
+    removeShape(shape: google.maps.Polygon): void {
+        const index = this._shapes.indexOf(shape);
+        if (index > -1) {
+            this._shapes.splice(index, 1);
+        }
+
+        shape.setMap(null);
+        shape = null;
+    }
+
+    removeShapes(): void {
+        let len = this._shapes.length;
+        while (len--) {
+            this.removeLine(this._shapes[len]);
+        }
+        this._shapes = [];
+    }
+
+    drawDrivingRadius(marker: google.maps.Marker, miles: number): void {
+        const searchPoints = this.getRadialPoints(marker, 8, miles);
         const _me = this;
         Promise.all(this.getDirections(marker.getPosition(), searchPoints))
             .then((results) => {
-                const lines = this.drawRoutes(results);
+                // Get rid of null routes (not found or no results)
+                const routes = this.getRoutes(results).filter((r) => r);
 
-                const endpoints: google.maps.LatLng[][] = lines.filter((line: google.maps.Polyline[]): google.maps.Polyline => {
-                    return line.length === 0 ? undefined : line[0];
-                }).map<google.maps.LatLng[]>((l) => {
-                    const path: google.maps.LatLng[] = l[0].getPath().getArray();
-                    return path.map<google.maps.LatLng>((p) => this.getLocation(p.lat(), p.lng()));
-                });
+                // Flattens the route into an array of LatLngs
+                const shapepoints = [].concat.apply([], routes.map((r) => [].concat.apply([], r)));
 
-                const shapeLines = this.convexHull([].concat.apply([], endpoints));
+                // Get a set of points representing a convex hull
+                const shapeLines = this.convexHull(shapepoints);
 
-                const shape = new google.maps.Polygon({
-                    paths: shapeLines,
-                    strokeColor: 'green',
-                    strokeWeight: 1,
-                    strokeOpacity: 0.2,
-                    fillColor: 'green',
-                    fillOpacity: 0.2
-                });
+                const shapeoptions = this.getShapeOptions({});
+                this.drawShape(this.getShape(shapeLines, shapeoptions));
 
-                shape.setMap(_me.map);
-
+                // Draw the Route lines
+                routes.forEach((route) => {
+                    const lineoptions = this.getLineOptions({});
+                    const linepoints = [].concat.apply([], route);
+                    this.drawLine(this.getLine(linepoints, lineoptions));
+                })
             })
             .catch((err) => {
                 throw err;
@@ -241,23 +348,25 @@ export class GoogleMapService implements IMapService {
         })
     }
 
-    private getSearchPoints(marker: google.maps.Marker, radius: number): google.maps.LatLng[] {
+    // Return
+    getRadialPoints(marker: google.maps.Marker, points: number, miles: number): Array<google.maps.LatLng> {
         const center: google.maps.LatLng = marker.getPosition();
-        const searchPoints = [];
-        const rLat = (radius / 3963.189) * (180 / Math.PI); // miles
+        const radialPoints = [];
+        points = points > 1 ? Math.floor(360 / points) : 4;
+        const rLat = (miles / 3963.189) * (180 / Math.PI); // miles
         const rLng = rLat / Math.cos(center.lat() * (Math.PI / 180));
-        for (let a = 0; a < 360; a = a + 45) {
+        for (let a = 0; a < 360; a = a + points) {
             const aRad = a * (Math.PI / 180);
             const x = center.lng() + (rLng * Math.cos(aRad));
             const y = center.lat() + (rLat * Math.sin(aRad));
             const point = new google.maps.LatLng(y, x, true);
-            searchPoints.push(point);
+            radialPoints.push(point);
         }
-        return searchPoints;
+        return radialPoints;
     }
 
+    // From Google
     private getDirections(center: google.maps.LatLng, searchPoints: google.maps.LatLng[]): Promise<google.maps.DirectionsResult>[] {
-        const routes: google.maps.DirectionsResult[] = [];
 
         return searchPoints.map((s, i) => {
             const req: google.maps.DirectionsRequest = {
@@ -270,55 +379,53 @@ export class GoogleMapService implements IMapService {
         })
     };
 
-    private drawRoutes(routes: google.maps.DirectionsResult[]): google.maps.Polyline[][] {
+    // This method takes a google DirectionsRoute and returns an array of LatLng points that
+    // represent the route upto the amount of tume passed in seconds
+    private getRoutePoints(route: google.maps.DirectionsRoute, seconds: number): Array<google.maps.LatLng> {
+        let duration = 0;
+        let results: Array<google.maps.LatLng> = [];
+        let x = 0;
+
+        while (duration < seconds && x < route.legs.length) {
+            const leg = route.legs[x];
+            for (let y = 0; y < leg.steps.length; y++) {
+                if (duration > seconds) {
+                    break;
+                }
+                const step = leg.steps[y];
+                if ((duration + step.duration.value) > seconds) {
+                    const secondsneeded = Math.max(seconds - duration, duration);
+                    const percentageOfTotal = (secondsneeded / step.duration.value) * 100;
+                    const lastpath = (step.path.length / 100) * percentageOfTotal;
+                    results = results.concat(leg.steps[y].path.filter((l: google.maps.LatLng, i) => i < lastpath))
+                } else {
+                    results = results.concat(leg.steps[y].path);
+                }
+                duration = duration + step.duration.value;
+            }
+            x++;
+        }
+        return results;
+    }
+
+    // Returns an array of points for each route in the Directions
+    private getRoutes(routes: google.maps.DirectionsResult[]): Array<Array<google.maps.LatLng>> {
 
         if (!routes) {
-            return [];
+            return null;
         }
 
-        return routes.map<google.maps.Polyline[]>((directions: google.maps.DirectionsResult) => {
+        // For each direction result, return one array of points per leg
+        return routes.map<google.maps.LatLng[]>((directions: google.maps.DirectionsResult): google.maps.LatLng[] => {
             if (!directions) {
-                return [];
+                return null;
             }
-            const paths = []
+            const routepoints: Array<Array<google.maps.LatLng>> = directions.routes.map<google.maps.LatLng[]>
+                ((route: google.maps.DirectionsRoute): google.maps.LatLng[] => this.getRoutePoints(route, 1800));
 
-            return directions.routes.map<google.maps.Polyline>((rr: google.maps.DirectionsRoute, i: number): google.maps.Polyline => {
-                const opath = rr.overview_path;
-                const legs = rr.legs;
-                let duration = 0;
-
-                rr.legs.map((leg) => {
-                    leg.steps.map((step) => {
-                        if (duration < 1800) {
-                            if (duration + step.duration.value > 1800 && step.duration.value > 90) {
-                                // find out how far over in %
-                                // then get rid of the last x% of points in the path
-                                const shortsteps = step.path.map((p, i2) => {
-
-                                })
-                            }
-
-                            step.path.map((path) => paths.push(path));
-                            console.log('> ' + step.duration.value);
-                            console.log(duration + step.duration.value);
-
-                        }
-                        duration = duration + step.duration.value;
-
-                    });
-                });
-
-                const newLine = new google.maps.Polyline({
-                    path: paths,
-                    strokeColor: '#ff0000',
-                    strokeWeight: 2,
-                    strokeOpacity: 1
-                });
-
-                newLine.setMap(this.map)
-                return newLine;
-            });
+            return <google.maps.LatLng[]>[].concat.apply([], routepoints);
         });
+
     }
 
     // SHamelessly ripped from https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain#JavaScript

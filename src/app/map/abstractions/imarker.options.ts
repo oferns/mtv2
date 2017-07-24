@@ -1,4 +1,5 @@
 export interface IMarkerOptions {
+    id: number;
     anchor?: any;
     draggable?: boolean;
     title?: string;

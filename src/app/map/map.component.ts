@@ -35,7 +35,7 @@ export class MapComponent implements AfterViewInit {
     @Inject('IHcoService') private readonly hcoService: IHcoService
   ) { }
 
-  // OnInit implementation
+  // AfterViewInit implementation
   ngAfterViewInit(): void {
     this.mapDivRefs.forEach((div: ElementRef, index: number) => {
       const provider = this.providers[index];
@@ -46,25 +46,6 @@ export class MapComponent implements AfterViewInit {
         throw err;
       });
     })
-
-    // this.mapService.initMap(this.mapsContainerRef.nativeElement, {
-    //   disableDefaultUI: true,
-    //   zoomControl: true,
-    //   zoomControlOptions: {
-    //     position: 'TOP_RIGHT'
-    //   },
-    //   mapTypeControl: true,
-    //   scaleControl: true,
-    //   streetViewControl: false,
-    //   rotateControl: true,
-    //   fullscreenControl: false
-    // }).then((_map) => {
-    //   this.mapService.setCenter(38.468589, 21.143545);
-    //   this.mapService.setZoom(4);
-    // }).catch((err) => {
-    //   console.log(err);
-    //   throw err;
-    // });
   }
   // End OnInit
 
@@ -74,7 +55,8 @@ export class MapComponent implements AfterViewInit {
     const promises = this.providers.map((p) => p.geocode(country.name));
     this.providers.map((p) => p.removeMarkers());
 
-    promises.push(this.hcoService.getHospitals(country.id));
+    promises.push(this.hcoService.getHospitals(country.name));
+
     Promise.all(promises).then((results: any[]) => {
       const hcos: any[] = results[2];
       _me.providers.map((p: IMapService, i: number) => {
@@ -82,15 +64,17 @@ export class MapComponent implements AfterViewInit {
         p.setBounds(results[i][0].view);
       })
 
-      const markers = hcos.map((h, i) => {
+      hcos.forEach((h, i) => {
         _me.providers.map((p) => {
           const options: IMarkerOptions = {
+            id: h.id,
             label: h.title,
             onClick: (args) => {
+              // alert(args['marker'].id);
               p.drawDrivingRadius(args['marker'], 30);
             }
           };
-          return p.setMarker(p.getMarker(p.getLocation(h.lat, h.lng), options));
+          const marker = p.setMarker(p.getMarker(p.getLocation(h.lat, h.lng), options));
         })
       })
     }).catch((err) => {
@@ -100,5 +84,10 @@ export class MapComponent implements AfterViewInit {
 
   providerChanged(index: number): void {
     this.currentProviderIndex = index;
+  }
+
+  drawDrivingTimeFromMarkerInMinutes(marker: any, minutes: number): void {
+    const provider = this.providers[this.currentProviderIndex];
+
   }
 }
