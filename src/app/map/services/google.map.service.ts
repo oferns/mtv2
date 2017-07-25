@@ -68,15 +68,26 @@ export class GoogleMapService implements IMapService {
         return new google.maps.MapOptions();
     }
 
-    directions(request: google.maps.DirectionsRequest): Promise<google.maps.DirectionsResult> {
+    async directions(request: google.maps.DirectionsRequest, retryCount?: number): Promise<google.maps.DirectionsResult> {
         const _me = this;
-        return new Promise(function (res, rej) {
+        retryCount = retryCount || 0;
+        return await new Promise<google.maps.DirectionsResult>(function (res, rej) {
+            const maxRetry = 10;
+
             _me.dirService.route(request, function (result, status) {
                 switch (status) {
                     case google.maps.DirectionsStatus.OK: return res(result);
                     case google.maps.DirectionsStatus.NOT_FOUND: return res(<google.maps.DirectionsResult>null);
                     case google.maps.DirectionsStatus.ZERO_RESULTS: return res(<google.maps.DirectionsResult>null);
                     case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
+                        if (retryCount <= maxRetry) {
+                            setTimeout(() => {
+                                console.log(`Retrying no ${retryCount} of ${maxRetry}`);
+                                return res(_me.directions(request, ++retryCount));
+                            }, 2000);
+                        } else {
+                            return rej([{ result: result, status: status }])
+                        } break;
                     case google.maps.DirectionsStatus.REQUEST_DENIED:
                         return rej([{ result: result, status: status }]);
                     case google.maps.DirectionsStatus.UNKNOWN_ERROR:
@@ -125,18 +136,21 @@ export class GoogleMapService implements IMapService {
         return new google.maps.LatLngBounds(nw, se)
     }
 
-    geocode(location: string | google.maps.LatLng | google.maps.LatLngBounds): Promise<IGeoCodeResult[]> {
-        const options: google.maps.GeocoderRequest = {};
-
-        if (typeof location === 'string') {
-            options.address = location;
-        } else if (location instanceof google.maps.LatLng) {
-            options.location = <google.maps.LatLng>location;
-        } else if (location instanceof google.maps.LatLngBounds) {
-            options.bounds = <google.maps.LatLngBounds>location;
-        }
+    async geocode(location: string | google.maps.LatLng | google.maps.LatLngBounds): Promise<IGeoCodeResult[]> {
         const _me = this;
-        return new Promise((res, rej) => {
+        return await new Promise<IGeoCodeResult[]>((res, rej) => {
+            const options: google.maps.GeocoderRequest = {};
+
+            if (typeof location === 'string') {
+                options.address = location;
+            } else if (location instanceof google.maps.LatLng) {
+                options.location = <google.maps.LatLng>location;
+            } else if (location instanceof google.maps.LatLngBounds) {
+                options.bounds = <google.maps.LatLngBounds>location;
+            }
+            let retryCount = 0;
+            const maxRetry = 10;
+
             _me.geocoder.geocode(options,
                 (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
                     switch (status) {
@@ -144,7 +158,16 @@ export class GoogleMapService implements IMapService {
                         case google.maps.GeocoderStatus.ZERO_RESULTS: return res([]);
                         case google.maps.GeocoderStatus.ERROR: return rej(results);
                         case google.maps.GeocoderStatus.INVALID_REQUEST: return rej(results);
-                        case google.maps.GeocoderStatus.OVER_QUERY_LIMIT: return rej(results);
+                        case google.maps.GeocoderStatus.OVER_QUERY_LIMIT:
+                            if (retryCount <= maxRetry) {
+                                setTimeout(() => {
+                                    console.log('Retrying');
+                                    retryCount++;
+                                    return _me.geocode(location);
+                                }, 1000);
+                            } else {
+                                return rej(results)
+                            } break;
                         case google.maps.GeocoderStatus.UNKNOWN_ERROR:
                         default: return rej(results);
                     }
@@ -308,12 +331,12 @@ export class GoogleMapService implements IMapService {
     }
 
     drawDrivingRadius(marker: google.maps.Marker, miles: number): void {
-        const searchPoints = this.getRadialPoints(marker, 8, miles);
+        const searchPoints = this.getRadialPoints(marker, 9, miles);
         const _me = this;
         Promise.all(this.getDirections(marker.getPosition(), searchPoints))
             .then((results) => {
                 // Get rid of null routes (not found or no results)
-                const routes = this.getRoutes(results).filter((r) => r);
+                const routes = this.getRoutesAsPaths(results, 1800).filter((r) => r);
 
                 // Flattens the route into an array of LatLngs
                 const shapepoints = [].concat.apply([], routes.map((r) => [].concat.apply([], r)));
@@ -355,7 +378,7 @@ export class GoogleMapService implements IMapService {
         points = points > 1 ? Math.floor(360 / points) : 4;
         const rLat = (miles / 3963.189) * (180 / Math.PI); // miles
         const rLng = rLat / Math.cos(center.lat() * (Math.PI / 180));
-        for (let a = 0; a < 360; a = a + points) {
+        for (let a = 0; a <= 360; a = a + points) {
             const aRad = a * (Math.PI / 180);
             const x = center.lng() + (rLng * Math.cos(aRad));
             const y = center.lat() + (rLat * Math.sin(aRad));
@@ -381,7 +404,7 @@ export class GoogleMapService implements IMapService {
 
     // This method takes a google DirectionsRoute and returns an array of LatLng points that
     // represent the route upto the amount of tume passed in seconds
-    private getRoutePoints(route: google.maps.DirectionsRoute, seconds: number): Array<google.maps.LatLng> {
+    getRoutePathByDuration(route: google.maps.DirectionsRoute, seconds: number): Array<google.maps.LatLng> {
         let duration = 0;
         let results: Array<google.maps.LatLng> = [];
         let x = 0;
@@ -409,7 +432,7 @@ export class GoogleMapService implements IMapService {
     }
 
     // Returns an array of points for each route in the Directions
-    private getRoutes(routes: google.maps.DirectionsResult[]): Array<Array<google.maps.LatLng>> {
+    getRoutesAsPaths(routes: google.maps.DirectionsResult[], seconds: number): Array<Array<google.maps.LatLng>> {
 
         if (!routes) {
             return null;
@@ -421,7 +444,7 @@ export class GoogleMapService implements IMapService {
                 return null;
             }
             const routepoints: Array<Array<google.maps.LatLng>> = directions.routes.map<google.maps.LatLng[]>
-                ((route: google.maps.DirectionsRoute): google.maps.LatLng[] => this.getRoutePoints(route, 1800));
+                ((route: google.maps.DirectionsRoute): google.maps.LatLng[] => this.getRoutePathByDuration(route, seconds));
 
             return <google.maps.LatLng[]>[].concat.apply([], routepoints);
         });
