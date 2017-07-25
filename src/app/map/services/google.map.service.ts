@@ -136,8 +136,9 @@ export class GoogleMapService implements IMapService {
         return new google.maps.LatLngBounds(nw, se)
     }
 
-    async geocode(location: string | google.maps.LatLng | google.maps.LatLngBounds): Promise<IGeoCodeResult[]> {
+    async geocode(location: string | google.maps.LatLng | google.maps.LatLngBounds, retryCount?: number): Promise<IGeoCodeResult[]> {
         const _me = this;
+        retryCount = retryCount || 0;
         return await new Promise<IGeoCodeResult[]>((res, rej) => {
             const options: google.maps.GeocoderRequest = {};
 
@@ -148,7 +149,7 @@ export class GoogleMapService implements IMapService {
             } else if (location instanceof google.maps.LatLngBounds) {
                 options.bounds = <google.maps.LatLngBounds>location;
             }
-            let retryCount = 0;
+
             const maxRetry = 10;
 
             _me.geocoder.geocode(options,
@@ -331,7 +332,7 @@ export class GoogleMapService implements IMapService {
     }
 
     drawDrivingRadius(marker: google.maps.Marker, miles: number): void {
-        const searchPoints = this.getRadialPoints(marker, 9, miles);
+        const searchPoints = this.getRadialPoints(marker, 12, miles);
         const _me = this;
         Promise.all(this.getDirections(marker.getPosition(), searchPoints))
             .then((results) => {
