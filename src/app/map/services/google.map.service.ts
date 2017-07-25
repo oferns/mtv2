@@ -26,6 +26,8 @@ export class GoogleMapService implements IMapService {
     private _lines: google.maps.Polyline[] = [];
     provider = 'Google';
 
+    wank = 'er';
+
     constructor() {
         const script: HTMLScriptElement = window.document.createElement('script');
 
