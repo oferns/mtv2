@@ -14,6 +14,7 @@ declare var Microsoft: any;
 @Injectable()
 export class BingMapService implements IMapService {
 
+
     private map: Microsoft.Maps.Map;
     private searchManager: any;
     private scriptLoadingPromise: Promise<void>;
@@ -189,5 +190,10 @@ export class BingMapService implements IMapService {
     getRadialPoints(marker: any, points: number, miles: number): any[] {
         throw new Error('Method not implemented.');
     }
-
+    getRoutesAsPaths(routes: any[], seconds: number): any[][] {
+        throw new Error('Method not implemented.');
+    }
+    getDirectionsAsPaths(routes: any[]): any[][] {
+        throw new Error('Method not implemented.');
+    }
 }

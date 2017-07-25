@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular/core';
-import { IHcoService } from '../../services/ihco.service';
+import { IHcoService } from '../../../services/ihco.service';
 
 export interface ICountry {
     name: string;

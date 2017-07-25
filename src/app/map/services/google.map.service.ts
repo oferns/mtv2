@@ -49,17 +49,15 @@ export class GoogleMapService implements IMapService {
         this.onReady().then(() => {
             this.geocoder = new google.maps.Geocoder();
             this.dirService = new google.maps.DirectionsService();
-            // google.maps.event.addListener(this.map, 'idle', () => google.maps.event.trigger(this.map, 'resize'));
         });
     }
 
-
-    onReady(): Promise<void> {
-        return this.scriptLoadingPromise;
+    async onReady(): Promise<void> {
+        return await this.scriptLoadingPromise;
     }
 
-    initMap(mapElement: HTMLElement, options: google.maps.MapOptions): Promise<google.maps.Map> {
-        return this.onReady().then(() => {
+    async initMap(mapElement: HTMLElement, options: google.maps.MapOptions): Promise<google.maps.Map> {
+        return await this.onReady().then(() => {
             return this.map = new google.maps.Map(mapElement, options);
         });
     }
@@ -71,8 +69,9 @@ export class GoogleMapService implements IMapService {
     async directions(request: google.maps.DirectionsRequest, retryCount?: number): Promise<google.maps.DirectionsResult> {
         const _me = this;
         retryCount = retryCount || 0;
+        const maxRetry = 10;
+
         return await new Promise<google.maps.DirectionsResult>(function (res, rej) {
-            const maxRetry = 10;
 
             _me.dirService.route(request, function (result, status) {
                 switch (status) {
@@ -80,7 +79,7 @@ export class GoogleMapService implements IMapService {
                     case google.maps.DirectionsStatus.NOT_FOUND: return res(<google.maps.DirectionsResult>null);
                     case google.maps.DirectionsStatus.ZERO_RESULTS: return res(<google.maps.DirectionsResult>null);
                     case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
-                        if (retryCount <= maxRetry) {
+                        if (retryCount < maxRetry) {
                             setTimeout(() => {
                                 console.log(`Retrying no ${retryCount} of ${maxRetry}`);
                                 return res(_me.directions(request, ++retryCount));
@@ -160,12 +159,12 @@ export class GoogleMapService implements IMapService {
                         case google.maps.GeocoderStatus.ERROR: return rej(results);
                         case google.maps.GeocoderStatus.INVALID_REQUEST: return rej(results);
                         case google.maps.GeocoderStatus.OVER_QUERY_LIMIT:
-                            if (retryCount <= maxRetry) {
+                            if (retryCount < maxRetry) {
                                 setTimeout(() => {
                                     console.log('Retrying');
                                     retryCount++;
                                     return _me.geocode(location);
-                                }, 1000);
+                                }, 2000);
                             } else {
                                 return rej(results)
                             } break;
@@ -452,7 +451,28 @@ export class GoogleMapService implements IMapService {
 
     }
 
-    // SHamelessly ripped from https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain#JavaScript
+    // Returns the route results into an array of arrays of LatLng points for serialization
+    // There MUST be a better way to do this <sigh>
+    getDirectionsAsPaths(directions: google.maps.DirectionsResult[]): Array<Array<google.maps.LatLngLiteral>> {
+        if (!directions) {
+            return null;
+        }
+        const dirs = directions.map<Array<google.maps.LatLngLiteral>>((direction: google.maps.DirectionsResult) => {
+            const routes = direction.routes.map<Array<google.maps.LatLngLiteral>>((route: google.maps.DirectionsRoute) => {
+                const legs = route.legs.map<Array<google.maps.LatLngLiteral>>((leg: google.maps.DirectionsLeg) => {
+                    const paths = leg.steps.map<Array<google.maps.LatLngLiteral>>((step: google.maps.DirectionsStep) => {
+                        return step.path.map<google.maps.LatLngLiteral>((p: google.maps.LatLng): google.maps.LatLngLiteral =>
+                            <google.maps.LatLngLiteral>p.toJSON());
+                    });
+                    return <Array<google.maps.LatLngLiteral>>[].concat([], paths);
+                });
+                return <Array<google.maps.LatLngLiteral>>[].concat([], legs);
+            });
+            return <Array<google.maps.LatLngLiteral>>[].concat([], routes);
+        });
+    };
+
+    // Shamelessly ripped from https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain#JavaScript
     private cross(a: google.maps.LatLng, b: google.maps.LatLng, o: google.maps.LatLng): number {
         return (a.lat() - o.lat()) * (b.lng() - o.lng()) - (a.lng() - o.lng()) * (b.lat() - o.lat());
     }

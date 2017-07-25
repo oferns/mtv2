@@ -26,4 +26,7 @@ export interface IMapService {
 
     getRadialPoints(marker: any, points: number, miles: number): Array<any>;
     drawDrivingRadius(marker: any, radius: number): void;
+    getRoutesAsPaths(routes: Array<any>, seconds: number): Array<Array<any>>
+
+    getDirectionsAsPaths(routes: Array<any>): Array<Array<any>>
 }

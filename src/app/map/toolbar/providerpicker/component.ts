@@ -1,11 +1,10 @@
 import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular/core';
-import { IMapService } from '../abstractions/imap.service';
+import { IMapService } from '../../abstractions/imap.service';
 
 @Component({
     selector: 'app-map-provider',
     templateUrl: './component.html',
-    styleUrls: ['./component.scss'],
-    providers: []
+    styleUrls: ['./component.scss']
 })
 
 export class ProviderPickerComponent {

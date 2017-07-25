@@ -1,13 +1,11 @@
 import {
   Component,
-  ElementRef,
   AfterViewInit,
-  AfterViewChecked,
-  ViewChild,
   ViewChildren,
   Inject,
   InjectionToken,
-  QueryList
+  QueryList,
+  ElementRef
 } from '@angular/core';
 
 import { IMapService } from './abstractions/imap.service';
@@ -86,8 +84,13 @@ export class MapComponent implements AfterViewInit {
     this.currentProviderIndex = index;
   }
 
-  drawDrivingTimeFromMarkerInMinutes(marker: any, minutes: number): void {
-    const provider = this.providers[this.currentProviderIndex];
+  clearMap(event: MouseEvent): void {
+    this.providers.forEach((p) => {
+      
+    })
+  }
 
+  drawDrivingTimeFromMarkerInMinutes(marker: any, minutes: number): void {
+    const p = this.providers[this.currentProviderIndex];
   }
 }

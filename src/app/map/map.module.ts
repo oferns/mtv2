@@ -1,21 +1,20 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
+import { ToolbarModule } from './toolbar/module';
+
 import { MapComponent, PROVIDERS } from './map.component';
-import { CountryPickerComponent } from './countrypicker/component';
-import { ProviderPickerComponent} from './providerpicker/component';
+
 import { GoogleMapService } from './services/google.map.service';
 import { BingMapService } from './services/bing.map.service';
 
-
 @NgModule({
     declarations: [
-        MapComponent,
-        CountryPickerComponent,
-        ProviderPickerComponent
+        MapComponent
     ],
     imports: [
-        BrowserModule
+        BrowserModule,
+        ToolbarModule
     ],
     providers: [
         { provide: PROVIDERS, useClass: GoogleMapService, multi: true }, // PROVIDERS can be any implementation of IMapService
