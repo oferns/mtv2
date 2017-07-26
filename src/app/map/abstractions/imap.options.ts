@@ -1,5 +1,5 @@
 export interface IMapOptions {
-    
+
     //   disableDefaultUI: true,
     //   zoomControl: true,
     //   zoomControlOptions: {

@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 
 import { } from '@types/googlemaps';
 
+import { IRouteStep } from '../abstractions/iroutestep';
+
 import { IMapService } from '../abstractions/imap.service';
 import { IMapOptions } from '../abstractions/imap.options';
 import { IMarkerOptions } from '../abstractions/imarker.options';
@@ -342,7 +344,7 @@ export class GoogleMapService implements IMapService {
                 const shapepoints = [].concat.apply([], routes.map((r) => [].concat.apply([], r)));
 
                 // Get a set of points representing a convex hull
-                const shapeLines = this.convexHull(shapepoints);
+                const shapeLines = this.getConvexHull(shapepoints);
 
                 const shapeoptions = this.getShapeOptions({});
                 this.drawShape(this.getShape(shapeLines, shapeoptions));
@@ -431,6 +433,58 @@ export class GoogleMapService implements IMapService {
         return results;
     }
 
+    shortenRouteStepsByDuration(routeSteps: Array<IRouteStep>, durationInSeconds: number): Array<google.maps.LatLng> {
+        let totalDuration = 0;
+        let results: Array<google.maps.LatLng> = [];
+        let x = 0;
+
+        while (x < routeSteps.length && totalDuration < durationInSeconds) {
+            const step = routeSteps[x];
+            const points = google.maps.geometry.encoding.decodePath(step.encoded_lat_lngs);
+            if (totalDuration + step.durationInSeconds > durationInSeconds) {
+
+                const secondsneeded = Math.max(durationInSeconds - totalDuration, totalDuration);
+                const percentageOfTotal = (secondsneeded / step.durationInSeconds) * 100;
+                const lastPoint = ((points.length / 100) * percentageOfTotal);
+
+                results = results.concat(points.filter((p, i: number) => i <= lastPoint));
+
+            } else {
+                results = results.concat(points);
+            }
+            totalDuration += step.durationInSeconds;
+            ++x;
+        }
+
+        return results;
+    }
+
+    shortenRouteStepsByLength(routeSteps: Array<IRouteStep>, distanceInMeters: number): Array<google.maps.LatLng> {
+        let totalDistance = 0;
+        let results: Array<google.maps.LatLng> = [];
+        let x = 0;
+
+        while (x < routeSteps.length && totalDistance < distanceInMeters) {
+            const step = routeSteps[x];
+            const points = google.maps.geometry.encoding.decodePath(step.encoded_lat_lngs);
+            if (totalDistance + step.durationInSeconds > distanceInMeters) {
+
+                const secondsneeded = Math.max(distanceInMeters - totalDistance, totalDistance);
+                const percentageOfTotal = (secondsneeded / step.durationInSeconds) * 100;
+                const lastPoint = ((points.length / 100) * percentageOfTotal);
+
+                results = results.concat(points.filter((p, i: number) => i <= lastPoint));
+
+            } else {
+                results = results.concat(points);
+            }
+            totalDistance += step.durationInSeconds;
+            ++x;
+        }
+
+        return results;
+    }
+
     // Returns an array of points for each route in the Directions
     getRoutesAsPaths(routes: google.maps.DirectionsResult[], seconds: number): Array<Array<google.maps.LatLng>> {
 
@@ -451,33 +505,31 @@ export class GoogleMapService implements IMapService {
 
     }
 
-    // Returns the route results into an array of arrays of LatLng points for serialization
-    // There MUST be a better way to do this <sigh>
-    getDirectionsAsPaths(directions: google.maps.DirectionsResult[]): Array<Array<google.maps.LatLngLiteral>> {
+    // Returns a flattened array of IRouteSteps for each route in the DirectionsResult
+    getDirectionsAsRouteSteps(directions: Array<google.maps.DirectionsResult>): Array<Array<IRouteStep>> {
         if (!directions) {
-            return null;
+            return;
         }
-        const dirs = directions.map<Array<google.maps.LatLngLiteral>>((direction: google.maps.DirectionsResult) => {
-            const routes = direction.routes.map<Array<google.maps.LatLngLiteral>>((route: google.maps.DirectionsRoute) => {
-                const legs = route.legs.map<Array<google.maps.LatLngLiteral>>((leg: google.maps.DirectionsLeg) => {
-                    const paths = leg.steps.map<Array<google.maps.LatLngLiteral>>((step: google.maps.DirectionsStep) => {
-                        return step.path.map<google.maps.LatLngLiteral>((p: google.maps.LatLng): google.maps.LatLngLiteral =>
-                            <google.maps.LatLngLiteral>p.toJSON());
+        return directions.map<Array<IRouteStep>>((direction: google.maps.DirectionsResult) => {
+            if (!direction) {
+                return;
+            }
+            const routes = direction.routes.map<Array<IRouteStep>>((route: google.maps.DirectionsRoute) => {
+                const legs = route.legs.map<Array<IRouteStep>>((leg: google.maps.DirectionsLeg) => {
+                    return leg.steps.map<IRouteStep>((step: google.maps.DirectionsStep) => {
+                        return <IRouteStep>{
+                            encoded_lat_lngs: step['encoded_lat_lngs'],
+                            durationInSeconds: step.duration.value, distanceInMeters: step.distance.value
+                        };
                     });
-                    return <Array<google.maps.LatLngLiteral>>[].concat([], paths);
                 });
-                return <Array<google.maps.LatLngLiteral>>[].concat([], legs);
+                return <Array<IRouteStep>>legs.reduce((a, b) => a.concat(b));
             });
-            return <Array<google.maps.LatLngLiteral>>[].concat([], routes);
-        });
+            return <Array<IRouteStep>>routes.reduce((a, b) => a.concat(b));
+        }).filter((r) => r);
     };
 
-    // Shamelessly ripped from https://en.wikibooks.org/wiki/Algorithm_Implementation/Geometry/Convex_hull/Monotone_chain#JavaScript
-    private cross(a: google.maps.LatLng, b: google.maps.LatLng, o: google.maps.LatLng): number {
-        return (a.lat() - o.lat()) * (b.lng() - o.lng()) - (a.lng() - o.lng()) * (b.lat() - o.lat());
-    }
-
-    private convexHull(points: google.maps.LatLng[]): google.maps.LatLng[] {
+    getConvexHull(points: Array<google.maps.LatLng>): Array<google.maps.LatLng> {
 
         points.sort((a: google.maps.LatLng, b: google.maps.LatLng) => a.lat() === b.lat() ? (a.lng() - b.lng()) : a.lat() - b.lat());
 
@@ -501,5 +553,9 @@ export class GoogleMapService implements IMapService {
         upper.pop();
         lower.pop();
         return lower.concat(upper);
+    }
+
+    private cross(a: google.maps.LatLng, b: google.maps.LatLng, o: google.maps.LatLng): number {
+        return (a.lat() - o.lat()) * (b.lng() - o.lng()) - (a.lng() - o.lng()) * (b.lat() - o.lat());
     }
 }

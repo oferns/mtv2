@@ -69,7 +69,7 @@ export class MapComponent implements AfterViewInit {
             label: h.title,
             onClick: (args) => {
               // alert(args['marker'].id);
-              p.drawDrivingRadius(args['marker'], 30);
+              _me.drawDrivingTimeFromMarkerInMinutes(args['marker'], 30);
             }
           };
           const marker = p.setMarker(p.getMarker(p.getLocation(h.lat, h.lng), options));
@@ -86,11 +86,44 @@ export class MapComponent implements AfterViewInit {
 
   clearMap(event: MouseEvent): void {
     this.providers.forEach((p) => {
-      
+
     })
   }
 
   drawDrivingTimeFromMarkerInMinutes(marker: any, minutes: number): void {
     const p = this.providers[this.currentProviderIndex];
+    const center = marker.position;
+    const searchPoints = p.getRadialPoints(marker, 12, 30);
+    const promises = searchPoints.map((s, i) => {
+      const req: google.maps.DirectionsRequest = {
+        travelMode: google.maps.TravelMode.DRIVING,
+        origin: center,
+        destination: s
+      };
+
+      return p.directions(req);
+    })
+
+    Promise.all(promises)
+      .then((results) => {
+        const routes = p.getDirectionsAsRouteSteps(results);
+        const shortenedRoutes = routes.map((r) => p.shortenRouteStepsByDuration(r, (minutes * 60)));
+        let shapepoints = shortenedRoutes.reduce((a, b) => a.concat(b));
+        shapepoints = p.getConvexHull(shapepoints)
+
+        const shapeoptions = p.getShapeOptions({});
+        const shape = p.getShape(shapepoints, shapeoptions);
+        p.drawShape(shape);
+
+        shortenedRoutes.forEach((r, i2) => {
+          const lineoptions = p.getLineOptions({});
+          const linepoints = [].concat.apply([], r);
+          p.drawLine(p.getLine(linepoints, lineoptions));
+        })
+      });
+  }
+
+  drawDrivingDistanceFromMarkerInMeters(marker: any, meters: number): void {
+
   }
 }

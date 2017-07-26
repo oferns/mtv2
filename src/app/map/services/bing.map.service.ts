@@ -8,12 +8,12 @@ import { IGeoCodeResult } from '../abstractions/igeocode.result';
 import { IMarkerOptions } from '../abstractions/imarker.options';
 
 import { env } from '../../../env/env';
+import { IRouteStep } from '../abstractions/iroutestep';
 
 declare var Microsoft: any;
 
 @Injectable()
 export class BingMapService implements IMapService {
-
 
     private map: Microsoft.Maps.Map;
     private searchManager: any;
@@ -193,7 +193,48 @@ export class BingMapService implements IMapService {
     getRoutesAsPaths(routes: any[], seconds: number): any[][] {
         throw new Error('Method not implemented.');
     }
-    getDirectionsAsPaths(routes: any[]): any[][] {
+
+
+    getDirectionsAsRouteSteps(directions: any[]): any[][] {
+        throw new Error('Method not implemented.');
+    }
+
+    shortenRouteStepsByDuration(routeSteps: IRouteStep[], durationInSeconds: number): any[] {
+        throw new Error('Method not implemented.');
+    }
+
+    getShapeOptions(options: any) {
+        throw new Error('Method not implemented.');
+    }
+    getShape(points: any[]) {
+        throw new Error('Method not implemented.');
+    }
+    drawShape(shape: any) {
+        throw new Error('Method not implemented.');
+    }
+    removeShape(shape: any) {
+        throw new Error('Method not implemented.');
+    }
+    removeShapes(): void {
+        throw new Error('Method not implemented.');
+    }
+    getConvexHull(points: any[]): any[] {
+        throw new Error('Method not implemented.');
+    }
+
+    getLineOptions(any: any) {
+        throw new Error('Method not implemented.');
+    }
+    getLine(points: any[], options: any) {
+        throw new Error('Method not implemented.');
+    }
+    drawLine(line: any) {
+        throw new Error('Method not implemented.');
+    }
+    removeLine(line: any) {
+        throw new Error('Method not implemented.');
+    }
+    removeLines(): void {
         throw new Error('Method not implemented.');
     }
 }
