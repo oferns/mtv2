@@ -15,7 +15,7 @@ export interface ICountry {
 
 export class CountryPickerComponent implements OnInit {
 
-    countries: ICountry[] = [];
+    countries: Array<ICountry> = new Array<ICountry>();
 
     @Output()
     selectionChanged: EventEmitter<ICountry> = new EventEmitter();

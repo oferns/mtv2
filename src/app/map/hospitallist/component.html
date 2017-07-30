@@ -1,0 +1,14 @@
+<ul>
+    <li *ngIf="hospitals.length">
+        <label for="toggle">
+            <input type="checkbox" value="" name="" id="" (change)="toggleAll($event)" />
+            Select all
+        </label>
+    </li>
+  <li *ngFor="let h of hospitals">
+    <label (for)="'hospital_' + h.id"> 
+    <input type="checkbox" [(ngModel)]="h.visible" (value)='hospital.id' (id)="'hospital_' + h.id" #hospital />
+    {{h.name}}
+</label>
+  </li>
+</ul>

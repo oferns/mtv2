@@ -5,6 +5,7 @@ import { IRouteStep } from '../abstractions/iroutestep';
 
 import { IMarkerOptions } from '../abstractions/imarker.options';
 import { IDirectionsService } from '../abstractions/idirections.service'
+import { IDirectionsRequest } from '../abstractions/idirections.request';
 
 export interface IMapService {
     provider: string;
@@ -27,9 +28,12 @@ export interface IMapService {
     removeMarkers(): Array<any>;
     getOptions(options: IMapOptions): any;
 
-    getRadialPoints(marker: any, points: number, miles: number): Array<any>;
+    getDirectionsRequest(request: IDirectionsRequest): any;
+    getRadialPoints(location: any, points: number, miles: number): Array<any>;
     drawDrivingRadius(marker: any, radius: number): void;
     getRoutesAsPaths(routes: Array<any>, seconds: number): Array<Array<any>>
+    
+    getDirectionAsRouteSteps(direction: any): Array<any>;
     getDirectionsAsRouteSteps(directions: Array<any>): Array<Array<any>>;
     shortenRouteStepsByDuration(routeSteps: Array<IRouteStep>, durationInSeconds: number): Array<any>;
 

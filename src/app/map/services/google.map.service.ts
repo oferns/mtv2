@@ -9,6 +9,7 @@ import { IMapOptions } from '../abstractions/imap.options';
 import { IMarkerOptions } from '../abstractions/imarker.options';
 
 import { IGeoCodeResult } from '../abstractions/igeocode.result';
+import { IDirectionsRequest } from '../abstractions/idirections.request';
 
 import { env } from '../../../env/env';
 
@@ -137,10 +138,10 @@ export class GoogleMapService implements IMapService {
         return new google.maps.LatLngBounds(nw, se)
     }
 
-    async geocode(location: string | google.maps.LatLng | google.maps.LatLngBounds, retryCount?: number): Promise<IGeoCodeResult[]> {
+    async geocode(location: string | google.maps.LatLng | google.maps.LatLngBounds, retryCount?: number): Promise<Array<IGeoCodeResult>> {
         const _me = this;
         retryCount = retryCount || 0;
-        return await new Promise<IGeoCodeResult[]>((res, rej) => {
+        return await new Promise<Array<IGeoCodeResult>>((res, rej) => {
             const options: google.maps.GeocoderRequest = {};
 
             if (typeof location === 'string') {
@@ -154,7 +155,7 @@ export class GoogleMapService implements IMapService {
             const maxRetry = 10;
 
             _me.geocoder.geocode(options,
-                (results: google.maps.GeocoderResult[], status: google.maps.GeocoderStatus) => {
+                (results: Array<google.maps.GeocoderResult>, status: google.maps.GeocoderStatus) => {
                     switch (status) {
                         case google.maps.GeocoderStatus.OK: return res(_me.convertGeoResults(results));
                         case google.maps.GeocoderStatus.ZERO_RESULTS: return res([]);
@@ -333,7 +334,7 @@ export class GoogleMapService implements IMapService {
     }
 
     drawDrivingRadius(marker: google.maps.Marker, miles: number): void {
-        const searchPoints = this.getRadialPoints(marker, 12, miles);
+        const searchPoints = this.getRadialPoints(marker.getPosition(), 12, miles);
         const _me = this;
         Promise.all(this.getDirections(marker.getPosition(), searchPoints))
             .then((results) => {
@@ -374,16 +375,15 @@ export class GoogleMapService implements IMapService {
     }
 
     // Return
-    getRadialPoints(marker: google.maps.Marker, points: number, miles: number): Array<google.maps.LatLng> {
-        const center: google.maps.LatLng = marker.getPosition();
+    getRadialPoints(location: google.maps.LatLng, points: number, miles: number): Array<google.maps.LatLng> {
         const radialPoints = [];
         points = points > 1 ? Math.floor(360 / points) : 4;
         const rLat = (miles / 3963.189) * (180 / Math.PI); // miles
-        const rLng = rLat / Math.cos(center.lat() * (Math.PI / 180));
+        const rLng = rLat / Math.cos(location.lat() * (Math.PI / 180));
         for (let a = 0; a <= 360; a = a + points) {
             const aRad = a * (Math.PI / 180);
-            const x = center.lng() + (rLng * Math.cos(aRad));
-            const y = center.lat() + (rLat * Math.sin(aRad));
+            const x = location.lng() + (rLng * Math.cos(aRad));
+            const y = location.lat() + (rLat * Math.sin(aRad));
             const point = new google.maps.LatLng(y, x, true);
             radialPoints.push(point);
         }
@@ -505,6 +505,27 @@ export class GoogleMapService implements IMapService {
 
     }
 
+
+    // Takes an individual Direction step and converts it to a flat array of IRouteSteps
+    getDirectionAsRouteSteps(directions: google.maps.DirectionsResult): Array<IRouteStep> {
+        if (!directions) {
+            return;
+        }
+        const routes = directions.routes.map<Array<IRouteStep>>((route: google.maps.DirectionsRoute) => {
+            const legs = route.legs.map<Array<IRouteStep>>((leg: google.maps.DirectionsLeg) => {
+                return leg.steps.map<IRouteStep>((step: google.maps.DirectionsStep) => {
+                    return <IRouteStep>{
+                        encoded_lat_lngs: step['encoded_lat_lngs'], // For some reason this isnt in the type definitions
+                        durationInSeconds: step.duration.value,
+                        distanceInMeters: step.distance.value
+                    };
+                });
+            });
+            return <Array<IRouteStep>>legs.reduce((a, b) => a.concat(b));
+        });
+        return <Array<IRouteStep>>routes.reduce((a, b) => a.concat(b)).filter((rs) => rs);
+    }
+
     // Returns a flattened array of IRouteSteps for each route in the DirectionsResult
     getDirectionsAsRouteSteps(directions: Array<google.maps.DirectionsResult>): Array<Array<IRouteStep>> {
         if (!directions) {
@@ -553,6 +574,10 @@ export class GoogleMapService implements IMapService {
         upper.pop();
         lower.pop();
         return lower.concat(upper);
+    }
+
+    getDirectionsRequest(request: IDirectionsRequest): google.maps.DirectionsRequest {
+        return new google.maps.DirectionsRequest(request);
     }
 
     private cross(a: google.maps.LatLng, b: google.maps.LatLng, o: google.maps.LatLng): number {

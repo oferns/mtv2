@@ -9,11 +9,13 @@ import { IMarkerOptions } from '../abstractions/imarker.options';
 
 import { env } from '../../../env/env';
 import { IRouteStep } from '../abstractions/iroutestep';
+import { IDirectionsRequest } from '../abstractions/idirections.request';
 
 declare var Microsoft: any;
 
 @Injectable()
 export class BingMapService implements IMapService {
+
 
     private map: Microsoft.Maps.Map;
     private searchManager: any;
@@ -235,6 +237,13 @@ export class BingMapService implements IMapService {
         throw new Error('Method not implemented.');
     }
     removeLines(): void {
+        throw new Error('Method not implemented.');
+    }
+
+    getDirectionsRequest(request: IDirectionsRequest) {
+        throw new Error('Method not implemented.');
+    }
+    getDirectionAsRouteSteps(direction: any): any[] {
         throw new Error('Method not implemented.');
     }
 }
