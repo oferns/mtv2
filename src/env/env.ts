@@ -5,6 +5,6 @@
 
 export const env = {
   production: false,
-  GM_API_KEY: 'AIzaSyAARM9hJapKwPzf7DCGXCDxQ2NmBtKuVaY',
+  GM_API_KEY: 'AIzaSyD0HAQrkFp8aELPTUPIwRgd_eym_seQ5z8',
   BM_API_KEY: 'An79vnBp7nhzQWaCmoVrKTZLngj4RvNRtB7ebt3FfVU9pyaGl7dAjCm4Y6gubOV9'
 };

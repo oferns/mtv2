@@ -12,8 +12,12 @@ import { IGeoCodeResult } from '../abstractions/igeocode.result';
 import { IDirectionsRequest } from '../abstractions/idirections.request';
 
 import { env } from '../../../env/env';
+import { ExcelService } from 'app/services/excel.service';
+
+import * as data from '../../../../testdata/firebasestr.json';
 
 declare var google: any;
+declare var throttledQueue: any;
 
 @Injectable()
 export class GoogleMapService implements IMapService {
@@ -22,14 +26,15 @@ export class GoogleMapService implements IMapService {
     private scriptLoadingPromise: Promise<void>;
     private geocoder: google.maps.Geocoder;
     private dirService: google.maps.DirectionsService;
+    private tq = new throttledQueue(5, 1000, true);
 
     // Internal tracking of objects. GM doesnt do this for us
-    private _markers: google.maps.Marker[] = [];
-    private _shapes: google.maps.Polygon[] = [];
-    private _lines: google.maps.Polyline[] = [];
+    private _markers: Array<google.maps.Marker> = new Array<google.maps.Marker>();
+    private _shapes: Array<google.maps.Polygon> = new Array<google.maps.Polygon>();
+    private _lines: Array<google.maps.Polyline> = new Array<google.maps.Polyline>();
     provider = 'Google';
 
-    constructor() {
+    constructor(private readonly xls: ExcelService) {
         const script: HTMLScriptElement = window.document.createElement('script');
 
         script.type = 'text/javascript';
@@ -52,6 +57,23 @@ export class GoogleMapService implements IMapService {
         this.onReady().then(() => {
             this.geocoder = new google.maps.Geocoder();
             this.dirService = new google.maps.DirectionsService();
+
+            // const hcos: Array<any> = (<any>data);
+
+            // const newHcos = new Array;
+            // hcos.forEach((hco, i) => {
+            //     newHcos.push({
+            //         id: i,
+            //         name: hco.title,
+            //         address: hco.address,
+            //         city: hco.city,
+            //         lat: hco.lat,
+            //         lng: hco.lng
+            //     });
+            // });
+
+            // this.xls.exportAsExcelFile(newHcos, 'newHcos');
+
         });
     }
 
@@ -74,6 +96,10 @@ export class GoogleMapService implements IMapService {
         retryCount = retryCount || 0;
         const maxRetry = 10;
 
+        if (!retryCount) {
+            console.log(`Getting directions to ${request.destination}`);
+        }
+
         return await new Promise<google.maps.DirectionsResult>(function (res, rej) {
 
             _me.dirService.route(request, function (result, status) {
@@ -84,7 +110,7 @@ export class GoogleMapService implements IMapService {
                     case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
                         if (retryCount < maxRetry) {
                             setTimeout(() => {
-                                console.log(`Retrying no ${retryCount} of ${maxRetry}`);
+                                console.log(`${request.destination}: Retrying no ${retryCount} of ${maxRetry} after status of ${status} with result of ${result}`);
                                 return res(_me.directions(request, ++retryCount));
                             }, 2000);
                         } else {
@@ -93,9 +119,14 @@ export class GoogleMapService implements IMapService {
                     case google.maps.DirectionsStatus.REQUEST_DENIED:
                         return rej([{ result: result, status: status }]);
                     case google.maps.DirectionsStatus.UNKNOWN_ERROR:
-                        // We should retry.. Retry service impl todo
-                        return rej([{ result: result, status: status }]);
-
+                        if (retryCount < maxRetry) {
+                            setTimeout(() => {
+                                console.log(`${request.destination}: Retrying no ${retryCount} of ${maxRetry} after status of ${status} with result of ${result}`);
+                                return res(_me.directions(request, ++retryCount));
+                            }, 2000);
+                        } else {
+                            return rej([{ result: result, status: status }])
+                        } break;
                     default:
                         return rej({ result: result, status: status });
 
@@ -125,9 +156,8 @@ export class GoogleMapService implements IMapService {
         this.map.addListener(event, handler);
     }
 
-    setBounds(bounds: google.maps.LatLngBounds): void {
+    setBounds(bounds: google.maps.LatLngBoundsLiteral): void {
         this.map.fitBounds(bounds);
-        this.map.setCenter(bounds.getCenter());
     }
 
     getBounds(): google.maps.LatLngBounds {

@@ -15,9 +15,9 @@ export interface ICountry {
 
 export class CountryPickerComponent implements OnInit {
 
-    countries: Array<ICountry> = new Array<ICountry>();
+    countries: Array<ICountry> = new Array<ICountry>({ id: -1, name: 'Please Select..' });
 
-    @Output()
+    @Output()   
     selectionChanged: EventEmitter<ICountry> = new EventEmitter();
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService) { }
@@ -27,7 +27,6 @@ export class CountryPickerComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        this.countries.push({ id: -1, name: 'Please Select..' });
         this.hcoService.getCountries().then((countries) => {
             this.countries = this.countries.concat(countries);
         });

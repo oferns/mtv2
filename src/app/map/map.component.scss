@@ -10,3 +10,14 @@ app-map {
   height: 100%;
   width: 100%;
 }
+
+
+app-hospital-list {
+  position: absolute;
+  left:0;
+  top: 49px;
+  z-index: 10;
+  max-height:100%;
+  overflow-y: auto;
+  background-color: #EDF5FF;
+}

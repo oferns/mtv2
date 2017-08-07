@@ -19,6 +19,10 @@ import { ICountry } from '../data/icountry';
 
 export const PROVIDERS = new InjectionToken<IMapService>('IMapService');
 
+import * as data from '../../../testdata/firebasestr.json';
+
+const hcos: Array<any> = (<any>data);
+
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -61,24 +65,30 @@ export class MapComponent implements AfterViewInit {
   // Data Promises
   private async ensureCountryCenterAndBounds(country: ICountry): Promise<ICountry> {
     if (this.countryMap.has(country.id)) {
+      console.log(`found ${country.name} in cache`);
       return await this.countryMap.get(country.id);
     }
 
     const promise = new Promise<ICountry>((res, rej) => {
       if (country.bounds && country.center) {
+        console.log(`${country.name} in database has location data`);
         return res(country);
       }
       return this.providers[this.currentProviderIndex].geocode(country.name)
         .then((results: Array<IGeoCodeResult>) => {
           if (results.length) {
+            console.log(`${country.name} geocoding found ${results.length} results. Using the first`);
+
             // Lets just take the first result here
-            country.bounds = results[0].bounds;
-            country.center = results[0].center;
-            return res(country);
+            country.bounds = results[0].bounds.toJSON();
+            country.center = results[0].center.toJSON();
+            this.hcoService.saveCountryData(country)
+              .then((c: ICountry) => res(c)).catch((ex) => rej(ex));
           } else {
             return rej('Geocode for this address produced no results');
           }
-        }).catch((err) => { throw err; })
+        })
+        .catch((err) => rej(err))
     })
 
     this.countryMap.set(country.id, promise);
@@ -110,9 +120,9 @@ export class MapComponent implements AfterViewInit {
 
         p.directions(directionsReq).then((routes) => {
           const radiusDirs = p.getDirectionAsRouteSteps(routes);
-          this.hcoService.saveHospitalRoutes(hospital.id, radiusDirs)
-            .then((steps) => {
-              return this.hcoService.getHospital(hospital.id);
+          this.hcoService.saveHospitalData(hospital)
+            .then((hospital) => {
+              return hospital;
             });
 
         }).catch((err) => {
@@ -126,29 +136,119 @@ export class MapComponent implements AfterViewInit {
     return await promise;
   }
 
-  // Event Handlers
-  countryChanged(country: any): void {
+  private processArray = (array, fn) => {
+    var results = [];
+    return array.reduce(function (p, item) {
+      return p.then(function () {
+        return fn(item).then(function (data) {
+          results.push(data);
+          return results;
+        });
+      });
+    }, Promise.resolve());
+  }
+
+
+  private processDirection(direction) {
+
+  }
+
+  private ensureLatLng(hospital: IHospital): Promise<IHospital> {
+    if (hospital.lat && hospital.lng) {
+      return Promise.resolve(hospital);
+    }
+
+    const match = hcos.filter((h) => h.title === hospital.name);
+
+    if (match.length && match[0].lat && match[0].lng) {
+      hospital.lat = match[0].lat;
+      hospital.lng = match[0].lng;
+      hospital.city = match[0].city;
+      hospital.postcode = match[0].postcode;
+      hospital.address = hospital.address || match[0].address;
+
+      return Promise.resolve(hospital);
+    }
+
+    const location = hospital.name;
     const p = this.providers[this.currentProviderIndex];
+
+    return this.hcoService.getCountries().then((countries) => {
+      const cunts = countries.filter(c => c.id === hospital.country);
+      if (!cunts.length) {
+        throw new Error("Cannot find the country");
+      }
+
+      const cunt = cunts[0];
+      const loc = `${hospital.name}, ${cunt.name}`;
+      return loc;
+
+
+
+    }).then(location => p.geocode(location).then((result: Array<IGeoCodeResult>) => {
+      if (!result.length) {
+        throw new Error(`${location} was not found`);
+      }
+      hospital.address = (<any>result[0].center).address;
+      hospital.lat = (<any>result[0].center).lat();
+      hospital.lng = (<any>result[0].center).lng();
+      return hospital;
+    }));
+  }
+
+  private processHospital = (hospital: IHospital): Promise<IHospital> => {
+    const p = this.providers[this.currentProviderIndex];
+
+    if (hospital.radiusDirections) {
+      console.log(`hospital: ${hospital.id}, ${hospital.name} skipped`);
+      return Promise.resolve(hospital);
+    }
+
+    const searchPoints = p.getRadialPoints(p.getLocation(hospital.lat, hospital.lng), 12, 30);
+
+    const directions = searchPoints.map(s => {
+      return <IDirectionsRequest>{
+        travelMode: 'DRIVING',
+        destination: p.getLocation(s.lat(), s.lng()),
+        origin: p.getLocation(hospital.lat, hospital.lng)
+      };
+    });
+    const func = p.directions;
+
+    return this.ensureLatLng(hospital)
+      .then(h => this.processArray(directions, func.bind(p))
+        .then(routes => {
+          const radiusDirs = p.getDirectionsAsRouteSteps(routes);
+          hospital.radiusDirections = radiusDirs;
+          return this.hcoService.saveHospitalData(hospital)
+            .then((hospital) => {
+              return hospital;
+            }).catch((err) => {
+              console.log(err);
+            });
+        })
+        .catch((err) => {
+          console.log(err);
+        }));
+  }
+
+
+
+  // Event Handlers
+  countryChanged = (country: ICountry): void => {
+    const func = this.processHospital;
+    func.bind(this);
+    const p = this.providers[this.currentProviderIndex];
+    console.log(`Changing to ${country.name}`)
     this.ensureCountryCenterAndBounds(country).then((c) => {
       p.setCenter(c.center);
       p.setBounds(c.bounds);
+
       this.hcoService.getHospitals(c.id)
-        .then((hospitals) => {
-          this.hospitals = hospitals;
-          hospitals.map((h) => {
-            this.hcoService.getHospital(h.id).then((h) => {
-              this.ensureHospitalRoutes(h)
-                .then((hospital) => {
-                  hospital.radiusDirections.map((step) => {
-                    return <Array<IRouteStep>>p.shortenRouteStepsByDuration(step, 1800);
-                  }).map((shortRoutes: Array<IRouteStep>) => {
-                    const lineOptions = p.getLineOptions({});
-                    return p.drawLine(p.getLine(shortRoutes, lineOptions));
-                  });
-                });
-            })
-          })
-        })
+        .then(hospitals => {
+          this.processArray(hospitals, func);
+        });
+
     });
   }
 

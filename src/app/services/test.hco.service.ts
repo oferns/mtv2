@@ -66,5 +66,11 @@ export class TestHcoService implements IHcoService {
                 return h.radiusDirections;
             });
     }
+    saveCountryData(country: ICountry): Promise<ICountry> {
+        throw new Error("Method not implemented.");
+    }
+    saveHospitalData(hospital: IHospital): Promise<IHospital> {
+        throw new Error("Method not implemented.");
+    }
 
 }
