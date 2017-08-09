@@ -1,18 +1,18 @@
 import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
-    selector: 'app-map-clear',
+    selector: 'app-map-drawroutes',
     templateUrl: './component.html',
     styleUrls: ['./component.scss'],
     providers: []
 })
 
-export class ClearMapComponent {
+export class DrawRoutesComponent {
 
     @Output()
-    clearMap: EventEmitter<MouseEvent> = new EventEmitter();
+    drawRoutes: EventEmitter<MouseEvent> = new EventEmitter();
 
     clicked(event: MouseEvent) {
-        this.clearMap.emit(event);
+        this.drawRoutes.emit(event);
     }
 }

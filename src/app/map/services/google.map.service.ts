@@ -78,7 +78,7 @@ export class GoogleMapService implements IMapService {
         return new google.maps.MapOptions();
     }
 
-    async directions(request: google.maps.DirectionsRequest, retryCount?: number): Promise<google.maps.DirectionsResult> {
+    directions = async (request: google.maps.DirectionsRequest, retryCount?: number): Promise<google.maps.DirectionsResult> => {
         const _me = this;
         retryCount = retryCount || 0;
         const maxRetry = 10;
@@ -214,7 +214,7 @@ export class GoogleMapService implements IMapService {
 
         if (options.onClick) {
             google.maps.event.addListener(marker, 'click', function (args, e) {
-                options.onClick.apply(this, [{ marker: marker, args: args }])
+                options.onClick.apply(this, [{ marker: marker, args: args, id: options.id }])
             });
         }
 

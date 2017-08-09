@@ -14,7 +14,7 @@ import { BingMapService } from './services/bing.map.service';
 @NgModule({
     declarations: [
         MapComponent,
-        HospitalListComponent
+        HospitalListComponent,        
     ],
     imports: [
         CommonModule,

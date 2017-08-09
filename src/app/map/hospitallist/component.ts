@@ -20,26 +20,26 @@ import { IHospital } from '../../data/ihospital';
 export class HospitalListComponent {
 
     @Input()
-    hospitals: Array<IHospital>;
+    hospitals: Array<IHospital> = new Array<IHospital>();
 
     @Input()
     set view(view: any) {
+        console.log("View");
         this.hospitals.forEach(h => {
-            const i = 0;
         })
     }
 
     @Output()
-    hospitalChecked: EventEmitter<number> = new EventEmitter();
+    hospitalChecked: EventEmitter<IHospital> = new EventEmitter();
 
-    @ViewChildren('hospital') private checkBoxes: QueryList<ElementRef>;
+    @ViewChildren('listItem') private listItems: QueryList<ElementRef> = new QueryList<ElementRef>();
+    @ViewChildren('checkBox') private checkBoxes: QueryList<ElementRef> = new QueryList<ElementRef>();
 
-    constructor() {
-
-    }
+    constructor() { }
 
     toggleAll(event: MouseEvent): void {
         const checked = (<HTMLInputElement>event.target).checked;
         this.checkBoxes.forEach((c) => { c.nativeElement.checked = checked })
     }
+
 }

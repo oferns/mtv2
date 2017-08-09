@@ -26,6 +26,8 @@ export class ToolbarComponent {
     providerChanged: EventEmitter<number> = new EventEmitter();
     @Output()
     clearMapClicked: EventEmitter<void> = new EventEmitter();
+    @Output()
+    drawRoutesClicked: EventEmitter<void> = new EventEmitter();
 
     countrySelectionChanged(country: any): void {
         this.countryChanged.emit(country);
@@ -37,6 +39,10 @@ export class ToolbarComponent {
 
     clearMap(event: MouseEvent): void {
         this.clearMapClicked.emit();
+    }
+
+    drawRoutes(event: MouseEvent): void {
+        this.drawRoutesClicked.emit();
     }
 }
 

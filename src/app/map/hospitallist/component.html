@@ -5,9 +5,9 @@
             Select all
         </label>
     </li>
-  <li *ngFor="let h of hospitals">
-    <label (for)="'hospital_' + h.id"> 
-    <input type="checkbox" [(ngModel)]="h.visible" (value)='hospital.id' (id)="'hospital_' + h.id" #hospital />
+  <li *ngFor="let h of hospitals" [hidden]='!h.visible'>
+    <label (for)="'hospital_' + h.id"  > 
+    <input type="checkbox" (value)='hospital.id' (id)="'hospital_' + h.id"  #checkBox/>
     {{h.name}}
 </label>
   </li>

@@ -71,7 +71,6 @@ export class MapComponent implements AfterViewInit {
         provider.addListener('dragend', this.mapDragEnd);
         provider.addListener('bounds_changed', this.mapBoundsChanged);
 
-
       }).catch((err) => {
         throw err;
       });
@@ -84,6 +83,10 @@ export class MapComponent implements AfterViewInit {
     const p = this.providers[this.currentProviderIndex];
     this.currentBounds = p.getBounds();
 
+    this.hospitals.forEach(h => {
+      h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
+    });
+
     this.dragEnd.emit(this.currentBounds);
   }
 
@@ -91,6 +94,11 @@ export class MapComponent implements AfterViewInit {
     console.log('DragEnd');
     const p = this.providers[this.currentProviderIndex];
     this.currentBounds = p.getBounds();
+
+    this.hospitals.forEach(h => {
+      h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
+    });
+
     this.boundsChanged.emit(this.currentBounds);
   }
 
@@ -128,11 +136,9 @@ export class MapComponent implements AfterViewInit {
     return await promise;
   }
 
-
-
-  private async ensureHospitalRoutes(hospital: IHospital): Promise<IHospital> {
+  private ensureHospitalRoutes = async (hospital: IHospital): Promise<IHospital> => {
     if (this.hospitalMap.has(hospital.id)) {
-      return await this.hospitalMap.get(hospital.id)
+      return this.hospitalMap.get(hospital.id)
     };
 
     const promise = new Promise<IHospital>((res, rej) => {
@@ -151,7 +157,8 @@ export class MapComponent implements AfterViewInit {
         };
 
         p.directions(directionsReq).then((routes) => {
-          const radiusDirs = p.getDirectionAsRouteSteps(routes);
+
+          hospital.radiusDirections = (routes === null) ? new Array<Array<IRouteStep>>() : p.getDirectionAsRouteSteps(routes);
           this.hcoService.saveHospitalData(hospital)
             .then((hospital) => {
               return hospital;
@@ -180,7 +187,7 @@ export class MapComponent implements AfterViewInit {
     }, Promise.resolve());
   }
 
-  private ensureLatLng(hospital: IHospital): Promise<IHospital> {
+  private ensureHospitalLocation(hospital: IHospital): Promise<IHospital> {
     if (hospital.lat && hospital.lng) {
       return Promise.resolve(hospital);
     }
@@ -222,47 +229,9 @@ export class MapComponent implements AfterViewInit {
     }));
   }
 
-  private processHospital = (hospital: IHospital): Promise<IHospital> => {
-    const p = this.providers[this.currentProviderIndex];
-
-    if (hospital.radiusDirections) {
-      console.log(`hospital: ${hospital.id}, ${hospital.name} skipped`);
-      return Promise.resolve(hospital);
-    }
-
-    const searchPoints = p.getRadialPoints(p.getLocation(hospital.lat, hospital.lng), 12, 30);
-
-    const directions = searchPoints.map(s => {
-      return <IDirectionsRequest>{
-        travelMode: 'DRIVING',
-        destination: p.getLocation(s.lat(), s.lng()),
-        origin: p.getLocation(hospital.lat, hospital.lng)
-      };
-    });
-
-    const func = p.directions;
-
-    return this.ensureLatLng(hospital)
-      .then(h => this.processArray(directions, func.bind(p))
-        .then(routes => {
-          const radiusDirs = p.getDirectionsAsRouteSteps(routes);
-          hospital.radiusDirections = radiusDirs;
-          return this.hcoService.saveHospitalData(hospital)
-            .then((hospital) => {
-              return hospital;
-            }).catch((err) => {
-              console.log(err);
-            });
-        })
-        .catch((err) => {
-          console.log(err);
-        }));
-  }
-
-
-
   // Event Handlers
   countryChanged = (country: ICountry): void => {
+    this.hospitals.length = 0; // Clear the array...is there a better way?
     const p = this.providers[this.currentProviderIndex];
     console.log(`Changing to ${country.name}`)
     this.ensureCountryCenterAndBounds(country).then((c) => {
@@ -272,6 +241,12 @@ export class MapComponent implements AfterViewInit {
       this.hcoService.getHospitals(c.id)
         .then(hospitals => {
           this.hospitals = hospitals;
+          this.hospitals.forEach(h => {
+            this.ensureHospitalRoutes(h).then(h => {
+              h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
+            })
+          });
+          this.showMarkers(hospitals);
         });
     });
   }
@@ -282,59 +257,62 @@ export class MapComponent implements AfterViewInit {
       const options: IMarkerOptions = {
         id: h.id,
         label: h.title,
-        onClick: (args) => {
-          this.mk2(args);
-        }
+        onClick: this.markerClickHandler
       };
       const marker = p.setMarker(p.getMarker(p.getLocation(h.lat, h.lng), options));
     });
   }
 
-
-  //   const _me = this;
-  //   const promises = this.providers.map((p) => p.geocode(country.name));
-  //   this.providers.map((p) => p.removeMarkers());
-
-  //   promises.push(this.hcoService.getHospitals(country.name));
-
-  //   Promise.all(promises).then((results: any[]) => {
-  //     const hcos: any[] = results[2];
-  //     _me.providers.map((p: IMapService, i: number) => {
-  //       p.setCenter(results[i][0].center);
-  //       p.setBounds(results[i][0].view);
-  //     })
-
-  //     hcos.forEach((h, i) => {
-  //       _me.providers.map((p) => {
-  //         const options: IMarkerOptions = {
-  //           id: h.id,
-  //           label: h.title,
-  //           onClick: (args) => {
-  //             _me.mk2(args);
-  //           }
-  //         };
-  //         const marker = p.setMarker(p.getMarker(p.getLocation(h.lat, h.lng), options));
-  //       })
-  //     })
-  //   }).catch((err) => {
-  //     throw err;
-  //   });
-  // }
-
   providerChanged(index: number): void {
     this.currentProviderIndex = index;
   }
 
-  clearMap(event: MouseEvent): void {
-    this.providers.forEach((p) => {
-
-    })
+  clearMap(): void {
+    const p = this.providers[this.currentProviderIndex];
+    p.removeShapes();
+    p.removeLines();
   }
 
-  private markerClickHandler = (args) => {
+  drawRoutes(): void {
+    this.clearMap();
+    const promises = this.hospitals.map(h => {
+      return new Promise((res, rej) => {
+        if (h.visible) {
+          this.drawDrivingTime(h, 30);
+        }
+        return res();
+      })
+    })
 
-    this.drawDrivingTimeFromMarkerInMinutes(args['marker'], 30);
+    Promise.all(promises);
+  }
+
+  private markerClickHandler = (args: any) => {
+    if (!this.hospitalMap.has(args.id)) {
+      throw new Error('Hospital not found');
+    }
+    this.hospitalMap.get(args.id)
+      .then(h => this.ensureHospitalRoutes(h)
+        .then(h => this.drawDrivingTime(h, 30)).catch(err => { throw err; })
+      ).catch(err => { throw err; });
   };
+
+  private drawDrivingTime = (hospital: IHospital, minutes: number) => {
+    const p = this.providers[this.currentProviderIndex];
+    const shortenedRoutes = hospital.radiusDirections.map((r) => p.shortenRouteStepsByDuration(r, (minutes * 60)));
+    let shapepoints = shortenedRoutes.reduce((a, b) => a.concat(b));
+    shapepoints = p.getConvexHull(shapepoints)
+
+    const shapeoptions = p.getShapeOptions({});
+    const shape = p.getShape(shapepoints, shapeoptions);
+    p.drawShape(shape);
+
+    shortenedRoutes.forEach((r) => {
+      const lineoptions = p.getLineOptions({});
+      const linepoints = [].concat.apply([], r);
+      p.drawLine(p.getLine(linepoints, lineoptions));
+    });
+  }
 
 
   private mk2(args): void {
@@ -354,37 +332,12 @@ export class MapComponent implements AfterViewInit {
 
   }
 
-  // getMarkerRadialDirections(marker: any): Array<IRouteStep> {
-  //   const id = marker.id;
-  //   this.hcoService.getHospital(id).then((h) => {
-  //     if (!h.radialRoutes) {
-  //       const p = this.providers[this.currentProviderIndex];
-  //       const center = marker.position;
-  //       const searchPoints = p.getRadialPoints(marker, 12, 30);
-
-  //       return searchPoints.map((s, i) => {
-  //         const req = p.getDirectionsRequest(<IDirectionsRequest>{
-  //           travelMode: 'DRIVING',
-  //           origin: center,
-  //           destination: s
-  //         });
-
-  //         return p.directions(req).then((directions) => {
-  //           return (h.radialRoutes = p.getDirectionAsRouteSteps(directions));
-  //         });
-  //       })
-  //     } else {
-  //       return [
-  //         Promise.resolve(<Array<IRouteStep>>h.radialRoutes)
-  //       ]
-  //     }
-  //   })
-  // }
-
   drawDrivingTimeFromMarkerInMinutes(marker: any, minutes: number): void {
+
+
     const p = this.providers[this.currentProviderIndex];
     const center = marker.position;
-    const searchPoints = p.getRadialPoints(marker, 12, 30);
+    const searchPoints = p.getRadialPoints(center, 12, 30);
     const promises = searchPoints.map((s, i) => {
       const req: google.maps.DirectionsRequest = {
         travelMode: google.maps.TravelMode.DRIVING,
@@ -412,9 +365,5 @@ export class MapComponent implements AfterViewInit {
           p.drawLine(p.getLine(linepoints, lineoptions));
         })
       });
-  }
-
-  drawDrivingDistanceFromMarkerInMeters(marker: any, meters: number): void {
-
   }
 }
