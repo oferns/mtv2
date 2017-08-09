@@ -22,6 +22,13 @@ export class HospitalListComponent {
     @Input()
     hospitals: Array<IHospital>;
 
+    @Input()
+    set view(view: any) {
+        this.hospitals.forEach(h => {
+            const i = 0;
+        })
+    }
+
     @Output()
     hospitalChecked: EventEmitter<number> = new EventEmitter();
 

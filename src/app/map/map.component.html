@@ -1,12 +1,12 @@
 <div>
   <h1 i18n></h1>
-  <app-map-toolbar (countryChanged)="countryChanged($event)" (providerChanged)="providerChanged($event)" (clearMapClicked)="clearMap()"
+  <app-map-toolbar (countryChanged)="countryChanged($event)" (providerChanged)="providerChanged($event)" (clearMapClicked)="clearMap()" 
     [providers]="providers">
   </app-map-toolbar>
   <div *ngFor="let provider of providers; let i = index;" class="map" [style.zIndex]="(i === currentProviderIndex) ? '1' : '-1'"
     #map>
   </div>
-  <app-hospital-list [hospitals]="hospitals">
+  <app-hospital-list [hospitals]="hospitals" [view]="currentBounds">
   </app-hospital-list>
 
 </div>

@@ -5,7 +5,9 @@ import {
   Inject,
   InjectionToken,
   QueryList,
-  ElementRef
+  ElementRef,
+  EventEmitter,
+  Output
 } from '@angular/core';
 
 import { IMapService } from './abstractions/imap.service';
@@ -31,6 +33,15 @@ const hcos: Array<any> = (<any>data);
 
 export class MapComponent implements AfterViewInit {
 
+  @Output()
+  boundsChanged: EventEmitter<any> = new EventEmitter();
+
+  @Output()
+  dragEnd: EventEmitter<any> = new EventEmitter();
+
+  @Output()
+  currentBounds: any;
+
   @ViewChildren('map') private mapDivRefs: QueryList<ElementRef>
 
   private mapService: IMapService;
@@ -42,6 +53,7 @@ export class MapComponent implements AfterViewInit {
   private hospitalMap: Map<number, Promise<IHospital>> = new Map<number, Promise<IHospital>>();
 
   hospitals: Array<IHospital> = new Array<IHospital>();
+
 
   constructor(
     @Inject(PROVIDERS) private readonly providers: Array<IMapService>,
@@ -55,12 +67,32 @@ export class MapComponent implements AfterViewInit {
       provider.initMap(div.nativeElement, {}).then((_map) => {
         provider.setCenter(provider.getLocation(38.468589, 21.143545));
         provider.setZoom(8);
+
+        provider.addListener('dragend', this.mapDragEnd);
+        provider.addListener('bounds_changed', this.mapBoundsChanged);
+
+
       }).catch((err) => {
         throw err;
       });
     })
   }
   // End OnInit
+
+  private mapBoundsChanged = () => {
+    console.log('Bounds');
+    const p = this.providers[this.currentProviderIndex];
+    this.currentBounds = p.getBounds();
+
+    this.dragEnd.emit(this.currentBounds);
+  }
+
+  private mapDragEnd = () => {
+    console.log('DragEnd');
+    const p = this.providers[this.currentProviderIndex];
+    this.currentBounds = p.getBounds();
+    this.boundsChanged.emit(this.currentBounds);
+  }
 
   // Data Promises
   private async ensureCountryCenterAndBounds(country: ICountry): Promise<ICountry> {
@@ -148,11 +180,6 @@ export class MapComponent implements AfterViewInit {
     }, Promise.resolve());
   }
 
-
-  private processDirection(direction) {
-
-  }
-
   private ensureLatLng(hospital: IHospital): Promise<IHospital> {
     if (hospital.lat && hospital.lng) {
       return Promise.resolve(hospital);
@@ -176,18 +203,17 @@ export class MapComponent implements AfterViewInit {
     return this.hcoService.getCountries().then((countries) => {
       const cunts = countries.filter(c => c.id === hospital.country);
       if (!cunts.length) {
-        throw new Error("Cannot find the country");
+        console.log(`Unrecognized country ID: ${hospital.country}`);
+        return;
       }
 
       const cunt = cunts[0];
       const loc = `${hospital.name}, ${cunt.name}`;
       return loc;
-
-
-
     }).then(location => p.geocode(location).then((result: Array<IGeoCodeResult>) => {
       if (!result.length) {
-        throw new Error(`${location} was not found`);
+        console.log(`${location} was not found`);
+        return null;
       }
       hospital.address = (<any>result[0].center).address;
       hospital.lat = (<any>result[0].center).lat();
@@ -213,6 +239,7 @@ export class MapComponent implements AfterViewInit {
         origin: p.getLocation(hospital.lat, hospital.lng)
       };
     });
+
     const func = p.directions;
 
     return this.ensureLatLng(hospital)
@@ -236,23 +263,20 @@ export class MapComponent implements AfterViewInit {
 
   // Event Handlers
   countryChanged = (country: ICountry): void => {
-    const func = this.processHospital;
-    func.bind(this);
     const p = this.providers[this.currentProviderIndex];
     console.log(`Changing to ${country.name}`)
     this.ensureCountryCenterAndBounds(country).then((c) => {
-      p.setCenter(c.center);
+      p.setCenter(p.getLocation(c.center.lat, c.center.lng));
       p.setBounds(c.bounds);
 
       this.hcoService.getHospitals(c.id)
         .then(hospitals => {
-          this.processArray(hospitals, func);
+          this.hospitals = hospitals;
         });
-
     });
   }
 
-  private showMarkers(hospitals: Array<any>) {
+  private showMarkers = (hospitals: Array<any>) => {
     const p = this.providers[this.currentProviderIndex];
     hospitals.forEach((h) => {
       const options: IMarkerOptions = {

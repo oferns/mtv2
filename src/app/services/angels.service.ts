@@ -66,10 +66,7 @@ export class AngelsService implements IHcoService {
             return this.http.get(url)
                 .toPromise()
                 .then(
-                hospitals => {
-                    const j = hospitals.json();
-                    return res(<Array<IHospital>>j)
-                },
+                hospitals => res(<Array<IHospital>>hospitals.json()),
                 err => rej(err)
                 );
         });

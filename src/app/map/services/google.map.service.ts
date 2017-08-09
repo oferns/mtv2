@@ -58,22 +58,6 @@ export class GoogleMapService implements IMapService {
             this.geocoder = new google.maps.Geocoder();
             this.dirService = new google.maps.DirectionsService();
 
-            // const hcos: Array<any> = (<any>data);
-
-            // const newHcos = new Array;
-            // hcos.forEach((hco, i) => {
-            //     newHcos.push({
-            //         id: i,
-            //         name: hco.title,
-            //         address: hco.address,
-            //         city: hco.city,
-            //         lat: hco.lat,
-            //         lng: hco.lng
-            //     });
-            // });
-
-            // this.xls.exportAsExcelFile(newHcos, 'newHcos');
-
         });
     }
 
@@ -83,7 +67,10 @@ export class GoogleMapService implements IMapService {
 
     async initMap(mapElement: HTMLElement, options: google.maps.MapOptions): Promise<google.maps.Map> {
         return await this.onReady().then(() => {
-            return this.map = new google.maps.Map(mapElement, options);
+            this.map = new google.maps.Map(mapElement, options);
+
+            this.map.addListener('zoom_changed', () => google.maps.event.trigger(this.map, 'resize'));
+            return this.map;
         });
     }
 
