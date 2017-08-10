@@ -17,6 +17,8 @@ declare var Microsoft: any;
 export class BingMapService implements IMapService {
 
 
+
+
     private map: Microsoft.Maps.Map;
     private searchManager: any;
     private scriptLoadingPromise: Promise<void>;
@@ -185,10 +187,6 @@ export class BingMapService implements IMapService {
         return pins;
     }
 
-    drawDrivingRadius(marker: Microsoft.Maps.Pushpin, radius: number): void {
-
-    }
-
     getRadialPoints(marker: any, points: number, miles: number): any[] {
         throw new Error('Method not implemented.');
     }
@@ -227,11 +225,11 @@ export class BingMapService implements IMapService {
     getLineOptions(any: any) {
         throw new Error('Method not implemented.');
     }
-    getLine(points: any[], options: any) {
-        throw new Error('Method not implemented.');
+    getLine(options: any) {
+        throw new Error("Method not implemented.");
     }
-    drawLine(line: any) {
-        throw new Error('Method not implemented.');
+    drawLine(line: any, points: any[]) {
+        throw new Error("Method not implemented.");
     }
     removeLine(line: any) {
         throw new Error('Method not implemented.');
@@ -245,5 +243,9 @@ export class BingMapService implements IMapService {
     }
     getDirectionAsRouteSteps(direction: any): any[] {
         throw new Error('Method not implemented.');
+    }
+
+    addDrawingListener(event: string, handler: (...args: any[]) => void): void {
+        throw new Error("Method not implemented.");
     }
 }

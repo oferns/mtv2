@@ -6,7 +6,7 @@
   <div *ngFor="let provider of providers; let i = index;" class="map" [style.zIndex]="(i === currentProviderIndex) ? '1' : '-1'"
     #map>
   </div>
-  <app-hospital-list [hospitals]="hospitals" [view]="currentBounds" [hidden]='!hospitals.length'>
+  <app-hospital-list [hospitals]="hospitals" [view]="currentBounds"  [@loading]="isLoading" >
   </app-hospital-list>
 
 </div>

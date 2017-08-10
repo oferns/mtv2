@@ -5,7 +5,8 @@ import {
     EventEmitter,
     QueryList,
     ElementRef,
-    ViewChildren
+    ViewChildren,
+
 } from '@angular/core';
 
 
@@ -14,7 +15,7 @@ import { IHospital } from '../../data/ihospital';
 @Component({
     selector: 'app-hospital-list',
     templateUrl: './component.html',
-    styleUrls: ['./component.scss'],
+    styleUrls: ['./component.scss']
 })
 
 export class HospitalListComponent {
@@ -42,4 +43,7 @@ export class HospitalListComponent {
         this.checkBoxes.forEach((c) => { c.nativeElement.checked = checked })
     }
 
+    visibleCount(): Number {
+        return this.hospitals.filter(f => f.visible).length;
+    }
 }

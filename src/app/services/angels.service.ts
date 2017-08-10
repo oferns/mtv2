@@ -1,12 +1,9 @@
 import { Injectable } from '@angular/core';
-import { Http, Response } from '@angular/http';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/toPromise';
+import { HttpClient } from '@angular/common/http';
 
 import { IHcoService } from './ihco.service';
 
 import { IRouteStep } from '../map/abstractions/iroutestep';
-
 
 import { IHospital } from '../data/ihospital';
 import { ICountry } from '../data/icountry';
@@ -22,32 +19,31 @@ const saveHospitalUrl = 'http://localhost:3000/mt/savehospital/';
 @Injectable()
 export class AngelsService implements IHcoService {
 
-    private readonly countriesPromise: Promise<Array<ICountry>>;
-    private readonly countryMap: Map<number, Promise<Array<IHospital>>> = new Map<number, Promise<Array<IHospital>>>();
+    private countriesPromise: Promise<Array<ICountry>>;
+    private countryMap: Map<number, Promise<Array<IHospital>>> = new Map<number, Promise<Array<IHospital>>>();
+    
+    
 
-    constructor(private readonly http: Http) {
+    constructor(private readonly http: HttpClient) {
         this.countriesPromise = new Promise<Array<ICountry>>((res, rej) => {
-            return this.http.get(countryUrl)
-                .toPromise()
-                .then(
-                countries => res(<Array<ICountry>>countries.json()),
+            return this.http.get<Array<ICountry>>(countryUrl)
+                .subscribe(
+                countries => res(<Array<ICountry>>countries),
                 err => rej(err)
                 );
         });
     }
 
-    getCountries(): Promise<Array<ICountry>> {
+    getCountries = (): Promise<Array<ICountry>> => {
         return this.countriesPromise;
     }
 
-    saveCountryData(country: ICountry): Promise<ICountry> {
+    saveCountryData = (country: ICountry): Promise<ICountry> => {
         return new Promise<ICountry>((res, rej) => {
             const url = saveCountryUrl + country.id;
             return this.http.post(url, country)
-                .toPromise()
-                .then(
-                country => {
-                    return res(<ICountry>country.json())
+                .subscribe(country => {
+                    return res(<ICountry>country)
                 },
                 err => {
                     return rej(err)
@@ -55,35 +51,32 @@ export class AngelsService implements IHcoService {
         });
     }
 
-    getHospitals(country_id: number): Promise<Array<IHospital>> {
+    getHospitals = (country_id: number): Promise<Array<IHospital>> => {
         if (this.countryMap.has(country_id)) {
             return this.countryMap.get(country_id);
         }
-
+        const _me = this;
+        const url = hospitalsUrl + country_id;
         const promise = new Promise<Array<IHospital>>((res, rej) => {
-            const url = hospitalsUrl + country_id;
-
-            return this.http.get(url)
-                .toPromise()
-                .then(
-                hospitals => res(<Array<IHospital>>hospitals.json()),
-                err => rej(err)
-                );
+            this.http.get<Array<IHospital>>(url)
+                .subscribe(hospitals => {
+                    res(hospitals);
+                },
+                err => {
+                    rej(err)
+                })
         });
 
         this.countryMap.set(country_id, promise);
-
-        return promise;
+        return this.getHospitals(country_id);
     }
 
     saveHospitalData(hospital: IHospital): Promise<IHospital> {
         return new Promise<IHospital>((res, rej) => {
             const url = saveHospitalUrl + hospital.id;
-            return this.http.post(url, hospital)
-                .toPromise()
-                .then(
-                hospital => {
-                    res(<IHospital>hospital.json())
+            return this.http.post<IHospital>(url, hospital)
+                .subscribe(hospital => {
+                    return res(hospital)
                 },
                 err => {
                     rej(err)

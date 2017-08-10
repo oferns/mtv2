@@ -7,7 +7,13 @@ import {
   QueryList,
   ElementRef,
   EventEmitter,
-  Output
+  Input,
+  Output,
+  trigger,
+  state,
+  animate,
+  transition,
+  style
 } from '@angular/core';
 
 import { IMapService } from './abstractions/imap.service';
@@ -29,9 +35,19 @@ const hcos: Array<any> = (<any>data);
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
+  animations: [
+    trigger('loading', [
+      state('false', style({ maxHeight: '100%' })),
+      state('true', style({ maxHeight: 0, padding: 0, display: 'none' })),
+      transition('* => *', animate('300ms')),
+    ])
+  ]
 })
 
 export class MapComponent implements AfterViewInit {
+
+  @Input()
+  isLoading: boolean = true;
 
   @Output()
   boundsChanged: EventEmitter<any> = new EventEmitter();
@@ -231,8 +247,13 @@ export class MapComponent implements AfterViewInit {
 
   // Event Handlers
   countryChanged = (country: ICountry): void => {
-    this.hospitals.length = 0; // Clear the array...is there a better way?
+    this.isLoading = true;
+    // this.hospitals.length = 0; // Clear the array...is there a better way?
     const p = this.providers[this.currentProviderIndex];
+    p.removeMarkers();
+    p.removeShapes();
+    p.removeLines();
+
     console.log(`Changing to ${country.name}`)
     this.ensureCountryCenterAndBounds(country).then((c) => {
       p.setCenter(p.getLocation(c.center.lat, c.center.lng));
@@ -246,6 +267,7 @@ export class MapComponent implements AfterViewInit {
               h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
             })
           });
+          this.isLoading = false;
           this.showMarkers(hospitals);
         });
     });
@@ -275,16 +297,42 @@ export class MapComponent implements AfterViewInit {
 
   drawRoutes(): void {
     this.clearMap();
-    const promises = this.hospitals.map(h => {
-      return new Promise((res, rej) => {
-        if (h.visible) {
-          this.drawDrivingTime(h, 30);
-        }
-        return res();
-      })
-    })
+    const p = this.providers[this.currentProviderIndex];
 
-    Promise.all(promises);
+    let index = 0;
+    const hc = this.hospitals.filter(h => h.visible).sort((a: any, b: any) => a.lat === b.lat ? (a.lng - b.lng) : a.lat - b.lat);
+
+    const func = () => setTimeout(() => {
+      if (index < hc.length) {
+        ++index;
+        this.drawDrivingTime(hc[index], 30);
+        func.apply(this);
+      } else {
+        alert('finished');
+      }
+    }, 100)
+
+    func.apply(this);
+
+    //    this.drawDrivingTime(hc[index], 30);
+
+    // for (let h of this.hospitals) {
+    //   if (h.visible) {
+    //     console.log('Drawing routes for ' + h.id);
+    //     this.drawDrivingTime(h, 30);
+    //   }
+    // }
+    // const promises = this.hospitals.map(h => {
+    //   return new Promise((res, rej) => {
+    //     if (h.visible) {
+    //       console.log('Drawing routes for ' + h.id);
+    //       this.drawDrivingTime(h, 30);
+    //     }
+    //     return res();
+    //   })
+    // })
+
+    // Promise.all(promises);
   }
 
   private markerClickHandler = (args: any) => {
@@ -310,60 +358,7 @@ export class MapComponent implements AfterViewInit {
     shortenedRoutes.forEach((r) => {
       const lineoptions = p.getLineOptions({});
       const linepoints = [].concat.apply([], r);
-      p.drawLine(p.getLine(linepoints, lineoptions));
+      p.drawLine(p.getLine(lineoptions), linepoints);
     });
-  }
-
-
-  private mk2(args): void {
-    this.drawDrivingTimeFromMarkerInMinutes(args['marker'], 30);
-
-  }
-
-  private getMarkerShapes(marker: any): void {
-    // this.hcoService.getHospital(())
-  }
-
-  private showMarkerRoutes(marker: any): void {
-
-  }
-
-  private hideMarkerRoutes(marker: any): void {
-
-  }
-
-  drawDrivingTimeFromMarkerInMinutes(marker: any, minutes: number): void {
-
-
-    const p = this.providers[this.currentProviderIndex];
-    const center = marker.position;
-    const searchPoints = p.getRadialPoints(center, 12, 30);
-    const promises = searchPoints.map((s, i) => {
-      const req: google.maps.DirectionsRequest = {
-        travelMode: google.maps.TravelMode.DRIVING,
-        origin: center,
-        destination: s
-      };
-
-      return p.directions(req);
-    })
-
-    Promise.all(promises)
-      .then((results) => {
-        const routes = p.getDirectionsAsRouteSteps(results);
-        const shortenedRoutes = routes.map((r) => p.shortenRouteStepsByDuration(r, (minutes * 60)));
-        let shapepoints = shortenedRoutes.reduce((a, b) => a.concat(b));
-        shapepoints = p.getConvexHull(shapepoints)
-
-        const shapeoptions = p.getShapeOptions({});
-        const shape = p.getShape(shapepoints, shapeoptions);
-        p.drawShape(shape);
-
-        shortenedRoutes.forEach((r, i2) => {
-          const lineoptions = p.getLineOptions({});
-          const linepoints = [].concat.apply([], r);
-          p.drawLine(p.getLine(linepoints, lineoptions));
-        })
-      });
   }
 }

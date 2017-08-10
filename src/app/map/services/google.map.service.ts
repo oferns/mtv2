@@ -26,6 +26,7 @@ export class GoogleMapService implements IMapService {
     private scriptLoadingPromise: Promise<void>;
     private geocoder: google.maps.Geocoder;
     private dirService: google.maps.DirectionsService;
+    private drawManager: google.maps.drawing.DrawingManager;
     private tq = new throttledQueue(5, 1000, true);
 
     // Internal tracking of objects. GM doesnt do this for us
@@ -40,7 +41,7 @@ export class GoogleMapService implements IMapService {
         script.type = 'text/javascript';
         script.async = true;
         script.defer = true;
-        script.src = `//maps.googleapis.com/maps/api/js?key=${env.GM_API_KEY}&callback=${this.provider}`;
+        script.src = `//maps.googleapis.com/maps/api/js?key=${env.GM_API_KEY}&callback=${this.provider}&libraries=geometry,drawing`;
 
         this.scriptLoadingPromise = new Promise<void>((resolve: Function, reject: Function) => {
             (<any>window)[this.provider] = (a) => {
@@ -57,7 +58,29 @@ export class GoogleMapService implements IMapService {
         this.onReady().then(() => {
             this.geocoder = new google.maps.Geocoder();
             this.dirService = new google.maps.DirectionsService();
-
+            this.drawManager = new google.maps.drawing.DrawingManager({
+                drawingControl: false,
+                drawingControlOptions: {
+                    drawingModes: [
+                        google.maps.drawing.OverlayType.CIRCLE,
+                        google.maps.drawing.OverlayType.RECTANGLE,
+                        google.maps.drawing.OverlayType.POLYGON,
+                        google.maps.drawing.OverlayType.POLYLINE
+                    ]
+                },
+                polylineOptions: {
+                    strokeColor: '#ff0000',
+                    strokeWeight: 2,
+                    strokeOpacity: 1
+                },
+                PolygonOptions: {
+                    strokeColor: 'green',
+                    strokeWeight: 1,
+                    strokeOpacity: 0.2,
+                    fillColor: 'green',
+                    fillOpacity: 0.2
+                }
+            });
         });
     }
 
@@ -68,8 +91,10 @@ export class GoogleMapService implements IMapService {
     async initMap(mapElement: HTMLElement, options: google.maps.MapOptions): Promise<google.maps.Map> {
         return await this.onReady().then(() => {
             this.map = new google.maps.Map(mapElement, options);
-
+            this.drawManager.setMap(this.map);
             this.map.addListener('zoom_changed', () => google.maps.event.trigger(this.map, 'resize'));
+            this.drawManager.addListener('overlaycomplete', function (e) { alert('i fired') })
+
             return this.map;
         });
     }
@@ -139,8 +164,12 @@ export class GoogleMapService implements IMapService {
         this.map.setZoom(zoom);
     }
 
+    addDrawingListener = (event: string, handler: (...args: any[]) => void): void => {
+        this.drawManager.addListener(event, handler);
+    }
+
     addListener(event: string, handler: (...args: any[]) => void): void {
-        this.map.addListener(event, handler);
+        google.maps.event.addListener(this.map, event, handler);
     }
 
     setBounds(bounds: google.maps.LatLngBoundsLiteral): void {
@@ -196,6 +225,7 @@ export class GoogleMapService implements IMapService {
     }
 
     setMarker(marker: google.maps.Marker): google.maps.Marker {
+        // this.drawManager.setDrawingMode(google.maps.drawing.OverlayType.MARKER);
         marker.setMap(this.map);
         this._markers.push(marker);
         return marker;
@@ -254,22 +284,45 @@ export class GoogleMapService implements IMapService {
         return newoptions;
     }
 
-    getLine(path: google.maps.LatLng[], options: google.maps.PolylineOptions): google.maps.Polyline {
-        options.path = path;
+    getLine(options: google.maps.PolylineOptions): google.maps.Polyline {
+        options.map = this.map;
         const line = new google.maps.Polyline(options);
+        // line.setMap(this.map);
         this._lines.push(line);
         return line;
+
     }
 
-    drawLine(line: google.maps.Polyline): google.maps.Polyline {
+    // getLine(path: google.maps.LatLng[], options: google.maps.PolylineOptions): google.maps.Polyline {
+    //     options.path = path;
+    //     const line = new google.maps.Polyline(options);
+    //     this._lines.push(line);
+    //     return line;
+    // }
+
+    drawLine(line: google.maps.Polyline, paths: Array<google.maps.LatLng>): google.maps.Polyline {
+        let path = line.getPath();
+
+        console.log('Drawing ' + line);
+
+        paths.forEach(p => path.push(p));
 
         if (this._lines.indexOf(line) === -1) {
             this._lines.push(line);
         }
-
-        line.setMap(this.map);
         return line;
+
     }
+
+    // drawLine(line: google.maps.Polyline): google.maps.Polyline {
+
+    //     if (this._lines.indexOf(line) === -1) {
+    //         this._lines.push(line);
+    //     }
+    //     console.log('Drawing ' + line);
+    //     line.setMap(this.map);
+    //     return line;
+    // }
 
     hideLine(line: google.maps.Polyline): google.maps.Polyline {
         if (this._lines.indexOf(line) === -1) {
@@ -350,34 +403,6 @@ export class GoogleMapService implements IMapService {
         this._shapes = [];
     }
 
-    drawDrivingRadius(marker: google.maps.Marker, miles: number): void {
-        const searchPoints = this.getRadialPoints(marker.getPosition(), 12, miles);
-        const _me = this;
-        Promise.all(this.getDirections(marker.getPosition(), searchPoints))
-            .then((results) => {
-                // Get rid of null routes (not found or no results)
-                const routes = this.getRoutesAsPaths(results, 1800).filter((r) => r);
-
-                // Flattens the route into an array of LatLngs
-                const shapepoints = [].concat.apply([], routes.map((r) => [].concat.apply([], r)));
-
-                // Get a set of points representing a convex hull
-                const shapeLines = this.getConvexHull(shapepoints);
-
-                const shapeoptions = this.getShapeOptions({});
-                this.drawShape(this.getShape(shapeLines, shapeoptions));
-
-                // Draw the Route lines
-                routes.forEach((route) => {
-                    const lineoptions = this.getLineOptions({});
-                    const linepoints = [].concat.apply([], route);
-                    this.drawLine(this.getLine(linepoints, lineoptions));
-                })
-            })
-            .catch((err) => {
-                throw err;
-            })
-    }
 
     private convertGeoResults(results: google.maps.GeocoderResult[]): IGeoCodeResult[] {
         return <IGeoCodeResult[]>results.map(function (r) {

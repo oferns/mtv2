@@ -1,7 +1,7 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule,  } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { ToolbarModule } from './toolbar/module';
 
 import { MapComponent, PROVIDERS } from './map.component';
@@ -14,12 +14,13 @@ import { BingMapService } from './services/bing.map.service';
 @NgModule({
     declarations: [
         MapComponent,
-        HospitalListComponent,        
+        HospitalListComponent
     ],
     imports: [
         CommonModule,
         FormsModule,
-        ToolbarModule
+        ToolbarModule,
+        BrowserAnimationsModule
     ],
     providers: [
         { provide: PROVIDERS, useClass: GoogleMapService, multi: true }, // PROVIDERS can be any implementation of IMapService

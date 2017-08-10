@@ -1,14 +1,17 @@
-<ul>
-    <li *ngIf="hospitals.length">
-        <label for="toggle">
+<div>
+    <h3>Showing {{visibleCount()}} of {{hospitals.length}} Hospitals</h3>
+    <ul>
+        <li *ngIf="hospitals.length">
+            <label for="toggle">
             <input type="checkbox" value="" name="" id="" (change)="toggleAll($event)" />
             Select all
         </label>
-    </li>
-  <li *ngFor="let h of hospitals" [hidden]='!h.visible'>
-    <label (for)="'hospital_' + h.id"  > 
-    <input type="checkbox" (value)='hospital.id' (id)="'hospital_' + h.id"  #checkBox/>
-    {{h.name}}
-</label>
-  </li>
-</ul>
+        </li>
+        <li *ngFor="let h of hospitals" [hidden]='!h.visible'>
+            <label (for)="'hospital_' + h.id"> 
+                <input type="checkbox" (value)='hospital.id' (id)="'hospital_' + h.id"  #checkBox/>
+                {{h.name}}
+            </label>
+        </li>
+    </ul>
+</div>

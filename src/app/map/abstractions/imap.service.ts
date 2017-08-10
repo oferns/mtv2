@@ -30,7 +30,6 @@ export interface IMapService {
 
     getDirectionsRequest(request: IDirectionsRequest): any;
     getRadialPoints(location: any, points: number, miles: number): Array<any>;
-    drawDrivingRadius(marker: any, radius: number): void;
     getRoutesAsPaths(routes: Array<any>, seconds: number): Array<Array<any>>
     
     getDirectionAsRouteSteps(direction: any): Array<any>;
@@ -43,10 +42,10 @@ export interface IMapService {
     removeShape(shape: any): any;
     removeShapes(): void;
     getConvexHull(points: Array<any>): Array<any>;
-
+    addDrawingListener(event: string, handler: (...args: Array<any>) => void): void;
     getLineOptions(any): any;
-    getLine(points: Array<any>, options: any): any;
-    drawLine(line: any): any;
+    getLine(options: any): any;
+    drawLine(line: any, points: Array<any>): any;
     removeLine(line: any): any;
     removeLines(): void;
 }
