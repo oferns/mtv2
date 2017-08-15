@@ -1,12 +1,11 @@
 export interface IMarkerOptions {
-    id: number;
     anchor?: any;
     draggable?: boolean;
     title?: string;
     label?: string;
     subTitle?: string;
     cursor?: string;
-    icon?: string;
+    icon?: any;
     onClick?(handler: (...args: any[]) => void): void;
     onDragStart?(handler: (...args: any[]) => void): void;
     onDrag?(handler: (...args: any[]) => void): void;

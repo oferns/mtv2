@@ -1,6 +1,8 @@
 md-spinner {
+  position: absolute;
+  top:0;
+  right:0;
   height: 1em;
-  display: inline-block;
   margin-right: -2em;
   margin-left: -2em;
 }
@@ -8,4 +10,8 @@ md-spinner {
 md-button-toggle {
   display: block;
   width: 100%;
+}
+
+.icons {
+  float:right;
 }

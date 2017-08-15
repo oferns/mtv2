@@ -1,4 +1,4 @@
 export interface IHospitalRoutes {
     id: number;
-    data?: Array<any>
+    radiusDirections?: Array<any>;
 }

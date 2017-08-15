@@ -20,34 +20,43 @@ import { IHcoService } from '../../services/ihco.service';
 
 export class HospitalComponent {
 
-    @Input()
-    isLoading: boolean;
-
     private _hospital: IHospital;
 
     get hospital(): IHospital {
         return this._hospital;
     }
+
     @Input()
     set hospital(hospital: IHospital) {
         this._hospital = hospital;
-        this.hospitalLoading.emit(this.isLoading = true);
+        this.isLoading = true;
+        this.onHospitalLoading.emit(hospital);
         this.hcoService.getHospitalRoutes(hospital)
-            .do(h => {
-                this.log.debug(`HospitalComponent got ${hospital.name} routes data ${h.data}`)
-            })
             .subscribe(hs => {
-                this.hospitalLoading.emit(this.isLoading = false);
-                this._hospital.radiusDirections = hs[0].radiusDirections;
+                if (hs) {
+                    hs.radiusDirections = hs.radiusDirections || [];
+                    this.log.info(`HospitalComponent ${hs.radiusDirections.length} routes received`);
+                    hospital.radiusDirections = hs.radiusDirections;
+                } else {
+                    this.log.info(`HospitalComponent no routes received`);
+                }
+                this.onHospitalLoaded.emit(hospital);
             })
     }
 
+    @Input()
+    isLoading: boolean;
+
     @Output()
-    hospitalLoading: EventEmitter<boolean>;
+    onHospitalLoading: EventEmitter<IHospital>;
+
+    @Output()
+    onHospitalLoaded: EventEmitter<IHospital>;
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger) {
-        this.log.debug('HospitalComponent Ctor called');
-        this.hospitalLoading = new EventEmitter<boolean>();
+        this.log.info('HospitalComponent Ctor called');
+        this.onHospitalLoading = new EventEmitter<IHospital>();
+        this.onHospitalLoaded = new EventEmitter<IHospital>();
     }
 }

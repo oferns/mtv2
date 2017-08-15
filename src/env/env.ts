@@ -5,13 +5,14 @@
 
 import { Level } from 'angular2-logger/core';
 
+// AIzaSyD0HAQrkFp8aELPTUPIwRgd_eym_seQ5z8
 // AIzaSyAQW-eSdGKdaAQGQdFIHihlJ0bq63qRKmg
 export const env = {
   production: false,
   logger: {
     level: Level.DEBUG
   },
-  GM_API_KEY: 'AIzaSyD0HAQrkFp8aELPTUPIwRgd_eym_seQ5z8',
+  GM_API_KEY: 'AIzaSyAQW-eSdGKdaAQGQdFIHihlJ0bq63qRKmg',
   BM_API_KEY: 'An79vnBp7nhzQWaCmoVrKTZLngj4RvNRtB7ebt3FfVU9pyaGl7dAjCm4Y6gubOV9'
 
 };

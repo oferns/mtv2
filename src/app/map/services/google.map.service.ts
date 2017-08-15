@@ -20,13 +20,13 @@ export class GoogleMapService implements IMapService {
     private scriptLoadingPromise: Promise<void>;
     private geocoder: google.maps.Geocoder;
     private dirService: google.maps.DirectionsService;
-    private drawManager: google.maps.drawing.DrawingManager;
 
     // Internal tracking of objects. GM doesnt do this for us
     private _markers: Array<google.maps.Marker> = new Array<google.maps.Marker>();
     private _shapes: Array<google.maps.Polygon> = new Array<google.maps.Polygon>();
     private _lines: Array<google.maps.Polyline> = new Array<google.maps.Polyline>();
-    provider = 'Google';
+
+    public provider = 'Google';
 
     constructor(private readonly log: Logger) {
         const script: HTMLScriptElement = window.document.createElement('script');
@@ -51,29 +51,6 @@ export class GoogleMapService implements IMapService {
         this.onReady().then(() => {
             this.geocoder = new google.maps.Geocoder();
             this.dirService = new google.maps.DirectionsService();
-            this.drawManager = new google.maps.drawing.DrawingManager({
-                drawingControl: false,
-                drawingControlOptions: {
-                    drawingModes: [
-                        google.maps.drawing.OverlayType.CIRCLE,
-                        google.maps.drawing.OverlayType.RECTANGLE,
-                        google.maps.drawing.OverlayType.POLYGON,
-                        google.maps.drawing.OverlayType.POLYLINE
-                    ]
-                },
-                polylineOptions: {
-                    strokeColor: '#ff0000',
-                    strokeWeight: 2,
-                    strokeOpacity: 1
-                },
-                PolygonOptions: {
-                    strokeColor: 'green',
-                    strokeWeight: 1,
-                    strokeOpacity: 0.2,
-                    fillColor: 'green',
-                    fillOpacity: 0.2
-                }
-            });
         });
     }
 
@@ -112,7 +89,7 @@ export class GoogleMapService implements IMapService {
                     case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
                         if (retryCount < maxRetry) {
                             setTimeout(async () => {
-                                _me.log.debug(`${request.destination}: Retrying no ${retryCount} of ${maxRetry}
+                                _me.log.info(`${request.destination}: Retrying no ${retryCount} of ${maxRetry}
                                  after status of ${status} with result of ${result}`);
                                 return await res(_me.directions(request, ++retryCount));
                             }, 2000);
@@ -124,7 +101,7 @@ export class GoogleMapService implements IMapService {
                     case google.maps.DirectionsStatus.UNKNOWN_ERROR:
                         if (retryCount < maxRetry) {
                             setTimeout(async () => {
-                                _me.log.debug(`${request.destination}: Retrying no ${retryCount} of ${maxRetry}
+                                _me.log.info(`${request.destination}: Retrying no ${retryCount} of ${maxRetry}
                                 after status of ${status} with result of ${result}`);
                                 return await res(_me.directions(request, ++retryCount));
                             }, 2000);
@@ -199,7 +176,7 @@ export class GoogleMapService implements IMapService {
                         case google.maps.GeocoderStatus.OVER_QUERY_LIMIT:
                             if (retryCount < maxRetry) {
                                 setTimeout(async () => {
-                                _me.log.debug(`${location}: Retrying no ${retryCount} of ${maxRetry}
+                                    _me.log.info(`${location}: Retrying no ${retryCount} of ${maxRetry}
                                after status of ${status} with result of ${results}`);
                                     return await res(_me.geocode(location, ++retryCount));
                                 }, 500);
@@ -228,11 +205,10 @@ export class GoogleMapService implements IMapService {
         };
 
         const marker = new google.maps.Marker(newopts);
-        marker.id = options.id;
 
         if (options.onClick) {
             google.maps.event.addListener(marker, 'click', function (args, e) {
-                options.onClick.apply(this, [{ marker: marker, args: args, id: options.id }])
+                options.onClick.apply(this, [{ marker: marker, args: args }])
             });
         }
 

@@ -27,53 +27,69 @@ import 'rxjs/add/operator/mergeMap';
 export class HospitalListComponent {
 
     private isLoading: boolean;
+    private _country: ICountry;
+
+    get country() {
+        return this._country;
+    }
 
     @Input()
     set country(country: ICountry) {
         if (country && country.id > 0) {
-            this.hospitalsLoading.emit(this.isLoading = true);
-            this.hcoService.getHospitals(country)
-                .do(h => this.log.debug(`HospitalListComponent got ${h.length} hospitals for ${country.name}`))
-                .subscribe(hs => {
-                    this.hospitalsLoading.emit(this.isLoading = false);
-                    this.hospitals = hs;
-                });
-        } else {
-            this.hospitals = new Array<IHospital>();
+            this._country = country;
+            this.onHospitalsLoading.emit(this.isLoading = true);
+            this.hospitals = this.hcoService.getHospitals(country)
+            this.hospitals.do(h => {
+                this.log.info(`HospitalListComponent got ${h.length} hospitals for ${country.name}`);
+                this.onHospitalsLoading.emit(this.isLoading = false);
+            }).subscribe();
         }
     };
 
     @Input()
-    hospitals: Array<IHospital>;
+    hospitals: Observable<Array<IHospital>>;
 
     @Output()
-    hospitalsLoading: EventEmitter<boolean>;
+    onHospitalsLoading: EventEmitter<boolean>;
 
     @Output()
-    hospitalChecked: EventEmitter<IHospital>;
+    onHospitalLoading: EventEmitter<IHospital>;
 
     @Output()
-    hospitalClicked: EventEmitter<IHospital>;
+    onHospitalLoaded: EventEmitter<IHospital>;
 
-    @ViewChildren('checkBox') private checkBoxes: QueryList<ElementRef>;
+    @Input()
+    set mapBounds(bounds: any) {
+        if (this.hospitals) {
+            this.hospitals.forEach(hospitals => {
+                hospitals.forEach(hospital => {
+                    hospital.visible = bounds.contains({ lat: Number(hospital.lat || 0), lng: Number(hospital.lng || 0) });
+                });
+            });
+        }
+    };
+
+    @ViewChildren('#hospital') private hospitalElements: QueryList<ElementRef>;
 
     constructor(
         @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger
     ) {
-        log.debug('HospitalList Component CTor called');
-        this.hospitals = new Array<IHospital>();
-        this.hospitalsLoading = new EventEmitter<boolean>();
-        this.hospitalChecked = new EventEmitter<IHospital>();
-        this.hospitalClicked = new EventEmitter<IHospital>();
+        log.info('HospitalList Component CTor called');
+        this.onHospitalsLoading = new EventEmitter<boolean>();
+        this.onHospitalLoading = new EventEmitter<IHospital>();
+        this.onHospitalLoaded = new EventEmitter<IHospital>();
     }
-
-    toggleAll = (event: MouseEvent): void =>
-        this.checkBoxes.forEach(c => c.nativeElement.checked = (<HTMLInputElement>event.target).checked);
 
     visibleCount = (): Number => {
-        return this.hospitals.filter(f => f.visible).length;
+        return 0;
     }
 
-    clicked = (hospital: IHospital) => this.hospitalClicked.emit(hospital);
+    private hospitalLoading(hospital: IHospital) {
+        this.onHospitalLoading.emit(hospital);
+    }
+
+    private hospitalLoaded(hospital: IHospital) {
+        this.onHospitalLoaded.emit(hospital);
+    }
 }

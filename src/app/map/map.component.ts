@@ -87,6 +87,8 @@ export class MapComponent implements AfterViewInit {
   hospitals: Array<IHospital> = new Array<IHospital>();
   countries: Array<ICountry> = new Array<ICountry>();
 
+  private hospitalMarkers: Map<IHospital, any> = new Map<IHospital, any>();
+
   private timeout;
 
   constructor(
@@ -99,7 +101,7 @@ export class MapComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.log.debug('MapComponent ngAfterViewInit called');
+    this.log.info('MapComponent ngAfterViewInit called');
 
     this.mapDivRefs.map((div: ElementRef, index: number) => {
       const provider = this.providers[index];
@@ -115,10 +117,39 @@ export class MapComponent implements AfterViewInit {
     })
   }
 
-  private hospitalClicked = (hospital: IHospital): void => {
-    this.log.debug(`MapComponent: hospitalClicked: ${hospital.id}`);
-    const p = this.providers[this.currentProviderIndex];
-    p.setCenter(p.getLocation(hospital.lat, hospital.lng));
+  private hospitalLoading(hospital: IHospital): void {
+    this.log.info(`MapComponent hospitalLoading ${hospital.id}`);
+    const p = this.currentProvider;
+
+    if (this.hospitalMarkers.has(hospital)) {
+      return p.setMarker(this.hospitalMarkers.get(hospital));
+    }
+
+    const options = <IMarkerOptions>{
+      title: hospital.name,
+      icon: this.pinSymbol('white')
+    };
+
+    const marker = p.getMarker(p.getLocation(hospital.lat, hospital.lng), options);
+
+    this.hospitalMarkers.set(hospital, marker)
+    p.setMarker(marker);
+  }
+
+  private pinSymbol(color): any {
+    return {
+      path: 'M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z',
+      fillColor: color,
+      fillOpacity: 1,
+      strokeColor: '#000',
+      strokeWeight: 1,
+      scale: 1,
+      labelOrigin: new google.maps.Point(0, -29)
+    };
+  }
+
+  private hospitalLoaded(hospital: IHospital) {
+    const d = 1;
   }
 
   private mapBoundsChanged = (): void => {
@@ -126,23 +157,19 @@ export class MapComponent implements AfterViewInit {
     window.clearTimeout(this.timeout);
 
     this.timeout = window.setTimeout(() => {
-      this.log.debug('MapComponent mapBoundsChanged called');
-      const p = this.providers[this.currentProviderIndex];
-      this.currentBounds = p.getBounds();
-      this.hospitalList.hospitals.forEach(h => {
-        h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
-      });
+      this.log.info('MapComponent mapBoundsChanged called');
+      this.currentBounds = this.currentProvider.getBounds();
       this.boundsChanged.emit(this.currentBounds);
     }, 500);
   }
 
   private mapDragEnd = (): void => {
-    this.log.debug('MapComponent mapDragEnd called');
+    this.log.info('MapComponent mapDragEnd called');
     const p = this.providers[this.currentProviderIndex];
     this.currentBounds = p.getBounds();
 
-    this.hospitalList.hospitals.forEach(h => {
-      h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
+    this.hospitalList.hospitals.subscribe(hospital => {
+      hospital.forEach(h => h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng)));
     });
 
     this.dragEnd.emit(this.currentBounds);
@@ -150,39 +177,39 @@ export class MapComponent implements AfterViewInit {
 
   // Data Promises
   private ensureCountryCenterAndBounds = async (country: ICountry): Promise<ICountry> => {
-    this.log.debug(`MapComponent ensureCountryCenterAndBounds called for ${country.name} (${country.id})`);
+    this.log.info(`MapComponent ensureCountryCenterAndBounds called for ${country.name} (${country.id})`);
 
     if (this.countryMap.has(country.id)) {
-      this.log.debug(`MapComponent ensureCountryCenterAndBounds found ${country.name} (${country.id}) in cache. Returning`);
+      this.log.info(`MapComponent ensureCountryCenterAndBounds found ${country.name} (${country.id}) in cache. Returning`);
       return await this.countryMap.get(country.id);
     }
 
-    this.log.debug(`MapComponent ensureCountryCenterAndBounds did not find ${country.name} (${country.id}) in cache.`);
+    this.log.info(`MapComponent ensureCountryCenterAndBounds did not find ${country.name} (${country.id}) in cache.`);
 
     const promise = new Promise<ICountry>((res, rej) => {
       if (country.bounds && country.center) {
-        this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} has location data in database. Returning.`);
+        this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name} has location data in database. Returning.`);
         return res(country);
       }
 
-      this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name}
+      this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name}
       DOES NOT HAVE location data in the database. Geocoding using current provider`);
       return this.providers[this.currentProviderIndex].geocode(country.name)
         .then((results: Array<IGeoCodeResult>) => {
           if (results.length) {
-            this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name}
+            this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name}
             geocoding found ${results.length} results. Using the first result to get bounds and centre`);
             // Lets just take the first result here
             country.bounds = results[0].bounds.toJSON();
             country.center = results[0].center.toJSON();
 
-            this.log.debug(`MapComponent ensureCountryCenterAndBounds saving geo info for ${country.name} (${country.id})`);
-            this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id})
+            this.log.info(`MapComponent ensureCountryCenterAndBounds saving geo info for ${country.name} (${country.id})`);
+            this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id})
             centre: Lat ${country.bounds.lat} Lng ${country.bounds.lat}`);
 
             this.hcoService.saveCountryData(country)
               .then((country: ICountry) => {
-                this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) geo info saved`);
+                this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) geo info saved`);
                 return res(country);
               })
               .catch((err) => {
@@ -191,7 +218,7 @@ export class MapComponent implements AfterViewInit {
                 return rej(err);
               });
           } else {
-            this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) geocode produced no information.`);
+            this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) geocode produced no information.`);
             return rej('Geocode for this address produced no results');
           }
         })
@@ -202,32 +229,32 @@ export class MapComponent implements AfterViewInit {
         });
     })
 
-    this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) setting Promise in map`);
+    this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) setting Promise in map`);
     this.countryMap.set(country.id, promise);
 
     return await promise;
   }
 
   private ensureHospitalRoutes = async (hospital: IHospital): Promise<IHospital> => {
-    this.log.debug(`MapComponent ensureHospitalRoutes called for ${hospital.name} (${hospital.id})`);
+    this.log.info(`MapComponent ensureHospitalRoutes called for ${hospital.name} (${hospital.id})`);
 
     if (this.hospitalMap.has(hospital.id)) {
-      this.log.debug(`MapComponent ensureHospitalRoutes found ${hospital.name} (${hospital.id}) in cache. Returning`);
+      this.log.info(`MapComponent ensureHospitalRoutes found ${hospital.name} (${hospital.id}) in cache. Returning`);
       return await this.hospitalMap.get(hospital.id)
     };
 
     if (hospital.radiusDirections) {
-      this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) has location data in database. Returning.`);
+      this.log.info(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) has location data in database. Returning.`);
       this.hospitalMap.set(hospital.id, Promise.resolve(hospital));
       return await this.hospitalMap.get(hospital.id);
     }
 
     // if (hospital.lat === 0 && hospital.lng === 0) {
     //   hospital.radiusDirections = new Array<Array<IRouteStep>>();
-    //   this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) saving UNKNOWN hospital data`);
+    //   this.log.info(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) saving UNKNOWN hospital data`);
     //   return await this.hcoService.saveHospitalData(hospital)
     //     .subscribe((h) => {
-    //       this.log.debug(`MapComponent ensureHospitalRoutes ${h.name} (${h.id}) hospital data SAVED`);
+    //       this.log.info(`MapComponent ensureHospitalRoutes ${h.name} (${h.id}) hospital data SAVED`);
     //       this.hospitalMap.set(h.id, Promise.resolve(h));
     //       return h;
     //     }).catch((err) => {
@@ -237,11 +264,11 @@ export class MapComponent implements AfterViewInit {
     //     })
     // }
 
-    // this.log.debug(`MapComponent ensureHospitalRoutes did not find ${hospital.name} (${hospital.id}) in cache.`);
+    // this.log.info(`MapComponent ensureHospitalRoutes did not find ${hospital.name} (${hospital.id}) in cache.`);
 
     // const promise = new Promise<IHospital>(async (res, rej) => {
     //   const p = this.providers[this.currentProviderIndex];
-    //   this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) Getting search points`);
+    //   this.log.info(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) Getting search points`);
     //   const searchPoints = p.getRadialPoints(p.getLocation(hospital.lat, hospital.lng), 12, 30);
     //   const dirReqs = searchPoints.map<IDirectionsRequest>((sp) => {
     //     return <IDirectionsRequest>{
@@ -254,7 +281,7 @@ export class MapComponent implements AfterViewInit {
     //   return await Promise.all(dirReqs.map<Promise<any>>(async (r: IDirectionsRequest) => {
     //     return await p.directions(r)
     //       .then((d: Array<IRouteStep>) => {
-    //         this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id})
+    //         this.log.info(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id})
     //                     Directions request for Lat ${r.destination.lat()} Lng ${r.destination.lng()}`);
     //         return <Array<IRouteStep>>p.getDirectionAsRouteSteps(d);
     //       })
@@ -262,14 +289,14 @@ export class MapComponent implements AfterViewInit {
     //         return [];
     //       })
     //   })).then((routes: Array<Array<IRouteStep>>) => {
-    //     this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) setting radiusDirections. ${routes.length}`);
+    //     this.log.info(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) setting radiusDirections. ${routes.length}`);
     //     hospital.radiusDirections = routes;
     //     return hospital;
     //   }).then((hospital: IHospital) => {
-    //     this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) saving hospital data`);
+    //     this.log.info(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) saving hospital data`);
     //     return this.hcoService.saveHospitalData(hospital)
     //       .then((hospital) => {
-    //         this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) hospital data SAVED`);
+    //         this.log.info(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) hospital data SAVED`);
     //         return res(hospital);
     //       }).catch((err) => {
     //         this.log.error(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) ERROR getting directions from provider`);
@@ -283,7 +310,7 @@ export class MapComponent implements AfterViewInit {
     //     })
     // });
 
-    // this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) setting Promise in map`);
+    // this.log.info(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) setting Promise in map`);
 
     // this.hospitalMap.set(hospital.id, promise);
 
@@ -291,24 +318,24 @@ export class MapComponent implements AfterViewInit {
   }
 
   private ensureHospitalLocation = async (hospital: IHospital): Promise<IHospital> => {
-    this.log.debug(`MapComponent ensureHospitalLocation called for ${hospital.name} (${hospital.id})`);
+    this.log.info(`MapComponent ensureHospitalLocation called for ${hospital.name} (${hospital.id})`);
 
     if (hospital.lat != null && hospital.lng != null) {
-      this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) has location data. Returning`);
+      this.log.info(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) has location data. Returning`);
       return await Promise.resolve(hospital);
     }
 
     const location = hospital.name;
     const p = this.providers[this.currentProviderIndex];
 
-    this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) has no location data.`);
+    this.log.info(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) has no location data.`);
 
-    this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) finding country.`);
+    this.log.info(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) finding country.`);
     return await Promise.resolve(hospital);
     // return await this.hcoService.getCountries().then(async countries => {
     //   const cunts = countries.filter(c => c.id === hospital.country);
     //   if (!cunts.length) {
-    //     this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id})
+    //     this.log.info(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id})
     //     cound not find country id ${hospital.country}. Setting lat&lng to 0`);
     //     hospital.lat = 0;
     //     hospital.lng = 0;
@@ -317,16 +344,16 @@ export class MapComponent implements AfterViewInit {
 
     //   const cunt = cunts[0];
     //   const loc = `${hospital.name}, ${cunt.name}`;
-    //   this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) geocoding using ${loc}`);
+    //   this.log.info(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) geocoding using ${loc}`);
 
     //   return await p.geocode(loc).then((result: Array<IGeoCodeResult>) => {
     //     if (!result || !result.length) {
-    //       this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) geocoding using ${loc} found NO results`);
+    //       this.log.info(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) geocoding using ${loc} found NO results`);
     //       hospital.address = 'UNKNOWN';
     //       hospital.lat = 0;
     //       hospital.lng = 0;
     //     } else {
-    //       this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name}
+    //       this.log.info(`MapComponent ensureHospitalLocation ${hospital.name}
     //       (${hospital.id}) geocoding using ${loc} found ${result.length} results. Using first`);
     //       hospital.address = (<any>result[0].center).address;
     //       hospital.lat = (<any>result[0].center).lat();
@@ -338,24 +365,14 @@ export class MapComponent implements AfterViewInit {
   }
   // Event Handlers
   private countryChanged = (country: ICountry): void => {
-    this.log.debug(`MapComponent countryChanged to  ${country.name} (${country.id})`);
+    this.log.info(`MapComponent countryChanged to  ${country.name} (${country.id})`);
     this.currentCountry = country;
+    this.currentProvider.setCenter(this.currentProvider.getLocation(country.center.lat, country.center.lng))
+    this.currentProvider.setBounds(country.bounds);
   }
 
   private hospitalsLoading = (value: boolean): void => {
     this.isLoading = value;
-  }
-
-  private showMarkers = (hospitals: Array<any>): void => {
-    const p = this.providers[this.currentProviderIndex];
-    hospitals.forEach((h) => {
-      const options: IMarkerOptions = {
-        id: h.id,
-        label: h.title,
-        onClick: this.markerClickHandler
-      };
-      const marker = p.setMarker(p.getMarker(p.getLocation(h.lat, h.lng), options));
-    });
   }
 
   providerChanged = (provider: IMapService): void => {
