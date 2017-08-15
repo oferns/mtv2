@@ -1,23 +1,17 @@
 import { Injectable } from '@angular/core';
 
+import { Logger } from 'angular2-logger/core';
 import { } from '@types/googlemaps';
 
 import { IRouteStep } from '../abstractions/iroutestep';
-
 import { IMapService } from '../abstractions/imap.service';
 import { IMapOptions } from '../abstractions/imap.options';
 import { IMarkerOptions } from '../abstractions/imarker.options';
-
 import { IGeoCodeResult } from '../abstractions/igeocode.result';
 import { IDirectionsRequest } from '../abstractions/idirections.request';
-
 import { env } from '../../../env/env';
-import { ExcelService } from 'app/services/excel.service';
-
-import * as data from '../../../../testdata/firebasestr.json';
 
 declare var google: any;
-declare var throttledQueue: any;
 
 @Injectable()
 export class GoogleMapService implements IMapService {
@@ -27,7 +21,6 @@ export class GoogleMapService implements IMapService {
     private geocoder: google.maps.Geocoder;
     private dirService: google.maps.DirectionsService;
     private drawManager: google.maps.drawing.DrawingManager;
-    private tq = new throttledQueue(5, 1000, true);
 
     // Internal tracking of objects. GM doesnt do this for us
     private _markers: Array<google.maps.Marker> = new Array<google.maps.Marker>();
@@ -35,7 +28,7 @@ export class GoogleMapService implements IMapService {
     private _lines: Array<google.maps.Polyline> = new Array<google.maps.Polyline>();
     provider = 'Google';
 
-    constructor(private readonly xls: ExcelService) {
+    constructor(private readonly log: Logger) {
         const script: HTMLScriptElement = window.document.createElement('script');
 
         script.type = 'text/javascript';
@@ -91,10 +84,7 @@ export class GoogleMapService implements IMapService {
     async initMap(mapElement: HTMLElement, options: google.maps.MapOptions): Promise<google.maps.Map> {
         return await this.onReady().then(() => {
             this.map = new google.maps.Map(mapElement, options);
-            this.drawManager.setMap(this.map);
             this.map.addListener('zoom_changed', () => google.maps.event.trigger(this.map, 'resize'));
-            this.drawManager.addListener('overlaycomplete', function (e) { alert('i fired') })
-
             return this.map;
         });
     }
@@ -121,9 +111,10 @@ export class GoogleMapService implements IMapService {
                     case google.maps.DirectionsStatus.ZERO_RESULTS: return res(<google.maps.DirectionsResult>null);
                     case google.maps.DirectionsStatus.OVER_QUERY_LIMIT:
                         if (retryCount < maxRetry) {
-                            setTimeout(() => {
-                                console.log(`${request.destination}: Retrying no ${retryCount} of ${maxRetry} after status of ${status} with result of ${result}`);
-                                return res(_me.directions(request, ++retryCount));
+                            setTimeout(async () => {
+                                _me.log.debug(`${request.destination}: Retrying no ${retryCount} of ${maxRetry}
+                                 after status of ${status} with result of ${result}`);
+                                return await res(_me.directions(request, ++retryCount));
                             }, 2000);
                         } else {
                             return rej([{ result: result, status: status }])
@@ -132,9 +123,10 @@ export class GoogleMapService implements IMapService {
                         return rej([{ result: result, status: status }]);
                     case google.maps.DirectionsStatus.UNKNOWN_ERROR:
                         if (retryCount < maxRetry) {
-                            setTimeout(() => {
-                                console.log(`${request.destination}: Retrying no ${retryCount} of ${maxRetry} after status of ${status} with result of ${result}`);
-                                return res(_me.directions(request, ++retryCount));
+                            setTimeout(async () => {
+                                _me.log.debug(`${request.destination}: Retrying no ${retryCount} of ${maxRetry}
+                                after status of ${status} with result of ${result}`);
+                                return await res(_me.directions(request, ++retryCount));
                             }, 2000);
                         } else {
                             return rej([{ result: result, status: status }])
@@ -164,10 +156,6 @@ export class GoogleMapService implements IMapService {
         this.map.setZoom(zoom);
     }
 
-    addDrawingListener = (event: string, handler: (...args: any[]) => void): void => {
-        this.drawManager.addListener(event, handler);
-    }
-
     addListener(event: string, handler: (...args: any[]) => void): void {
         google.maps.event.addListener(this.map, event, handler);
     }
@@ -184,7 +172,8 @@ export class GoogleMapService implements IMapService {
         return new google.maps.LatLngBounds(nw, se)
     }
 
-    async geocode(location: string | google.maps.LatLng | google.maps.LatLngBounds, retryCount?: number): Promise<Array<IGeoCodeResult>> {
+    geocode = async (location: string | google.maps.LatLng | google.maps.LatLngBounds, retryCount?: number):
+        Promise<Array<IGeoCodeResult>> => {
         const _me = this;
         retryCount = retryCount || 0;
         return await new Promise<Array<IGeoCodeResult>>((res, rej) => {
@@ -209,11 +198,11 @@ export class GoogleMapService implements IMapService {
                         case google.maps.GeocoderStatus.INVALID_REQUEST: return rej(results);
                         case google.maps.GeocoderStatus.OVER_QUERY_LIMIT:
                             if (retryCount < maxRetry) {
-                                setTimeout(() => {
-                                    console.log('Retrying');
-                                    retryCount++;
-                                    return _me.geocode(location);
-                                }, 2000);
+                                setTimeout(async () => {
+                                _me.log.debug(`${location}: Retrying no ${retryCount} of ${maxRetry}
+                               after status of ${status} with result of ${results}`);
+                                    return await res(_me.geocode(location, ++retryCount));
+                                }, 500);
                             } else {
                                 return rej(results)
                             } break;
@@ -225,7 +214,6 @@ export class GoogleMapService implements IMapService {
     }
 
     setMarker(marker: google.maps.Marker): google.maps.Marker {
-        // this.drawManager.setDrawingMode(google.maps.drawing.OverlayType.MARKER);
         marker.setMap(this.map);
         this._markers.push(marker);
         return marker;
@@ -236,7 +224,7 @@ export class GoogleMapService implements IMapService {
         const newopts: google.maps.MarkerOptions = {
             position: location,
             icon: options.icon,
-            title: options.title,
+            title: options.title
         };
 
         const marker = new google.maps.Marker(newopts);
@@ -284,45 +272,23 @@ export class GoogleMapService implements IMapService {
         return newoptions;
     }
 
-    getLine(options: google.maps.PolylineOptions): google.maps.Polyline {
-        options.map = this.map;
+    getLine(path: Array<google.maps.LatLng>, options: google.maps.PolylineOptions): google.maps.Polyline {
+        options.path = path;
         const line = new google.maps.Polyline(options);
-        // line.setMap(this.map);
         this._lines.push(line);
         return line;
-
     }
 
-    // getLine(path: google.maps.LatLng[], options: google.maps.PolylineOptions): google.maps.Polyline {
-    //     options.path = path;
-    //     const line = new google.maps.Polyline(options);
-    //     this._lines.push(line);
-    //     return line;
-    // }
 
-    drawLine(line: google.maps.Polyline, paths: Array<google.maps.LatLng>): google.maps.Polyline {
-        let path = line.getPath();
-
-        console.log('Drawing ' + line);
-
-        paths.forEach(p => path.push(p));
+    drawLine(line: google.maps.Polyline): google.maps.Polyline {
 
         if (this._lines.indexOf(line) === -1) {
             this._lines.push(line);
         }
+        console.log('Drawing ' + line);
+        line.setMap(this.map);
         return line;
-
     }
-
-    // drawLine(line: google.maps.Polyline): google.maps.Polyline {
-
-    //     if (this._lines.indexOf(line) === -1) {
-    //         this._lines.push(line);
-    //     }
-    //     console.log('Drawing ' + line);
-    //     line.setMap(this.map);
-    //     return line;
-    // }
 
     hideLine(line: google.maps.Polyline): google.maps.Polyline {
         if (this._lines.indexOf(line) === -1) {
@@ -432,20 +398,6 @@ export class GoogleMapService implements IMapService {
         return radialPoints;
     }
 
-    // From Google
-    private getDirections(center: google.maps.LatLng, searchPoints: google.maps.LatLng[]): Promise<google.maps.DirectionsResult>[] {
-
-        return searchPoints.map((s, i) => {
-            const req: google.maps.DirectionsRequest = {
-                travelMode: google.maps.TravelMode.DRIVING,
-                origin: center,
-                destination: s
-            };
-
-            return this.directions(req);
-        })
-    };
-
     // This method takes a google DirectionsRoute and returns an array of LatLng points that
     // represent the route upto the amount of tume passed in seconds
     getRoutePathByDuration(route: google.maps.DirectionsRoute, seconds: number): Array<google.maps.LatLng> {
@@ -551,8 +503,9 @@ export class GoogleMapService implements IMapService {
     // Takes an individual Direction step and converts it to a flat array of IRouteSteps
     getDirectionAsRouteSteps(directions: google.maps.DirectionsResult): Array<IRouteStep> {
         if (!directions) {
-            return;
+            return new Array<IRouteStep>();
         }
+
         const routes = directions.routes.map<Array<IRouteStep>>((route: google.maps.DirectionsRoute) => {
             const legs = route.legs.map<Array<IRouteStep>>((leg: google.maps.DirectionsLeg) => {
                 return leg.steps.map<IRouteStep>((step: google.maps.DirectionsStep) => {

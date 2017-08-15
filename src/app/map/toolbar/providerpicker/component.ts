@@ -1,5 +1,18 @@
-import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular/core';
+import {
+    Component
+    , OnInit
+    , Input
+    , Output
+    , EventEmitter
+    , Inject
+    , InjectionToken
+} from '@angular/core';
+
+import { Logger } from 'angular2-logger/core';
+
 import { IMapService } from '../../abstractions/imap.service';
+
+export const PROVIDERS = new InjectionToken<IMapService>('IMapService');
 
 @Component({
     selector: 'app-map-provider',
@@ -9,19 +22,16 @@ import { IMapService } from '../../abstractions/imap.service';
 
 export class ProviderPickerComponent {
 
-    @Input()
-    providers: IMapService[] = [];
-
     @Output()
-    selectionChanged: EventEmitter<number> = new EventEmitter();
+    onProviderChanged: EventEmitter<IMapService>;
 
-    private readonly RadioGroupName: string;
-
-    constructor() {
-        this.RadioGroupName = 'SomeUniqueIdGen';
+    constructor(
+        @Inject(PROVIDERS) private readonly providers: Array<IMapService>,
+        private readonly log: Logger) {
+        this.onProviderChanged = new EventEmitter<IMapService>();
     }
 
-    selectItem(value: number): void {
-        this.selectionChanged.emit(value);
+    providerChanged(value: IMapService): void {
+        this.onProviderChanged.emit(value);
     }
 }

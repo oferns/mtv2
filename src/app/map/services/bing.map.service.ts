@@ -110,7 +110,7 @@ export class BingMapService implements IMapService {
     }
 
     addListener(event: string, handler: (...args: any[]) => void): void {
-        Microsoft.Maps.Events.addHandler(this.map, event, handler)
+        // Microsoft.Maps.Events.addHandler(this.map, event, handler)
     }
 
     private convertGeoResults(results: any): IGeoCodeResult[] {
@@ -225,11 +225,11 @@ export class BingMapService implements IMapService {
     getLineOptions(any: any) {
         throw new Error('Method not implemented.');
     }
-    getLine(options: any) {
-        throw new Error("Method not implemented.");
+    getLine(path: any, options: any) {
+        throw new Error('Method not implemented.');
     }
-    drawLine(line: any, points: any[]) {
-        throw new Error("Method not implemented.");
+    drawLine(line: any) {
+        throw new Error('Method not implemented.');
     }
     removeLine(line: any) {
         throw new Error('Method not implemented.');
@@ -246,6 +246,6 @@ export class BingMapService implements IMapService {
     }
 
     addDrawingListener(event: string, handler: (...args: any[]) => void): void {
-        throw new Error("Method not implemented.");
+        throw new Error('Method not implemented.');
     }
 }

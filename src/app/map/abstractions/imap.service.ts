@@ -42,10 +42,9 @@ export interface IMapService {
     removeShape(shape: any): any;
     removeShapes(): void;
     getConvexHull(points: Array<any>): Array<any>;
-    addDrawingListener(event: string, handler: (...args: Array<any>) => void): void;
     getLineOptions(any): any;
-    getLine(options: any): any;
-    drawLine(line: any, points: Array<any>): any;
+    getLine(path: any, options: any): any;
+    drawLine(line: any): any;
     removeLine(line: any): any;
     removeLines(): void;
 }

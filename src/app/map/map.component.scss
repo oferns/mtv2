@@ -1,23 +1,16 @@
-app-map {
-  display: inline-block;
-  position: relative;
-  height: 100%;
-  width: 100%;
-}
-
 .map {
   position: absolute;
   height: 100%;
   width: 100%;
 }
 
+md-sidenav-container {
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+}
 
-app-hospital-list {
-  position: absolute;
-  left:0;
-  top: 49px;
-  z-index: 10;
-  max-height:100%;
-  overflow-y: auto;
+md-sidenav {
   background-color: #EDF5FF;
+  opacity: 70%;
 }

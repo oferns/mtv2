@@ -1,3 +1,4 @@
-<app-map-country (selectionChanged)="countrySelectionChanged($event)"></app-map-country>
+<app-map-country (onCountryChanged)="countryChanged($event)"></app-map-country>
 <app-map-clear (clearMap)="clearMap()"></app-map-clear>
 <app-map-drawroutes (drawRoutes)="drawRoutes()"></app-map-drawroutes>
+<app-map-provider (onProviderChanged)="providerChanged($event)"></app-map-provider>

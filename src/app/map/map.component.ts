@@ -9,13 +9,17 @@ import {
   EventEmitter,
   Input,
   Output,
+} from '@angular/core';
+
+import {
   trigger,
   state,
   animate,
   transition,
   style
-} from '@angular/core';
+} from '@angular/animations';
 
+import { Logger } from 'angular2-logger/core';
 import { IMapService } from './abstractions/imap.service';
 import { IHcoService } from '../services/ihco.service';
 import { IGeoCodeResult } from './abstractions/igeocode.result';
@@ -24,22 +28,18 @@ import { IDirectionsRequest } from './abstractions/idirections.request';
 import { IRouteStep } from './abstractions/iroutestep';
 import { IHospital } from '../data/ihospital';
 import { ICountry } from '../data/icountry';
-
-export const PROVIDERS = new InjectionToken<IMapService>('IMapService');
-
-import * as data from '../../../testdata/firebasestr.json';
-
-const hcos: Array<any> = (<any>data);
+import { PROVIDERS } from './toolbar/module';
 
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
   styleUrls: ['./map.component.scss'],
   animations: [
-    trigger('loading', [
-      state('false', style({ maxHeight: '100%' })),
-      state('true', style({ maxHeight: 0, padding: 0, display: 'none' })),
-      transition('* => *', animate('300ms')),
+    trigger('fadeIn', [
+      state('false', style({ opacity: 1, transform: 'scale(1.0)' })),
+      state('true', style({ opacity: 0, transform: 'scale(0.0)' })),
+      transition('1 => 0', animate('300ms')),
+      transition('0 => 1', animate('900ms'))
     ])
   ]
 })
@@ -47,7 +47,13 @@ const hcos: Array<any> = (<any>data);
 export class MapComponent implements AfterViewInit {
 
   @Input()
-  isLoading: boolean = true;
+  isLoading = true;
+
+  @Output()
+  loadStarted: EventEmitter<void> = new EventEmitter();
+
+  @Output()
+  loadFinished: EventEmitter<void> = new EventEmitter();
 
   @Output()
   boundsChanged: EventEmitter<any> = new EventEmitter();
@@ -62,6 +68,12 @@ export class MapComponent implements AfterViewInit {
 
   private mapService: IMapService;
   private currentProviderIndex = 0;
+  
+  @Input()
+  currentProvider: IMapService;
+
+  @Input()
+  currentCountry: ICountry;
 
   private markerShapes: Map<number, any> = new Map<number, any>();
 
@@ -69,45 +81,44 @@ export class MapComponent implements AfterViewInit {
   private hospitalMap: Map<number, Promise<IHospital>> = new Map<number, Promise<IHospital>>();
 
   hospitals: Array<IHospital> = new Array<IHospital>();
+  countries: Array<ICountry> = new Array<ICountry>();
 
 
   constructor(
+    private readonly log: Logger,
     @Inject(PROVIDERS) private readonly providers: Array<IMapService>,
     @Inject('IHcoService') private readonly hcoService: IHcoService
-  ) { }
+  ) {
+    this.log.info('MapComponent constructor called');
+    this.currentProvider = providers[0];
+  }
 
-  // AfterViewInit implementation
   ngAfterViewInit(): void {
-    this.mapDivRefs.forEach((div: ElementRef, index: number) => {
+    this.log.debug('MapComponent ngAfterViewInit called');
+
+    this.mapDivRefs.map((div: ElementRef, index: number) => {
       const provider = this.providers[index];
-      provider.initMap(div.nativeElement, {}).then((_map) => {
+      return provider.initMap(div.nativeElement, {}).then((_map) => {
         provider.setCenter(provider.getLocation(38.468589, 21.143545));
         provider.setZoom(8);
-
         provider.addListener('dragend', this.mapDragEnd);
         provider.addListener('bounds_changed', this.mapBoundsChanged);
-
       }).catch((err) => {
+        this.log.error(`MapComponent: Error initializing map provider ${err}`);
         throw err;
       });
     })
   }
-  // End OnInit
 
-  private mapBoundsChanged = () => {
-    console.log('Bounds');
+  private hospitalClicked = (hospital: IHospital): void => {
+    this.log.debug(`MapComponent: hospitalClicked: ${hospital.id}`);
     const p = this.providers[this.currentProviderIndex];
-    this.currentBounds = p.getBounds();
-
-    this.hospitals.forEach(h => {
-      h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
-    });
-
-    this.dragEnd.emit(this.currentBounds);
+    p.setCenter(p.getLocation(hospital.lat, hospital.lng));
   }
 
-  private mapDragEnd = () => {
-    console.log('DragEnd');
+  private mapBoundsChanged = (): void => {
+    this.log.debug('MapComponent mapBoundsChanged called');
+
     const p = this.providers[this.currentProviderIndex];
     this.currentBounds = p.getBounds();
 
@@ -118,162 +129,272 @@ export class MapComponent implements AfterViewInit {
     this.boundsChanged.emit(this.currentBounds);
   }
 
+  private mapDragEnd = (): void => {
+    this.log.debug('MapComponent mapDragEnd called');
+    const p = this.providers[this.currentProviderIndex];
+    this.currentBounds = p.getBounds();
+
+    this.hospitals.forEach(h => {
+      h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
+    });
+
+    this.dragEnd.emit(this.currentBounds);
+  }
+
   // Data Promises
-  private async ensureCountryCenterAndBounds(country: ICountry): Promise<ICountry> {
+  private ensureCountryCenterAndBounds = async (country: ICountry): Promise<ICountry> => {
+    this.log.debug(`MapComponent ensureCountryCenterAndBounds called for ${country.name} (${country.id})`);
+
     if (this.countryMap.has(country.id)) {
-      console.log(`found ${country.name} in cache`);
+      this.log.debug(`MapComponent ensureCountryCenterAndBounds found ${country.name} (${country.id}) in cache. Returning`);
       return await this.countryMap.get(country.id);
     }
 
+    this.log.debug(`MapComponent ensureCountryCenterAndBounds did not find ${country.name} (${country.id}) in cache.`);
+
     const promise = new Promise<ICountry>((res, rej) => {
       if (country.bounds && country.center) {
-        console.log(`${country.name} in database has location data`);
+        this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} has location data in database. Returning.`);
         return res(country);
       }
+
+      this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name}
+      DOES NOT HAVE location data in the database. Geocoding using current provider`);
       return this.providers[this.currentProviderIndex].geocode(country.name)
         .then((results: Array<IGeoCodeResult>) => {
           if (results.length) {
-            console.log(`${country.name} geocoding found ${results.length} results. Using the first`);
-
+            this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name}
+            geocoding found ${results.length} results. Using the first result to get bounds and centre`);
             // Lets just take the first result here
             country.bounds = results[0].bounds.toJSON();
             country.center = results[0].center.toJSON();
+
+            this.log.debug(`MapComponent ensureCountryCenterAndBounds saving geo info for ${country.name} (${country.id})`);
+            this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id})
+            centre: Lat ${country.bounds.lat} Lng ${country.bounds.lat}`);
+
             this.hcoService.saveCountryData(country)
-              .then((c: ICountry) => res(c)).catch((ex) => rej(ex));
+              .then((country: ICountry) => {
+                this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) geo info saved`);
+                return res(country);
+              })
+              .catch((err) => {
+                this.log.error(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) ERROR saving geo info`);
+                this.log.error(err);
+                return rej(err);
+              });
           } else {
+            this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) geocode produced no information.`);
             return rej('Geocode for this address produced no results');
           }
         })
-        .catch((err) => rej(err))
+        .catch((err) => {
+          this.log.error(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) ERROR getting geo info`);
+          this.log.error(err);
+          return rej(err);
+        });
     })
 
+    this.log.debug(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) setting Promise in map`);
     this.countryMap.set(country.id, promise);
 
     return await promise;
   }
 
   private ensureHospitalRoutes = async (hospital: IHospital): Promise<IHospital> => {
+    this.log.debug(`MapComponent ensureHospitalRoutes called for ${hospital.name} (${hospital.id})`);
+
     if (this.hospitalMap.has(hospital.id)) {
-      return this.hospitalMap.get(hospital.id)
+      this.log.debug(`MapComponent ensureHospitalRoutes found ${hospital.name} (${hospital.id}) in cache. Returning`);
+      return await this.hospitalMap.get(hospital.id)
     };
 
-    const promise = new Promise<IHospital>((res, rej) => {
-      if (hospital.radiusDirections) {
-        return res(hospital);
-      }
-
-      const p = this.providers[this.currentProviderIndex];
-      const searchPoints = p.getRadialPoints(p.getLocation(hospital.lat, hospital.lng), 12, 30);
-
-      searchPoints.map((sp) => {
-        const directionsReq: IDirectionsRequest = {
-          travelMode: 'DRIVING',
-          destination: p.getLocation(sp.lat(), sp.lng()),
-          origin: p.getLocation(hospital.lat, hospital.lng)
-        };
-
-        p.directions(directionsReq).then((routes) => {
-
-          hospital.radiusDirections = (routes === null) ? new Array<Array<IRouteStep>>() : p.getDirectionAsRouteSteps(routes);
-          this.hcoService.saveHospitalData(hospital)
-            .then((hospital) => {
-              return hospital;
-            });
-
-        }).catch((err) => {
-          throw err;
-        })
-      });
-    });
-
-    this.hospitalMap.set(hospital.id, promise);
-
-    return await promise;
-  }
-
-  private processArray = (array, fn) => {
-    var results = [];
-    return array.reduce(function (p, item) {
-      return p.then(function () {
-        return fn(item).then(function (data) {
-          results.push(data);
-          return results;
-        });
-      });
-    }, Promise.resolve());
-  }
-
-  private ensureHospitalLocation(hospital: IHospital): Promise<IHospital> {
-    if (hospital.lat && hospital.lng) {
-      return Promise.resolve(hospital);
+    if (hospital.radiusDirections) {
+      this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) has location data in database. Returning.`);
+      this.hospitalMap.set(hospital.id, Promise.resolve(hospital));
+      return await this.hospitalMap.get(hospital.id);
     }
 
-    const match = hcos.filter((h) => h.title === hospital.name);
+    // if (hospital.lat === 0 && hospital.lng === 0) {
+    //   hospital.radiusDirections = new Array<Array<IRouteStep>>();
+    //   this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) saving UNKNOWN hospital data`);
+    //   return await this.hcoService.saveHospitalData(hospital)
+    //     .subscribe((h) => {
+    //       this.log.debug(`MapComponent ensureHospitalRoutes ${h.name} (${h.id}) hospital data SAVED`);
+    //       this.hospitalMap.set(h.id, Promise.resolve(h));
+    //       return h;
+    //     }).catch((err) => {
+    //       this.log.error(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) ERROR getting directions from provider`);
+    //       this.log.error(err);
+    //       return hospital;
+    //     })
+    // }
 
-    if (match.length && match[0].lat && match[0].lng) {
-      hospital.lat = match[0].lat;
-      hospital.lng = match[0].lng;
-      hospital.city = match[0].city;
-      hospital.postcode = match[0].postcode;
-      hospital.address = hospital.address || match[0].address;
+    // this.log.debug(`MapComponent ensureHospitalRoutes did not find ${hospital.name} (${hospital.id}) in cache.`);
 
-      return Promise.resolve(hospital);
+    // const promise = new Promise<IHospital>(async (res, rej) => {
+    //   const p = this.providers[this.currentProviderIndex];
+    //   this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) Getting search points`);
+    //   const searchPoints = p.getRadialPoints(p.getLocation(hospital.lat, hospital.lng), 12, 30);
+    //   const dirReqs = searchPoints.map<IDirectionsRequest>((sp) => {
+    //     return <IDirectionsRequest>{
+    //       travelMode: 'DRIVING',
+    //       destination: p.getLocation(sp.lat(), sp.lng()),
+    //       origin: p.getLocation(hospital.lat, hospital.lng)
+    //     };
+    //   });
+
+    //   return await Promise.all(dirReqs.map<Promise<any>>(async (r: IDirectionsRequest) => {
+    //     return await p.directions(r)
+    //       .then((d: Array<IRouteStep>) => {
+    //         this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id})
+    //                     Directions request for Lat ${r.destination.lat()} Lng ${r.destination.lng()}`);
+    //         return <Array<IRouteStep>>p.getDirectionAsRouteSteps(d);
+    //       })
+    //       .catch((err) => {
+    //         return [];
+    //       })
+    //   })).then((routes: Array<Array<IRouteStep>>) => {
+    //     this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) setting radiusDirections. ${routes.length}`);
+    //     hospital.radiusDirections = routes;
+    //     return hospital;
+    //   }).then((hospital: IHospital) => {
+    //     this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) saving hospital data`);
+    //     return this.hcoService.saveHospitalData(hospital)
+    //       .then((hospital) => {
+    //         this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) hospital data SAVED`);
+    //         return res(hospital);
+    //       }).catch((err) => {
+    //         this.log.error(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) ERROR getting directions from provider`);
+    //         this.log.error(err);
+    //         return res(hospital);
+    //       })
+    //   })
+    //     .catch((err) => {
+    //       hospital.radiusDirections = new Array<Array<any>>();
+    //       return res(hospital);
+    //     })
+    // });
+
+    // this.log.debug(`MapComponent ensureHospitalRoutes ${hospital.name} (${hospital.id}) setting Promise in map`);
+
+    // this.hospitalMap.set(hospital.id, promise);
+
+    // return await promise;
+  }
+
+  private ensureHospitalLocation = async (hospital: IHospital): Promise<IHospital> => {
+    this.log.debug(`MapComponent ensureHospitalLocation called for ${hospital.name} (${hospital.id})`);
+
+    if (hospital.lat != null && hospital.lng != null) {
+      this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) has location data. Returning`);
+      return await Promise.resolve(hospital);
     }
 
     const location = hospital.name;
     const p = this.providers[this.currentProviderIndex];
 
-    return this.hcoService.getCountries().then((countries) => {
-      const cunts = countries.filter(c => c.id === hospital.country);
-      if (!cunts.length) {
-        console.log(`Unrecognized country ID: ${hospital.country}`);
-        return;
-      }
+    this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) has no location data.`);
 
-      const cunt = cunts[0];
-      const loc = `${hospital.name}, ${cunt.name}`;
-      return loc;
-    }).then(location => p.geocode(location).then((result: Array<IGeoCodeResult>) => {
-      if (!result.length) {
-        console.log(`${location} was not found`);
-        return null;
-      }
-      hospital.address = (<any>result[0].center).address;
-      hospital.lat = (<any>result[0].center).lat();
-      hospital.lng = (<any>result[0].center).lng();
-      return hospital;
-    }));
+    this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) finding country.`);
+    return await Promise.resolve(hospital);
+    // return await this.hcoService.getCountries().then(async countries => {
+    //   const cunts = countries.filter(c => c.id === hospital.country);
+    //   if (!cunts.length) {
+    //     this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id})
+    //     cound not find country id ${hospital.country}. Setting lat&lng to 0`);
+    //     hospital.lat = 0;
+    //     hospital.lng = 0;
+    //     return hospital;
+    //   }
+
+    //   const cunt = cunts[0];
+    //   const loc = `${hospital.name}, ${cunt.name}`;
+    //   this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) geocoding using ${loc}`);
+
+    //   return await p.geocode(loc).then((result: Array<IGeoCodeResult>) => {
+    //     if (!result || !result.length) {
+    //       this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name} (${hospital.id}) geocoding using ${loc} found NO results`);
+    //       hospital.address = 'UNKNOWN';
+    //       hospital.lat = 0;
+    //       hospital.lng = 0;
+    //     } else {
+    //       this.log.debug(`MapComponent ensureHospitalLocation ${hospital.name}
+    //       (${hospital.id}) geocoding using ${loc} found ${result.length} results. Using first`);
+    //       hospital.address = (<any>result[0].center).address;
+    //       hospital.lat = (<any>result[0].center).lat();
+    //       hospital.lng = (<any>result[0].center).lng();
+    //     }
+    //     return hospital;
+    //   });
+    // });
   }
-
   // Event Handlers
-  countryChanged = (country: ICountry): void => {
+  private countryChanged = (country: ICountry): void => {
+    this.currentCountry = country;
+    this.log.debug(`MapComponent countryChanged to  ${country.name} (${country.id})`);
+
     this.isLoading = true;
-    // this.hospitals.length = 0; // Clear the array...is there a better way?
-    const p = this.providers[this.currentProviderIndex];
-    p.removeMarkers();
-    p.removeShapes();
-    p.removeLines();
+    this.loadStarted.emit();
 
-    console.log(`Changing to ${country.name}`)
-    this.ensureCountryCenterAndBounds(country).then((c) => {
-      p.setCenter(p.getLocation(c.center.lat, c.center.lng));
-      p.setBounds(c.bounds);
+    this.log.debug(`MapComponent countryChanged calling ensureCountryCenterAndBounds for ${country.name} (${country.id})`);
+    
 
-      this.hcoService.getHospitals(c.id)
-        .then(hospitals => {
-          this.hospitals = hospitals;
-          this.hospitals.forEach(h => {
-            this.ensureHospitalRoutes(h).then(h => {
-              h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
-            })
-          });
-          this.isLoading = false;
-          this.showMarkers(hospitals);
-        });
-    });
+    // this.ensureCountryCenterAndBounds(country)
+    //   .then((c) => {
+    //     this.log.debug(`MapComponent countryChanged setting map center and bounds for ${country.name} (${country.id})`);
+
+    //     p.setCenter(p.getLocation(c.center.lat, c.center.lng));
+    //     p.setBounds(c.bounds);
+
+    //     this.log.debug(`MapComponent countryChanged getting hospitals for ${country.name} (${country.id})`);
+
+    //     this.hcoService.getHospitals(c)
+    //       .then(hospitals => {
+    //         this.hospitals = hospitals;
+    //         Promise.all(this.hospitals.map(async h => {
+    //           return await this.ensureHospitalLocation(h)
+    //             .then(h => {
+    //               h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
+    //               const options: IMarkerOptions = {
+    //                 id: h.id,
+    //                 label: h.name,
+    //                 onClick: this.markerClickHandler
+    //               };
+    //               p.setMarker(p.getMarker(p.getLocation(h.lat, h.lng), options));
+    //               return h;
+    //             })
+    //             .then(h => {
+    //               this.isLoading = false;
+    //               this.loadFinished.emit();
+
+    //               this.ensureHospitalRoutes(h);
+    //             })
+    //             .catch((err) => {
+    //               throw err;
+    //             })
+    //         })).then(() => {
+    //           this.log.debug('CountryChanged completed');
+    //         }).catch((err) => {
+    //           throw err;
+    //         })
+    //       })
+    //       .catch((err) => {
+    //         this.log.error(`MapComponent countryChanged ERRORED getting hospitals for ${country.name} (${country.id})`);
+    //         this.log.error(err);
+    //       })
+    //   })
+    //   .catch((err) => {
+    //     this.log.error(`MapComponent countryChanged ERRORED getting center and bounds for ${country.name} (${country.id})`);
+    //     this.log.error(err);
+    //   });
   }
 
-  private showMarkers = (hospitals: Array<any>) => {
+  private hospitalsLoading = (value: boolean): void => {
+    this.isLoading = value;
+  }
+
+  private showMarkers = (hospitals: Array<any>): void => {
     const p = this.providers[this.currentProviderIndex];
     hospitals.forEach((h) => {
       const options: IMarkerOptions = {
@@ -285,17 +406,17 @@ export class MapComponent implements AfterViewInit {
     });
   }
 
-  providerChanged(index: number): void {
-    this.currentProviderIndex = index;
+  providerChanged = (provider: IMapService): void => {
+    this.currentProvider = provider;
   }
 
-  clearMap(): void {
+  clearMap = (): void => {
     const p = this.providers[this.currentProviderIndex];
     p.removeShapes();
     p.removeLines();
   }
 
-  drawRoutes(): void {
+  drawRoutes = (): void => {
     this.clearMap();
     const p = this.providers[this.currentProviderIndex];
 
@@ -313,26 +434,6 @@ export class MapComponent implements AfterViewInit {
     }, 100)
 
     func.apply(this);
-
-    //    this.drawDrivingTime(hc[index], 30);
-
-    // for (let h of this.hospitals) {
-    //   if (h.visible) {
-    //     console.log('Drawing routes for ' + h.id);
-    //     this.drawDrivingTime(h, 30);
-    //   }
-    // }
-    // const promises = this.hospitals.map(h => {
-    //   return new Promise((res, rej) => {
-    //     if (h.visible) {
-    //       console.log('Drawing routes for ' + h.id);
-    //       this.drawDrivingTime(h, 30);
-    //     }
-    //     return res();
-    //   })
-    // })
-
-    // Promise.all(promises);
   }
 
   private markerClickHandler = (args: any) => {
@@ -358,7 +459,7 @@ export class MapComponent implements AfterViewInit {
     shortenedRoutes.forEach((r) => {
       const lineoptions = p.getLineOptions({});
       const linepoints = [].concat.apply([], r);
-      p.drawLine(p.getLine(lineoptions), linepoints);
+      p.drawLine(p.getLine(lineoptions, linepoints));
     });
   }
 }

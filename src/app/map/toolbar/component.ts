@@ -5,7 +5,10 @@ import {
     Input
 } from '@angular/core';
 
+import { Logger } from 'angular2-logger/core';
+
 import { IMapService } from '../abstractions/imap.service';
+import { ICountry } from '../../data/icountry';
 
 
 @Component({
@@ -18,33 +21,40 @@ import { IMapService } from '../abstractions/imap.service';
 export class ToolbarComponent {
 
     @Input()
-    providers: IMapService[];
+    isLoading: boolean;
+
+    @Input()
+    providers: Array<IMapService>;
 
     @Output()
-    countryChanged: EventEmitter<any> = new EventEmitter();
+    onCountryChanged: EventEmitter<ICountry>;
     @Output()
-    providerChanged: EventEmitter<number> = new EventEmitter();
+    onProviderChanged: EventEmitter<IMapService>;
     @Output()
-    clearMapClicked: EventEmitter<void> = new EventEmitter();
+    onClearMapClicked: EventEmitter<void>;
     @Output()
-    drawRoutesClicked: EventEmitter<void> = new EventEmitter();
+    onDrawRoutesClicked: EventEmitter<void>;
 
-    countrySelectionChanged(country: any): void {
-        this.countryChanged.emit(country);
+    constructor(private readonly log: Logger) {
+
+        this.onCountryChanged = new EventEmitter<ICountry>();
+        this.onProviderChanged = new EventEmitter<IMapService>();
+        this.onClearMapClicked = new EventEmitter<void>();
+        this.onDrawRoutesClicked = new EventEmitter<void>();
+    }
+    countryChanged(country: ICountry) {
+        this.onCountryChanged.emit(country);
     }
 
-    providerSelectionChanged(index: number): void {
-        this.providerChanged.emit(index);
+    providerChanged(provider: IMapService): void {
+        this.onProviderChanged.emit(provider);
     }
 
     clearMap(event: MouseEvent): void {
-        this.clearMapClicked.emit();
+        this.onClearMapClicked.emit();
     }
 
     drawRoutes(event: MouseEvent): void {
-        this.drawRoutesClicked.emit();
+        this.onDrawRoutesClicked.emit();
     }
 }
-
-
-

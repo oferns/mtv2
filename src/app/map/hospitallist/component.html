@@ -1,17 +1,24 @@
-<div>
-    <h3>Showing {{visibleCount()}} of {{hospitals.length}} Hospitals</h3>
-    <ul>
-        <li *ngIf="hospitals.length">
-            <label for="toggle">
+<div *ngIf="isLoading">
+  <md-list>
+    <md-list-item>
+        <md-spinner strokeWidth='10'></md-spinner> Loading hospitals...
+    </md-list-item>
+  </md-list>
+</div>
+
+<div *ngIf="!isLoading">
+  <h3>Showing {{visibleCount()}} of {{hospitals.length}} Hospitals</h3>
+  <md-list>
+    <md-list-item *ngIf="hospitals.length">
+      <label for="toggle">
             <input type="checkbox" value="" name="" id="" (change)="toggleAll($event)" />
             Select all
         </label>
-        </li>
-        <li *ngFor="let h of hospitals" [hidden]='!h.visible'>
-            <label (for)="'hospital_' + h.id"> 
-                <input type="checkbox" (value)='hospital.id' (id)="'hospital_' + h.id"  #checkBox/>
-                {{h.name}}
-            </label>
-        </li>
-    </ul>
+    </md-list-item>
+    <md-list-item *ngFor="let h of hospitals">
+      <label (for)="'hospital_' + h.id"> </label>
+      <input type="checkbox" (value)='hospital.id' (id)="'hospital_' + h.id" #checkBox />
+      <a href='#' (click)="clicked(h)">{{h.name}}</a>
+    </md-list-item>
+  </md-list>
 </div>

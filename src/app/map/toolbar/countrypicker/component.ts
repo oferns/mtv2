@@ -1,10 +1,9 @@
 import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular/core';
-import { IHcoService } from '../../../services/ihco.service';
+import { Observable } from 'rxjs/Observable';
+import { Logger } from 'angular2-logger/core';
 
-export interface ICountry {
-    name: string;
-    id: number;
-}
+import { IHcoService } from '../../../services/ihco.service';
+import { ICountry } from '../../../data/icountry';
 
 @Component({
     selector: 'app-map-country',
@@ -13,22 +12,23 @@ export interface ICountry {
     providers: []
 })
 
-export class CountryPickerComponent implements OnInit {
+export class CountryPickerComponent {
 
-    countries: Array<ICountry> = new Array<ICountry>({ id: -1, name: 'Please Select..' });
+    private countries: Observable<Array<ICountry>>;
+    private loading: boolean;
 
-    @Output()   
-    selectionChanged: EventEmitter<ICountry> = new EventEmitter();
+    @Output()
+    onCountryChanged: EventEmitter<ICountry>;
 
-    constructor( @Inject('IHcoService') private readonly hcoService: IHcoService) { }
-
-    selectItem(value: number): void {
-        this.selectionChanged.emit(this.countries[value]);
+    constructor(
+        @Inject('IHcoService') private readonly hcoService: IHcoService,
+        private readonly log: Logger) {
+        this.onCountryChanged = new EventEmitter<ICountry>();
+        this.loading = true;
+        this.countries = hcoService.getCountries().do(c => this.loading = false);
     }
 
-    ngOnInit(): void {
-        this.hcoService.getCountries().then((countries) => {
-            this.countries = this.countries.concat(countries);
-        });
+    private countryChanged(country: ICountry) {
+        this.onCountryChanged.emit(country);
     }
 }

@@ -9,6 +9,8 @@ export interface IHospital {
     country: number;
     lat: number;
     lng: number;
+    strokeCenter: boolean;
+    representative: string;
     visible?: boolean;
     radiusDirections?: Array<Array<IRouteStep>>;
 }

@@ -1,5 +1,15 @@
+import { NgModule, InjectionToken } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
+import {
+    MdSelectModule
+    , MdProgressSpinnerModule
+    , MdButtonModule
+    , MdIconModule
+    , MdRadioModule
+    , MdButtonToggleModule
+} from '@angular/material';
 
 import { ToolbarComponent } from './component';
 
@@ -7,6 +17,11 @@ import { CountryPickerComponent } from './countrypicker/component';
 import { ProviderPickerComponent } from './providerpicker/component';
 import { ClearMapComponent } from './clearmap/component';
 import { DrawRoutesComponent } from './drawroutes/component';
+import { GoogleMapService } from '../services/google.map.service';
+import { BingMapService } from '../services/bing.map.service';
+import { IMapService } from '../abstractions/imap.service';
+
+export { PROVIDERS } from './providerpicker/component';
 
 @NgModule({
     declarations: [
@@ -17,9 +32,18 @@ import { DrawRoutesComponent } from './drawroutes/component';
         ToolbarComponent
     ],
     imports: [
-        BrowserModule
+        BrowserModule,
+        FormsModule,
+        MdSelectModule,
+        MdProgressSpinnerModule,
+        MdButtonModule,
+        MdIconModule,
+        MdRadioModule,
+        MdButtonToggleModule
     ],
-    providers: [],
+    providers: [
+    ],
+
     exports: [ToolbarComponent]
 })
 
