@@ -16,9 +16,7 @@
         </label>
     </md-list-item>
     <md-list-item *ngFor="let h of hospitals">
-      <label (for)="'hospital_' + h.id"> </label>
-      <input type="checkbox" (value)='hospital.id' (id)="'hospital_' + h.id" #checkBox />
-      <a href='#' (click)="clicked(h)">{{h.name}}</a>
+      <app-hospital [hospital]='h'></app-hospital>
     </md-list-item>
   </md-list>
 </div>

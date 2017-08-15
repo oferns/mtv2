@@ -1,6 +1,7 @@
 import {
   Component,
   AfterViewInit,
+  ViewChild,
   ViewChildren,
   Inject,
   InjectionToken,
@@ -29,6 +30,7 @@ import { IRouteStep } from './abstractions/iroutestep';
 import { IHospital } from '../data/ihospital';
 import { ICountry } from '../data/icountry';
 import { PROVIDERS } from './toolbar/module';
+import { HospitalListComponent } from './hospitallist/component';
 
 @Component({
   selector: 'app-map',
@@ -66,9 +68,11 @@ export class MapComponent implements AfterViewInit {
 
   @ViewChildren('map') private mapDivRefs: QueryList<ElementRef>
 
+  @ViewChild(HospitalListComponent) private hospitalList: HospitalListComponent;
+
   private mapService: IMapService;
   private currentProviderIndex = 0;
-  
+
   @Input()
   currentProvider: IMapService;
 
@@ -83,6 +87,7 @@ export class MapComponent implements AfterViewInit {
   hospitals: Array<IHospital> = new Array<IHospital>();
   countries: Array<ICountry> = new Array<ICountry>();
 
+  private timeout;
 
   constructor(
     private readonly log: Logger,
@@ -102,7 +107,7 @@ export class MapComponent implements AfterViewInit {
         provider.setCenter(provider.getLocation(38.468589, 21.143545));
         provider.setZoom(8);
         provider.addListener('dragend', this.mapDragEnd);
-        provider.addListener('bounds_changed', this.mapBoundsChanged);
+        provider.addListener('bounds_changed', this.mapBoundsChanged.bind(this));
       }).catch((err) => {
         this.log.error(`MapComponent: Error initializing map provider ${err}`);
         throw err;
@@ -117,16 +122,18 @@ export class MapComponent implements AfterViewInit {
   }
 
   private mapBoundsChanged = (): void => {
-    this.log.debug('MapComponent mapBoundsChanged called');
 
-    const p = this.providers[this.currentProviderIndex];
-    this.currentBounds = p.getBounds();
+    window.clearTimeout(this.timeout);
 
-    this.hospitals.forEach(h => {
-      h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
-    });
-
-    this.boundsChanged.emit(this.currentBounds);
+    this.timeout = window.setTimeout(() => {
+      this.log.debug('MapComponent mapBoundsChanged called');
+      const p = this.providers[this.currentProviderIndex];
+      this.currentBounds = p.getBounds();
+      this.hospitalList.hospitals.forEach(h => {
+        h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
+      });
+      this.boundsChanged.emit(this.currentBounds);
+    }, 500);
   }
 
   private mapDragEnd = (): void => {
@@ -134,7 +141,7 @@ export class MapComponent implements AfterViewInit {
     const p = this.providers[this.currentProviderIndex];
     this.currentBounds = p.getBounds();
 
-    this.hospitals.forEach(h => {
+    this.hospitalList.hospitals.forEach(h => {
       h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
     });
 
@@ -331,63 +338,8 @@ export class MapComponent implements AfterViewInit {
   }
   // Event Handlers
   private countryChanged = (country: ICountry): void => {
-    this.currentCountry = country;
     this.log.debug(`MapComponent countryChanged to  ${country.name} (${country.id})`);
-
-    this.isLoading = true;
-    this.loadStarted.emit();
-
-    this.log.debug(`MapComponent countryChanged calling ensureCountryCenterAndBounds for ${country.name} (${country.id})`);
-    
-
-    // this.ensureCountryCenterAndBounds(country)
-    //   .then((c) => {
-    //     this.log.debug(`MapComponent countryChanged setting map center and bounds for ${country.name} (${country.id})`);
-
-    //     p.setCenter(p.getLocation(c.center.lat, c.center.lng));
-    //     p.setBounds(c.bounds);
-
-    //     this.log.debug(`MapComponent countryChanged getting hospitals for ${country.name} (${country.id})`);
-
-    //     this.hcoService.getHospitals(c)
-    //       .then(hospitals => {
-    //         this.hospitals = hospitals;
-    //         Promise.all(this.hospitals.map(async h => {
-    //           return await this.ensureHospitalLocation(h)
-    //             .then(h => {
-    //               h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng));
-    //               const options: IMarkerOptions = {
-    //                 id: h.id,
-    //                 label: h.name,
-    //                 onClick: this.markerClickHandler
-    //               };
-    //               p.setMarker(p.getMarker(p.getLocation(h.lat, h.lng), options));
-    //               return h;
-    //             })
-    //             .then(h => {
-    //               this.isLoading = false;
-    //               this.loadFinished.emit();
-
-    //               this.ensureHospitalRoutes(h);
-    //             })
-    //             .catch((err) => {
-    //               throw err;
-    //             })
-    //         })).then(() => {
-    //           this.log.debug('CountryChanged completed');
-    //         }).catch((err) => {
-    //           throw err;
-    //         })
-    //       })
-    //       .catch((err) => {
-    //         this.log.error(`MapComponent countryChanged ERRORED getting hospitals for ${country.name} (${country.id})`);
-    //         this.log.error(err);
-    //       })
-    //   })
-    //   .catch((err) => {
-    //     this.log.error(`MapComponent countryChanged ERRORED getting center and bounds for ${country.name} (${country.id})`);
-    //     this.log.error(err);
-    //   });
+    this.currentCountry = country;
   }
 
   private hospitalsLoading = (value: boolean): void => {

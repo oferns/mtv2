@@ -71,7 +71,9 @@ export class HospitalListComponent {
     toggleAll = (event: MouseEvent): void =>
         this.checkBoxes.forEach(c => c.nativeElement.checked = (<HTMLInputElement>event.target).checked);
 
-    visibleCount = (): Number => this.hospitals.filter(f => f.visible).length;
+    visibleCount = (): Number => {
+        return this.hospitals.filter(f => f.visible).length;
+    }
 
     clicked = (hospital: IHospital) => this.hospitalClicked.emit(hospital);
 }

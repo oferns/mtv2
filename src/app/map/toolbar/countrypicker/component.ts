@@ -20,12 +20,18 @@ export class CountryPickerComponent {
     @Output()
     onCountryChanged: EventEmitter<ICountry>;
 
+    @Output()
+    isLoading: EventEmitter<boolean>;
+
     constructor(
         @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger) {
         this.onCountryChanged = new EventEmitter<ICountry>();
-        this.loading = true;
-        this.countries = hcoService.getCountries().do(c => this.loading = false);
+        this.isLoading = new EventEmitter<boolean>();
+        this.isLoading.emit(this.loading = true);
+        this.countries = hcoService.getCountries().do(c => {
+            this.isLoading.emit(this.loading = false)
+        });
     }
 
     private countryChanged(country: ICountry) {

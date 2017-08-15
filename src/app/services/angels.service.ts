@@ -16,15 +16,15 @@ import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 
-const countryUrl = 'http://localhost:3000/mt/countries';
+const countryUrl = 'http://localhost:34562/mt/countries';
 
-const hospitalsUrl = 'http://localhost:3000/mt/country/';
+const hospitalsUrl = 'http://localhost:34562/mt/country/';
 
-const saveCountryUrl = 'http://localhost:3000/mt/savecountry/';
+const saveCountryUrl = 'http://localhost:34562/mt/savecountry/';
 
-const saveHospitalUrl = 'http://localhost:3000/mt/savehospital/';
+const saveHospitalUrl = 'http://localhost:34562/mt/savehospital/';
 
-const hospitalUrl = 'http://localhost:3000mt/hospitalroutes/';
+const hospitalUrl = 'http://localhost:34562/mt/hospitalroutes/';
 
 @Injectable()
 export class AngelsService implements IHcoService {

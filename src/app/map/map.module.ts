@@ -10,13 +10,16 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 import { MapComponent } from './map.component';
 import { HospitalListComponent } from './hospitallist/component';
+import { HospitalComponent } from './hospital/component';
+
 import {
     MdSidenavModule,
     MdListModule,
     MdCheckboxModule,
     MdIconModule,
     MdButtonModule,
-    MdProgressSpinnerModule
+    MdProgressSpinnerModule,
+    MdButtonToggleModule
 } from '@angular/material';
 
 import { GoogleMapService } from './services/google.map.service';
@@ -26,7 +29,8 @@ import { BingMapService } from './services/bing.map.service';
 @NgModule({
     declarations: [
         MapComponent,
-        HospitalListComponent
+        HospitalListComponent,
+        HospitalComponent
     ],
     imports: [
         CommonModule,
@@ -37,6 +41,7 @@ import { BingMapService } from './services/bing.map.service';
         MdSidenavModule,
         MdListModule,
         MdButtonModule,
+        MdButtonToggleModule,
         MdCheckboxModule,
         MdIconModule,
         MdProgressSpinnerModule

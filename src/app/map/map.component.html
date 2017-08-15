@@ -7,7 +7,7 @@
     <button md-icon-button class="example-fab" (click)="sidenav.toggle()">
           <md-icon>add</md-icon>
     </button>
-    <app-hospital-list (hospitalsLoading)="hospitalsLoading($event)" (hospitalClicked)="hospitalClicked($event)" [country]='currentCountry'>
+    <app-hospital-list (hospitalsLoading)="hospitalsLoading($event)" (hospitalClicked)="hospitalClicked($event)" [country]='currentCountry' #hospitallist>
     </app-hospital-list>
   </md-sidenav>
   <div *ngFor="let provider of providers" class="map" [style.zIndex]="(provider == currentProvider) ? '1' : '-1'" #map>
