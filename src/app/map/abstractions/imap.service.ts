@@ -27,7 +27,7 @@ export interface IMapService {
     removeMarker(marker: any): any;
     removeMarkers(): Array<any>;
     getOptions(options: IMapOptions): any;
-
+    getPoint(x: number, y: number): any;
     getDirectionsRequest(request: IDirectionsRequest): any;
     getRadialPoints(location: any, points: number, miles: number): Array<any>;
     getRoutesAsPaths(routes: Array<any>, seconds: number): Array<Array<any>>

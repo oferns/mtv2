@@ -48,7 +48,7 @@ import { BingMapService } from './services/bing.map.service';
     ],
     providers: [
         { provide: PROVIDERS, useClass: GoogleMapService, multi: true }, // PROVIDERS can be any implementation of IMapService
-        { provide: PROVIDERS, useClass: BingMapService, multi: true, },
+        // { provide: PROVIDERS, useClass: BingMapService, multi: true, },
     ],
     exports: [MapComponent]
 })

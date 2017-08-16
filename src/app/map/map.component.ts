@@ -127,7 +127,7 @@ export class MapComponent implements AfterViewInit {
 
     const options = <IMarkerOptions>{
       title: hospital.name,
-      icon: this.pinSymbol('white')
+      icon: this.pinSymbol(hospital.strokeCenter ? 'red' : 'white', hospital.representative ? 1.2 : 1.1)
     };
 
     const marker = p.getMarker(p.getLocation(hospital.lat, hospital.lng), options);
@@ -136,15 +136,15 @@ export class MapComponent implements AfterViewInit {
     p.setMarker(marker);
   }
 
-  private pinSymbol(color): any {
+  private pinSymbol(color: string, scale: number): any {
     return {
       path: 'M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z',
       fillColor: color,
       fillOpacity: 1,
       strokeColor: '#000',
       strokeWeight: 1,
-      scale: 1,
-      labelOrigin: new google.maps.Point(0, -29)
+      scale: scale,
+      labelOrigin: this.currentProvider.getPoint(0, -29)
     };
   }
 
@@ -167,11 +167,6 @@ export class MapComponent implements AfterViewInit {
     this.log.info('MapComponent mapDragEnd called');
     const p = this.providers[this.currentProviderIndex];
     this.currentBounds = p.getBounds();
-
-    this.hospitalList.hospitals.subscribe(hospital => {
-      hospital.forEach(h => h.visible = this.currentBounds.contains(p.getLocation(h.lat, h.lng)));
-    });
-
     this.dragEnd.emit(this.currentBounds);
   }
 

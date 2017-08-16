@@ -1,4 +1,4 @@
-<md-button-toggle value="justify">
+<md-button-toggle [disabled]='isLoading' [checked]='hospital.visible'>
   <md-icon *ngIf='hospital.strokeCenter'>verified_user</md-icon>
   <md-icon *ngIf='hospital.registered'>face</md-icon>
   {{hospital.name}}

@@ -38,13 +38,30 @@ export class HospitalListComponent {
         if (country && country.id > 0) {
             this._country = country;
             this.onHospitalsLoading.emit(this.isLoading = true);
-            this.hospitals = this.hcoService.getHospitals(country)
+            this.hospitals = this.hcoService.getHospitals(country);
             this.hospitals.do(h => {
                 this.log.info(`HospitalListComponent got ${h.length} hospitals for ${country.name}`);
+                this.log.info('HospitalListComponent emitting onHospitalsLoading (false)');
                 this.onHospitalsLoading.emit(this.isLoading = false);
+                this.hospitalCount = h.length;
+                this.strokeCenterCount = h.filter(hh => hh.strokeCenter).length;
+                this.registeredCount = h.filter(hh => hh.representative && hh.representative.length).length;
+                this.registeredStrokeCenters = h.filter(hh => hh.strokeCenter && hh.representative && hh.representative.length).length;
             }).subscribe();
         }
     };
+
+    @Input()
+    hospitalCount: number;
+
+    @Input()
+    registeredStrokeCenters: number;
+
+    @Input()
+    registeredCount: number;
+
+    @Input()
+    strokeCenterCount: number;
 
     @Input()
     hospitals: Observable<Array<IHospital>>;
@@ -59,17 +76,9 @@ export class HospitalListComponent {
     onHospitalLoaded: EventEmitter<IHospital>;
 
     @Input()
-    set mapBounds(bounds: any) {
-        if (this.hospitals) {
-            this.hospitals.forEach(hospitals => {
-                hospitals.forEach(hospital => {
-                    hospital.visible = bounds.contains({ lat: Number(hospital.lat || 0), lng: Number(hospital.lng || 0) });
-                });
-            });
-        }
-    };
+    mapBounds: any;
 
-    @ViewChildren('#hospital') private hospitalElements: QueryList<ElementRef>;
+    @ViewChildren('hospital') private hospitalElements: QueryList<HospitalListComponent>;
 
     constructor(
         @Inject('IHcoService') private readonly hcoService: IHcoService,
@@ -81,8 +90,8 @@ export class HospitalListComponent {
         this.onHospitalLoaded = new EventEmitter<IHospital>();
     }
 
-    visibleCount = (): Number => {
-        return 0;
+    visibleCount = (): number => {
+        return this.hospitalElements ? this.hospitalElements.length : 0;
     }
 
     private hospitalLoading(hospital: IHospital) {

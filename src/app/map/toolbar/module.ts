@@ -17,8 +17,6 @@ import { CountryPickerComponent } from './countrypicker/component';
 import { ProviderPickerComponent } from './providerpicker/component';
 import { ClearMapComponent } from './clearmap/component';
 import { DrawRoutesComponent } from './drawroutes/component';
-import { GoogleMapService } from '../services/google.map.service';
-import { BingMapService } from '../services/bing.map.service';
 import { IMapService } from '../abstractions/imap.service';
 
 export { PROVIDERS } from './providerpicker/component';

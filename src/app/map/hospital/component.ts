@@ -33,6 +33,7 @@ export class HospitalComponent {
         this.onHospitalLoading.emit(hospital);
         this.hcoService.getHospitalRoutes(hospital)
             .subscribe(hs => {
+                this.isLoading = false;
                 if (hs) {
                     hs.radiusDirections = hs.radiusDirections || [];
                     this.log.info(`HospitalComponent ${hs.radiusDirections.length} routes received`);
@@ -52,6 +53,14 @@ export class HospitalComponent {
 
     @Output()
     onHospitalLoaded: EventEmitter<IHospital>;
+
+    @Input()
+    set mapBounds(bounds: any) {
+        if ((!this._hospital.lat || this._hospital.lng) || (this._hospital.lat === 0 && this._hospital.lng === 0)) {
+            this._hospital.visible = false;
+        }
+        this._hospital.visible = bounds.contains({ lat: Number(this._hospital.lat), lng: Number(this._hospital.lng) });
+    };
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger) {

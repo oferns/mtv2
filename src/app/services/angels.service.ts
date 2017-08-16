@@ -16,6 +16,14 @@ import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
 
+
+// const countryUrl = '/mt/countries';
+// const hospitalsUrl = '/mt/country/';
+// const saveCountryUrl = '/mt/savecountry/';
+// const hospitalUrl = '/mt/hospitalroutes/';
+// const saveHospitalUrl = '/mt/savehospital/';
+
+
 const countryUrl = 'http://localhost:3000/mt/countries';
 const hospitalsUrl = 'http://localhost:3000/mt/country/';
 const saveCountryUrl = 'http://localhost:3000/mt/savecountry/';
@@ -47,8 +55,10 @@ export class AngelsService implements IHcoService {
         this.log.info(`AngelsService getCountries called`);
         if (!this._countries) {
             this._countries = this.http.get<Array<ICountry>>(countryUrl)
-                .map(countries => countries)
-                .do(countries => this.log.info(`AngelsService getCountries returned ${countries.length} countries`))
+                .do(countries => {
+                    this.log.info(`AngelsService getCountries returned ${countries.length} countries`)
+                })
+
                 .publishReplay(1)
                 .refCount();
         }

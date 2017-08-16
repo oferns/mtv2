@@ -19,6 +19,7 @@ export class BingMapService implements IMapService {
 
 
 
+
     private map: Microsoft.Maps.Map;
     private searchManager: any;
     private scriptLoadingPromise: Promise<void>;
@@ -244,6 +245,10 @@ export class BingMapService implements IMapService {
     }
 
     addDrawingListener(event: string, handler: (...args: any[]) => void): void {
+        throw new Error('Method not implemented.');
+    }
+    
+    getPoint(x: number, y: number) {
         throw new Error('Method not implemented.');
     }
 }

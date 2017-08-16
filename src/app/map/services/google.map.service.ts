@@ -345,6 +345,9 @@ export class GoogleMapService implements IMapService {
         this._shapes = [];
     }
 
+    getPoint(x: number, y: number): google.maps.Point {
+        return new google.maps.Point(x, y);
+    }
 
     private convertGeoResults(results: google.maps.GeocoderResult[]): IGeoCodeResult[] {
         return <IGeoCodeResult[]>results.map(function (r) {

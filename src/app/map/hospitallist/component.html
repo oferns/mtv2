@@ -1,15 +1,20 @@
 <div *ngIf="isLoading">
   <md-list>
     <md-list-item>
-        <md-spinner strokeWidth='10'></md-spinner> Loading hospitals for {{country.name}}
+      <md-spinner strokeWidth='10'></md-spinner> Loading hospitals for {{country.name}}
     </md-list-item>
   </md-list>
 </div>
 
 <div *ngIf="!isLoading">
+  <span>
+    <md-icon>face</md-icon>
+    <md-icon>verified_user</md-icon>
+  </span>
   <md-list>
-    <md-list-item *ngFor="let h of hospitals | async" [style.display]='h.visible ? "inherit" : "none"' >
-      <app-hospital #hospital [hospital]='h'  (onHospitalLoading)='hospitalLoading($event)' (onHospitalLoaded)='hospitalLoaded($event)' ></app-hospital>
+    <md-list-item *ngFor="let h of hospitals | async" [style.display]='h.visible ? "inherit" : "none"'>
+      <app-hospital #hospital [hospital]='h' (onHospitalLoading)='hospitalLoading($event)' (onHospitalLoaded)='hospitalLoaded($event)'
+        [mapBounds]='mapBounds'></app-hospital>
     </md-list-item>
   </md-list>
 </div>
