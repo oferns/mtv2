@@ -1,6 +1,6 @@
-<md-button-toggle [disabled]='isLoading' [checked]='hospital.visible'>
+<md-button-toggle [disabled]='isLoading' [checked]='hospital.visible' >
   <md-icon *ngIf='hospital.strokeCenter'>verified_user</md-icon>
   <md-icon *ngIf='hospital.registered'>face</md-icon>
-  {{hospital.name}}
+  {{hospital.name}} - {{hospital.visible}}
 </md-button-toggle>
 <md-spinner *ngIf='isLoading' strokeWidth='10'></md-spinner>

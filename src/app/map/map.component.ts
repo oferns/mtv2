@@ -155,12 +155,11 @@ export class MapComponent implements AfterViewInit {
   private mapBoundsChanged = (): void => {
 
     window.clearTimeout(this.timeout);
-
     this.timeout = window.setTimeout(() => {
       this.log.info('MapComponent mapBoundsChanged called');
       this.currentBounds = this.currentProvider.getBounds();
       this.boundsChanged.emit(this.currentBounds);
-    }, 500);
+    }, 100);
   }
 
   private mapDragEnd = (): void => {

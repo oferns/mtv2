@@ -12,11 +12,13 @@ import {
 import { IHospital } from '../../data/ihospital';
 import { ICountry } from '../..//data/icountry';
 import { Logger } from 'angular2-logger/core';
-
+import { HospitalComponent } from '../hospital/component';
 import { IHcoService } from '../../services/ihco.service';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/mergeMap';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/count';
 
 @Component({
     selector: 'app-hospital-list',
@@ -29,6 +31,9 @@ export class HospitalListComponent {
     private isLoading: boolean;
     private _country: ICountry;
 
+    @Input()
+    hospitals: Observable<IHospital>;
+
     get country() {
         return this._country;
     }
@@ -39,15 +44,18 @@ export class HospitalListComponent {
             this._country = country;
             this.onHospitalsLoading.emit(this.isLoading = true);
             this.hospitals = this.hcoService.getHospitals(country);
-            this.hospitals.do(h => {
-                this.log.info(`HospitalListComponent got ${h.length} hospitals for ${country.name}`);
+            this.hospitals.subscribe((hs: any) => {
+                this.log.info(`HospitalListComponent got ${hs.length} hospitals for ${country.name}`);
                 this.log.info('HospitalListComponent emitting onHospitalsLoading (false)');
+                hs.forEach((h: IHospital) => {
+                    if ((!h.lat || h.lng) || (h.lat === 0 && h.lng === 0)) {
+                        h.visible = false;
+                    }
+                    h.visible = this._mapBounds.contains({ lat: Number(h.lat), lng: Number(h.lng) });
+                })
                 this.onHospitalsLoading.emit(this.isLoading = false);
-                this.hospitalCount = h.length;
-                this.strokeCenterCount = h.filter(hh => hh.strokeCenter).length;
-                this.registeredCount = h.filter(hh => hh.representative && hh.representative.length).length;
-                this.registeredStrokeCenters = h.filter(hh => hh.strokeCenter && hh.representative && hh.representative.length).length;
-            }).subscribe();
+
+            });
         }
     };
 
@@ -63,8 +71,6 @@ export class HospitalListComponent {
     @Input()
     strokeCenterCount: number;
 
-    @Input()
-    hospitals: Observable<Array<IHospital>>;
 
     @Output()
     onHospitalsLoading: EventEmitter<boolean>;
@@ -75,10 +81,24 @@ export class HospitalListComponent {
     @Output()
     onHospitalLoaded: EventEmitter<IHospital>;
 
-    @Input()
-    mapBounds: any;
+    private _mapBounds: any;
 
-    @ViewChildren('hospital') private hospitalElements: QueryList<HospitalListComponent>;
+    @Input()
+    set mapBounds(bounds: any) {
+        this._mapBounds = bounds;
+        if (this.hospitals) {
+
+            this.hospitals = this.hospitals.map((h: IHospital) => {
+                if ((!h.lat || !h.lng) || (h.lat === 0 && h.lng === 0)) {
+                    h.visible = false;
+                } else {
+                    h.visible = bounds.contains({ lat: Number(h.lat), lng: Number(h.lng) })
+                }
+                return h;
+            });
+
+        }
+    };
 
     constructor(
         @Inject('IHcoService') private readonly hcoService: IHcoService,
@@ -91,7 +111,7 @@ export class HospitalListComponent {
     }
 
     visibleCount = (): number => {
-        return this.hospitalElements ? this.hospitalElements.length : 0;
+        return 0;
     }
 
     private hospitalLoading(hospital: IHospital) {

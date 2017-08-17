@@ -9,7 +9,7 @@
     </button>
     <br />
     <app-hospital-list (hospitalsLoading)="hospitalsLoading($event)" (onHospitalLoading)="hospitalLoading($event)" (onHospitalLoaded)="hospitalLoaded($event)" [country]='currentCountry'
-    [mapBounds]='currentBounds'>
+    [(mapBounds)]='currentBounds'>
     </app-hospital-list>
   </md-sidenav>
   <div *ngFor="let provider of providers" class="map" [style.zIndex]="(provider == currentProvider) ? '1' : '-1'" #map>

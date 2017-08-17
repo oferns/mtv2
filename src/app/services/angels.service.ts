@@ -41,23 +41,23 @@ export class AngelsService implements IHcoService {
 
     private readonly countriesPromise: Promise<Array<ICountry>>;
 
-    private _countries: Observable<Array<ICountry>>;
-    private _hospitals: Map<ICountry, Observable<Array<IHospital>>>;
+    private _countries: Observable<ICountry>;
+    private _hospitals: Map<ICountry, Observable<IHospital>>;
     private _hospitalRoutes: Map<IHospital, Observable<IHospitalRoutes>>;
 
     constructor(private readonly http: HttpClient, private readonly log: Logger) {
         this.log.info(`AngelsService CTor called`);
-        this._hospitals = new Map<ICountry, Observable<Array<IHospital>>>();
+        this._hospitals = new Map<ICountry, Observable<IHospital>>();
         this._hospitalRoutes = new Map<IHospital, Observable<IHospitalRoutes>>();
     }
 
-    getCountries = (): Observable<Array<ICountry>> => {
+    getCountries = (): Observable<ICountry> => {
         this.log.info(`AngelsService getCountries called`);
         if (!this._countries) {
-            this._countries = this.http.get<Array<ICountry>>(countryUrl)
-                .do(countries => {
-                    this.log.info(`AngelsService getCountries returned ${countries.length} countries`)
-                })
+            this._countries = this.http.get<ICountry>(countryUrl)
+                // .do(countries => {
+                //     this.log.info(`AngelsService getCountries returned ${countries.length} countries`)
+                // })
 
                 .publishReplay(1)
                 .refCount();
@@ -85,7 +85,7 @@ export class AngelsService implements IHcoService {
         });
     }
 
-    getHospitals = (country: ICountry): Observable<Array<IHospital>> => {
+    getHospitals = (country: ICountry): Observable<IHospital> => {
         this.log.info(`AngelsService getHospitals called for ${country.name} (${country.id})`);
 
         if (this._hospitals.has(country)) {
@@ -95,8 +95,9 @@ export class AngelsService implements IHcoService {
 
         const url = hospitalsUrl + country.id;
 
-        return this._hospitals.set(country, this.http.get<Array<IHospital>>(url).map(countries => countries)
-            .do(countries => this.log.info(`AngelsService getHospitals returned ${countries.length} countries`))
+        return this._hospitals.set(country, this.http.get<IHospital>(url)
+            // .map(countries => countries)
+            // .do(countries => this.log.info(`AngelsService getHospitals returned ${countries.length} countries`))
             .publishReplay(1)
             .refCount())
             .get(country)
