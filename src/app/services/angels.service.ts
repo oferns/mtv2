@@ -15,6 +15,8 @@ import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/publishReplay';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/catch';
+import 'rxjs/add/observable/throw';
 
 
 // const countryUrl = '/mt/countries';
@@ -41,51 +43,51 @@ export class AngelsService implements IHcoService {
 
     private readonly countriesPromise: Promise<Array<ICountry>>;
 
-    private _countries: Observable<ICountry>;
-    private _hospitals: Map<ICountry, Observable<IHospital>>;
+    private _countries: Observable<ICountry[]>;
+    private _hospitals: Map<ICountry, Observable<IHospital[]>>;
     private _hospitalRoutes: Map<IHospital, Observable<IHospitalRoutes>>;
 
     constructor(private readonly http: HttpClient, private readonly log: Logger) {
         this.log.info(`AngelsService CTor called`);
-        this._hospitals = new Map<ICountry, Observable<IHospital>>();
+        this._hospitals = new Map<ICountry, Observable<IHospital[]>>();
         this._hospitalRoutes = new Map<IHospital, Observable<IHospitalRoutes>>();
     }
 
-    getCountries = (): Observable<ICountry> => {
-        this.log.info(`AngelsService getCountries called`);
-        if (!this._countries) {
-            this._countries = this.http.get<ICountry>(countryUrl)
-                // .do(countries => {
-                //     this.log.info(`AngelsService getCountries returned ${countries.length} countries`)
-                // })
+    private handleError(error: any) {
+        if (error instanceof Response) {
+            return Observable.throw(error.json()['error'] || 'backend server error');
+        }
+        return Observable.throw(error || 'backend server error');
+    }
 
+
+    getCountries = (): Observable<ICountry[]> => {
+        this.log.debug(`AngelsService getCountries called`);
+        if (!this._countries) {
+            this._countries = this.http.get<Array<ICountry>>(countryUrl)
+                .map(countries => countries)
+                .do(countries => this.log.debug(`AngelsService getCountries returned ${countries.length} countries`))
                 .publishReplay(1)
                 .refCount();
         }
         return this._countries;
     }
 
-    saveCountryData = async (country: ICountry): Promise<ICountry> => {
-        this.log.info(`AngelsService saveCountryData called for ${country.name} (${country.id})`);
-        return await new Promise<ICountry>(async (res, rej) => {
-            const url = saveCountryUrl + country.id;
-            this.log.info(`AngelsService saveCountryData calling ${url} for ${country.name} (${country.id})`);
 
-            return await this.http.post(url, country)
-                .subscribe((country: ICountry) => {
-                    this.log.info(`AngelsService saveCountryData saved country data for ${country.name} (${country.id}) to ${url}`);
-                    return res(<ICountry>country)
-                },
-                err => {
-                    this.log.error(`AngelsService saveCountryData ERRORED saving country data
-                    for ${country.name} (${country.id}) to ${url}`);
-                    this.log.error(err);
-                    return rej(err)
-                })
-        });
+    saveCountryData = (country: ICountry): Observable<ICountry> => {
+        this.log.info(`AngelsService saveCountryData called for ${country.name} (${country.id})`);
+        const url = saveCountryUrl + country.id;
+        this.log.info(`AngelsService saveCountryData calling ${url} for ${country.name} (${country.id})`);
+
+        return this.http.post<ICountry>(url, country)
+            .map((result) => {
+                this.log.info(`AngelsService saveCountryData saved country data for ${country.name} (${country.id}) to ${url}`);
+            })
+            .catch(this.handleError);
+
     }
 
-    getHospitals = (country: ICountry): Observable<IHospital> => {
+    getHospitals = (country: ICountry): Observable<IHospital[]> => {
         this.log.info(`AngelsService getHospitals called for ${country.name} (${country.id})`);
 
         if (this._hospitals.has(country)) {
@@ -95,31 +97,24 @@ export class AngelsService implements IHcoService {
 
         const url = hospitalsUrl + country.id;
 
-        return this._hospitals.set(country, this.http.get<IHospital>(url)
-            // .map(countries => countries)
-            // .do(countries => this.log.info(`AngelsService getHospitals returned ${countries.length} countries`))
+        return this._hospitals.set(country, this.http.get<IHospital[]>(url)
+            .do(countries => this.log.info(`AngelsService getHospitals returned ${countries.length} countries`))
             .publishReplay(1)
             .refCount())
             .get(country)
+            .catch(this.handleError);
     }
 
-    saveHospitalData = async (hospital: IHospital): Promise<IHospital> => {
+    saveHospitalData = (hospital: IHospital): Observable<IHospital> => {
         this.log.info(`AngelsService saveHospitalData called for ${hospital.name} (${hospital.id})`);
 
-        return await new Promise<IHospital>((res, rej) => {
-            const url = saveHospitalUrl + hospital.id;
-            this.log.info(`AngelsService saveHospitalData saving ${hospital.name} (${hospital.id}) to ${url}`);
-            return this.http.post<IHospital>(url, hospital)
-                .subscribe(hospital => {
-                    this.log.info(`AngelsService saveHospitalData Saved ${hospital.name} (${hospital.id}) to ${url}`);
-                    return res(hospital)
-                },
-                err => {
-                    this.log.info(`AngelsService saveHospitalData Errored saving ${hospital.name} (${hospital.id}) to ${url}`);
-                    this.log.info(err);
-                    return rej(err)
-                })
-        });
+        const url = saveHospitalUrl + hospital.id;
+        this.log.info(`AngelsService saveHospitalData saving ${hospital.name} (${hospital.id}) to ${url}`);
+        return this.http.post<IHospital>(url, hospital)
+            .do(h => {
+                this.log.info(`AngelsService saveHospitalData Saved ${h.name} (${h.id}) to ${url}`);
+            })
+            .catch(this.handleError);
     }
 
     getHospitalRoutes(hospital: IHospital): Observable<IHospitalRoutes> {
@@ -138,5 +133,6 @@ export class AngelsService implements IHcoService {
             .publishReplay(1)
             .refCount())
             .get(hospital)
+            .catch(this.handleError);
     }
 }

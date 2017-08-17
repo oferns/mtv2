@@ -32,7 +32,7 @@ export class HospitalListComponent {
     private _country: ICountry;
 
     @Input()
-    hospitals: Observable<IHospital>;
+    hospitals: Observable<IHospital[]>;
 
     get country() {
         return this._country;
@@ -87,18 +87,16 @@ export class HospitalListComponent {
     set mapBounds(bounds: any) {
         this._mapBounds = bounds;
         if (this.hospitals) {
-
-            this.hospitals = this.hospitals.map((h: IHospital) => {
-                if ((!h.lat || !h.lng) || (h.lat === 0 && h.lng === 0)) {
-                    h.visible = false;
-                } else {
-                    h.visible = bounds.contains({ lat: Number(h.lat), lng: Number(h.lng) })
-                }
-                return h;
-            });
-
-        }
-    };
+            this.hospitals.subscribe((hs: any) => {
+                this.hospitals = hs.map((h: IHospital) => {
+                    if ((!h.lat || h.lng) || (h.lat === 0 && h.lng === 0)) {
+                        h.visible = false;
+                    }
+                    h.visible = this._mapBounds.contains({ lat: Number(h.lat), lng: Number(h.lng) });
+                })
+            })
+        };
+    }
 
     constructor(
         @Inject('IHcoService') private readonly hcoService: IHcoService,

@@ -14,7 +14,7 @@ import { ICountry } from '../../../data/icountry';
 
 export class CountryPickerComponent {
 
-    private countries: Observable<ICountry>;
+    private countries: Observable<Array<ICountry>>;
     private loading: boolean;
 
     @Output()

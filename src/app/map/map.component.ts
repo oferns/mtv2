@@ -201,16 +201,16 @@ export class MapComponent implements AfterViewInit {
             this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id})
             centre: Lat ${country.bounds.lat} Lng ${country.bounds.lat}`);
 
-            this.hcoService.saveCountryData(country)
-              .then((country: ICountry) => {
-                this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) geo info saved`);
-                return res(country);
-              })
-              .catch((err) => {
-                this.log.error(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) ERROR saving geo info`);
-                this.log.error(err);
-                return rej(err);
-              });
+            // this.hcoService.saveCountryData(country)
+            //   .then((country: ICountry) => {
+            //     this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) geo info saved`);
+            //     return res(country);
+            //   })
+            //   .catch((err) => {
+            //     this.log.error(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) ERROR saving geo info`);
+            //     this.log.error(err);
+            //     return rej(err);
+            //   });
           } else {
             this.log.info(`MapComponent ensureCountryCenterAndBounds ${country.name} (${country.id}) geocode produced no information.`);
             return rej('Geocode for this address produced no results');
