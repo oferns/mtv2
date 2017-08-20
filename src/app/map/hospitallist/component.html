@@ -1,22 +1,26 @@
-<div *ngIf="isLoading">
-  <md-list>
-    <md-list-item>
-      <md-spinner strokeWidth='10'></md-spinner> Loading hospitals for {{country.name}}
-    </md-list-item>
-  </md-list>
-</div>
+<span [hidden]='!loading'>
+      <md-spinner strokeWidth='10'></md-spinner> Loading hospitals
+</span>
 
-<div *ngIf="!isLoading">
-  <span>
+<div [hidden]='loading'>
+  <div>
+    <md-icon>face</md-icon> Showing {{registeredInView}} of {{registered}}
+  </div>
+  <div>
+    <md-icon>verified_user</md-icon> Showing {{strokeCentersInView}} of {{strokeCenters}}
+  </div>
+  <div>
     <md-icon>face</md-icon>
-    <md-icon>verified_user</md-icon>
-  </span>
+    <md-icon>add</md-icon>
+    <md-icon>verified_user</md-icon> Showing {{registeredStrokeCentersInView}} of {{registeredStrokeCenters}}
+  </div>
+  <div>
+    Showing {{visible}} of {{_data ? _data.length : 0}}
+  </div>
   <md-list>
-    <md-list-item *ngFor="let h of hospitals | async" >
-      <app-hospital #hospital 
-        [hospital]='h' 
-        (onHospitalLoading)='hospitalLoading($event)' 
-        (onHospitalLoaded)='hospitalLoaded($event)'>
+    <md-list-item *ngFor="let h of hospitals | async" [style.display]='h.visible ? "Inherit" : "none"'>
+      <app-hospital #hospital [hospital]='h'>
+
       </app-hospital>
     </md-list-item>
   </md-list>

@@ -36,13 +36,13 @@ export class GoogleMapService implements IMapService {
         script.defer = true;
         script.src = `//maps.googleapis.com/maps/api/js?key=${env.GM_API_KEY}&callback=${this.provider}&libraries=geometry,drawing`;
 
-        this.scriptLoadingPromise = new Promise<void>((resolve: Function, reject: Function) => {
+        this.scriptLoadingPromise = new Promise<void>((res: Function, rej: Function) => {
             (<any>window)[this.provider] = (a) => {
-                resolve();
+                res();
             };
 
             script.onerror = (error: Event) => {
-                reject(error);
+                rej(error);
             };
         });
 
@@ -190,11 +190,16 @@ export class GoogleMapService implements IMapService {
         });
     }
 
-    setMarker(marker: google.maps.Marker): google.maps.Marker {
+    setMarker(marker: google.maps.Marker, visible: boolean = true): google.maps.Marker {
         marker.setMap(this.map);
+        marker.setVisible(visible);
         this._markers.push(marker);
         return marker;
     };
+    toggleMarker(marker: google.maps.Marker, visible: boolean = true): google.maps.Marker {
+        marker.setVisible(visible);
+        return marker;
+    }
 
     getMarker(location: google.maps.LatLng, options: IMarkerOptions): google.maps.Marker {
 

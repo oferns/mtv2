@@ -10,6 +10,7 @@ import { Logger } from 'angular2-logger/core';
 
 import { IHospital } from '../../data/ihospital';
 import { IHcoService } from '../../services/ihco.service';
+import { Observable } from 'rxjs/Observable';
 
 
 @Component({

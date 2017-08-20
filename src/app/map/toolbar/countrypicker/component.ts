@@ -17,6 +17,10 @@ export class CountryPickerComponent {
     private countries: Observable<Array<ICountry>>;
     private loading: boolean;
 
+
+    @Output()
+    country: ICountry;
+
     @Output()
     onCountryChanged: EventEmitter<ICountry>;
 
@@ -35,6 +39,7 @@ export class CountryPickerComponent {
     }
 
     private countryChanged(country: ICountry) {
+        this.country = country;
         this.onCountryChanged.emit(country);
     }
 }

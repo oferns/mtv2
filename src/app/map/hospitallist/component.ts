@@ -6,7 +6,9 @@ import {
     QueryList,
     ElementRef,
     ViewChildren,
-    Inject
+    Inject,
+    OnChanges,
+    ChangeDetectorRef
 } from '@angular/core';
 
 import { IHospital } from '../../data/ihospital';
@@ -19,6 +21,7 @@ import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/count';
+import 'rxjs/add/operator/toArray';
 
 @Component({
     selector: 'app-hospital-list',
@@ -26,97 +29,65 @@ import 'rxjs/add/operator/count';
     styleUrls: ['./component.scss']
 })
 
-export class HospitalListComponent {
+export class HospitalListComponent implements OnChanges {
 
-    private isLoading: boolean;
-    private _country: ICountry;
+    private loading: boolean;
+    private _data: Array<IHospital>;
+
+    private get visible(): Number {
+        return this._data ? this._data.filter(h => h.visible).length : 0;
+    }
+
+    private get strokeCenters(): Number {
+        return this._data ? this._data.filter(h => h.strokeCenter).length : 0;
+    }
+
+    private get strokeCentersInView(): Number {
+        return this._data ? this._data.filter(h => h.strokeCenter && h.visible).length : 0;
+    }
+
+    private get registered(): Number {
+        return this._data ? this._data.filter((h: IHospital) => h.representative).length : 0;
+    }
+
+    private get registeredInView(): Number {
+        return this._data ? this._data.filter((h: IHospital) => h.representative && h.visible).length : 0;
+    }
+
+    private get registeredStrokeCenters(): Number {
+        return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter).length : 0;
+    }
+
+    private get registeredStrokeCentersInView(): Number {
+        return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter && h.visible).length : 0;
+    }
 
     @Input()
     hospitals: Observable<IHospital[]>;
 
-    get country() {
-        return this._country;
-    }
-
     @Input()
     set country(country: ICountry) {
         if (country && country.id > 0) {
-            this._country = country;
-            this.onHospitalsLoading.emit(this.isLoading = true);
-            this.hospitals = this.hcoService.getHospitals(country);
-            this.hospitals.subscribe((hs: any) => {
-                this.log.info(`HospitalListComponent got ${hs.length} hospitals for ${country.name}`);
-                this.log.info('HospitalListComponent emitting onHospitalsLoading (false)');
-                hs.forEach((h: IHospital) => {
-                    if ((!h.lat || h.lng) || (h.lat === 0 && h.lng === 0)) {
-                        h.visible = false;
-                    }
-                    h.visible = this._mapBounds.contains({ lat: Number(h.lat), lng: Number(h.lng) });
-                })
-                this.onHospitalsLoading.emit(this.isLoading = false);
-
+            this.isLoading.emit(this.loading = true);
+            this.hospitals = this.hcoService.getHospitals(country).do(hospitals => {
+                this.isLoading.emit(this.loading = false);
+                this._data = hospitals;
             });
         }
-    };
-
-    @Input()
-    hospitalCount: number;
-
-    @Input()
-    registeredStrokeCenters: number;
-
-    @Input()
-    registeredCount: number;
-
-    @Input()
-    strokeCenterCount: number;
-
-
-    @Output()
-    onHospitalsLoading: EventEmitter<boolean>;
-
-    @Output()
-    onHospitalLoading: EventEmitter<IHospital>;
-
-    @Output()
-    onHospitalLoaded: EventEmitter<IHospital>;
-
-    private _mapBounds: any;
-
-    @Input()
-    set mapBounds(bounds: any) {
-        this._mapBounds = bounds;
-        if (this.hospitals) {
-            this.hospitals.subscribe((hs: any) => {
-                this.hospitals = hs.map((h: IHospital) => {
-                    if ((!h.lat || h.lng) || (h.lat === 0 && h.lng === 0)) {
-                        h.visible = false;
-                    }
-                    h.visible = this._mapBounds.contains({ lat: Number(h.lat), lng: Number(h.lng) });
-                })
-            })
-        };
     }
 
-    constructor(
-        @Inject('IHcoService') private readonly hcoService: IHcoService,
+    @Output()
+    isLoading: EventEmitter<boolean>;
+
+
+    constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger
     ) {
-        log.info('HospitalList Component CTor called');
-        this.onHospitalsLoading = new EventEmitter<boolean>();
-        this.onHospitalLoading = new EventEmitter<IHospital>();
-        this.onHospitalLoaded = new EventEmitter<IHospital>();
+        this.log.info('HospitalList Component CTor called');
+        this.isLoading = new EventEmitter<boolean>();
     }
 
-    visibleCount = (): number => {
-        return 0;
-    }
-
-    private hospitalLoading(hospital: IHospital) {
-        this.onHospitalLoading.emit(hospital);
-    }
-
-    private hospitalLoaded(hospital: IHospital) {
-        this.onHospitalLoaded.emit(hospital);
+    ngOnChanges(changes: any): void {
+        this.log.info('HospitalList Component ngOnChanges called');
     }
 }

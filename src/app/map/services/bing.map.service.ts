@@ -151,11 +151,15 @@ export class BingMapService implements IMapService {
         });
     }
 
-    setMarker(marker: Microsoft.Maps.Pushpin): Microsoft.Maps.Pushpin {
+    setMarker(marker: Microsoft.Maps.Pushpin, visible: boolean = true): Microsoft.Maps.Pushpin {
         this.map.entities.push(marker);
         return marker;
     };
 
+    toggleMarker(marker: Microsoft.Maps.Pushpin, visible: boolean = true): Microsoft.Maps.Pushpin {
+        return marker;
+    }
+    
     getMarker(location: Microsoft.Maps.Location, options: IMarkerOptions): Microsoft.Maps.Pushpin {
         const newopts: Microsoft.Maps.IPushpinOptions = {};
         const pin = new Microsoft.Maps.Pushpin(location, newopts);
@@ -247,7 +251,7 @@ export class BingMapService implements IMapService {
     addDrawingListener(event: string, handler: (...args: any[]) => void): void {
         throw new Error('Method not implemented.');
     }
-    
+
     getPoint(x: number, y: number) {
         throw new Error('Method not implemented.');
     }

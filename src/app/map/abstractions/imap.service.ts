@@ -22,8 +22,9 @@ export interface IMapService {
     setZoom(zoom: number): void;
     addListener(event: string, handler: (...args: Array<any>) => void): void;
     geocode(location: string | any): Promise<Array<IGeoCodeResult>>;
-    setMarker(marker: any): any;
+    setMarker(marker: any, visible: boolean): any;
     getMarker(location: any, options: IMarkerOptions): any;
+    toggleMarker(marker: any, visible: boolean): any;
     removeMarker(marker: any): any;
     removeMarkers(): Array<any>;
     getOptions(options: IMapOptions): any;
@@ -31,7 +32,7 @@ export interface IMapService {
     getDirectionsRequest(request: IDirectionsRequest): any;
     getRadialPoints(location: any, points: number, miles: number): Array<any>;
     getRoutesAsPaths(routes: Array<any>, seconds: number): Array<Array<any>>
-    
+
     getDirectionAsRouteSteps(direction: any): Array<any>;
     getDirectionsAsRouteSteps(directions: Array<any>): Array<Array<any>>;
     shortenRouteStepsByDuration(routeSteps: Array<IRouteStep>, durationInSeconds: number): Array<any>;

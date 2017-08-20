@@ -98,7 +98,9 @@ export class AngelsService implements IHcoService {
         const url = hospitalsUrl + country.id;
 
         return this._hospitals.set(country, this.http.get<IHospital[]>(url)
-            .do(countries => this.log.info(`AngelsService getHospitals returned ${countries.length} countries`))
+            .do(hospitals => {
+                this.log.info(`AngelsService getHospitals returned ${hospitals.length} hopitals`)
+            })
             .publishReplay(1)
             .refCount())
             .get(country)
