@@ -96,7 +96,7 @@ export class MapComponent implements AfterViewInit {
   constructor(
     private readonly log: Logger,
     private readonly ref: ChangeDetectorRef,
-    @Inject(PROVIDERS) private readonly providers: Array<IMapService>,
+    @Inject(PROVIDERS) readonly providers: Array<IMapService>,
     @Inject('IHcoService') private readonly hcoService: IHcoService
   ) {
     this.log.info('MapComponent constructor called');
@@ -172,7 +172,7 @@ export class MapComponent implements AfterViewInit {
   }
 
   // Event Handlers
-  private countryChanged = (country: ICountry): void => {
+  countryChanged = (country: ICountry): void => {
     this.log.info(`MapComponent countryChanged to  ${country.name} (${country.id})`);
     this.currentCountry = country;
     this.currentProvider.setCenter(this.currentProvider.getLocation(country.center.lat, country.center.lng))
@@ -192,7 +192,7 @@ export class MapComponent implements AfterViewInit {
       });
   }
 
-  private hospitalListLoading = (loading: boolean) => {
+  hospitalListLoading = (loading: boolean) => {
     if (this.currentHospitals && !loading) {
       this.currentProvider.addListenerOnce('idle', this.mapIdle.bind(this));
       this.currentHospitals.subscribe((hs: Array<IHospital>) => {
@@ -245,7 +245,7 @@ export class MapComponent implements AfterViewInit {
   }
 
   // Fires when a hospital is fully loaded
-  private hospitalLoaded(hospital: IHospital): void {
+  hospitalLoaded(hospital: IHospital): void {
     const minutes = hospital.strokeCenter ? 45 : 30;
     const p = this.currentProvider;
     const shortenedRoutes = hospital.radiusDirections.map((r) => p.shortenRouteStepsByDuration(r, (minutes * 60)));
@@ -268,7 +268,7 @@ export class MapComponent implements AfterViewInit {
   }
 
   // Fires when all hospitals have loaded
-  private hospitalsLoaded(): void {
+  hospitalsLoaded(): void {
     this.hospitalsFinished = true;
     this.mapIdle();
   }
@@ -467,7 +467,7 @@ export class MapComponent implements AfterViewInit {
   }
 
   toggleRoutes = (on: boolean): void => {
-    this.log.info('MapComponent toggleRoutes called'); 
+    this.log.info('MapComponent toggleRoutes called');
     this.hospitalLines.forEach(lines => lines.forEach(line => this.currentProvider.toggleLine(line, on)));
     this.hospitalShapes.forEach(shape => this.currentProvider.toggleShape(shape, on));
   }

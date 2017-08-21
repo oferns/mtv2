@@ -1,5 +1,7 @@
-import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular/core';
-import { MdButtonToggleChange } from '@angular/material/material';
+import { Component, OnInit, Inject, Input, Output, EventEmitter, ViewChild } from '@angular/core';
+import { MdButtonToggleChange } from '@angular/material';
+import { MdButtonToggle } from '@angular/material';
+
 @Component({
     selector: 'app-map-drawroutes',
     templateUrl: './component.html',
@@ -8,6 +10,9 @@ import { MdButtonToggleChange } from '@angular/material/material';
 })
 
 export class DrawRoutesComponent {
+
+    @ViewChild(MdButtonToggle)
+    button: MdButtonToggle;
 
     @Input()
     disabled: boolean;

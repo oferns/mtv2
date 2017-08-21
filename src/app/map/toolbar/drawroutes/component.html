@@ -1,4 +1,4 @@
-<md-button-toggle (change)="toggle($event)" [disabled]='disabled' [name]='chkToggleRoutes'>
+<md-button-toggle (change)="toggle($event)" [disabled]='disabled' name='chkToggleRoutes'>
     <md-icon>create</md-icon>    
-    Routes: {{selected ? 'On' : 'Off'}}
+    Routes: {{button.checked ? 'On' : 'Off'}}
 </md-button-toggle>

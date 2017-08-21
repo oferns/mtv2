@@ -14,9 +14,10 @@ import { ICountry } from '../../../data/icountry';
 
 export class CountryPickerComponent {
 
-    private countries: Observable<Array<ICountry>>;
-    private loading: boolean;
+    countries: Observable<Array<ICountry>>;
 
+    @Input()
+    loading: boolean;
 
     @Output()
     country: ICountry;
@@ -38,7 +39,7 @@ export class CountryPickerComponent {
         });
     }
 
-    private countryChanged(country: ICountry) {
+    countryChanged(country: ICountry) {
         this.country = country;
         this.onCountryChanged.emit(country);
     }

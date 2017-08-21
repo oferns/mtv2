@@ -26,7 +26,7 @@ export class ProviderPickerComponent {
     onProviderChanged: EventEmitter<IMapService>;
 
     constructor(
-        @Inject(PROVIDERS) private readonly providers: Array<IMapService>,
+        @Inject(PROVIDERS) readonly providers: Array<IMapService>,
         private readonly log: Logger) {
         this.onProviderChanged = new EventEmitter<IMapService>();
     }

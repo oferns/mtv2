@@ -29,41 +29,41 @@ import 'rxjs/add/operator/toArray';
 
 export class HospitalListComponent {
 
-    private loading: boolean;
-    private _data: Array<IHospital>;
+    loading: boolean;
+    _data: Array<IHospital>;
 
-    private _loaded: Array<number> = new Array<number>();
-    private _progress: number;
+    _loaded: Array<number> = new Array<number>();
+    _progress: number;
 
-    private get visible(): number {
+    get visible(): number {
         return this._data ? this._data.filter(h => h.visible).length : 0;
     }
 
-    private get strokeCenters(): number {
+    get strokeCenters(): number {
         return this._data ? this._data.filter(h => h.strokeCenter).length : 0;
     }
 
-    private get strokeCentersInView(): number {
+    get strokeCentersInView(): number {
         return this._data ? this._data.filter(h => h.strokeCenter && h.visible).length : 0;
     }
 
-    private get registered(): number {
+    get registered(): number {
         return this._data ? this._data.filter((h: IHospital) => h.representative).length : 0;
     }
 
-    private get registeredInView(): number {
+    get registeredInView(): number {
         return this._data ? this._data.filter((h: IHospital) => h.representative && h.visible).length : 0;
     }
 
-    private get registeredStrokeCenters(): number {
+    get registeredStrokeCenters(): number {
         return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter).length : 0;
     }
 
-    private get registeredStrokeCentersInView(): number {
+    get registeredStrokeCentersInView(): number {
         return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter && h.visible).length : 0;
     }
 
-    private hospitals: Observable<IHospital[]>;
+    hospitals: Observable<IHospital[]>;
 
     @Input()
     set country(country: ICountry) {
@@ -92,7 +92,6 @@ export class HospitalListComponent {
         this.isLoading = new EventEmitter<boolean>();
         this.onHospitalLoaded = new EventEmitter<IHospital>();
         this.onHospitalsLoaded = new EventEmitter<void>();
-        
     }
 
 
