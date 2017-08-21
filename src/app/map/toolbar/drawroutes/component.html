@@ -1,4 +1,4 @@
-<button md-raised-button (click)="clicked($event)">
+<md-button-toggle (change)="toggle($event)" [disabled]='disabled' [name]='chkToggleRoutes'>
     <md-icon>create</md-icon>    
-    Draw coverage
-</button>
+    Routes: {{selected ? 'On' : 'Off'}}
+</md-button-toggle>

@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular/core';
-
+import { MdButtonToggleChange } from '@angular/material/material';
 @Component({
     selector: 'app-map-drawroutes',
     templateUrl: './component.html',
@@ -9,10 +9,17 @@ import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular
 
 export class DrawRoutesComponent {
 
-    @Output()
-    drawRoutes: EventEmitter<MouseEvent> = new EventEmitter();
+    @Input()
+    disabled: boolean;
 
-    clicked(event: MouseEvent) {
-        this.drawRoutes.emit(event);
+    @Output()
+    onToggleRoutes: EventEmitter<boolean>;
+
+    constructor() {
+        this.onToggleRoutes = new EventEmitter<boolean>();
+    }
+
+    toggle(event: MdButtonToggleChange) {
+        this.onToggleRoutes.emit(event.source.checked);
     }
 }

@@ -21,6 +21,8 @@ import {
   style
 } from '@angular/animations';
 
+import { Observable } from 'rxjs/Observable';
+
 import { Logger } from 'angular2-logger/core';
 import { IMapService } from './abstractions/imap.service';
 import { IHcoService } from '../services/ihco.service';
@@ -32,7 +34,6 @@ import { IHospital } from '../data/ihospital';
 import { ICountry } from '../data/icountry';
 import { PROVIDERS } from './toolbar/module';
 import { HospitalListComponent } from './hospitallist/component';
-import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-map',
@@ -81,8 +82,14 @@ export class MapComponent implements AfterViewInit {
   @Output()
   currentHospitals: Observable<IHospital[]>;
 
+  @Output()
+  hospitalsFinished: boolean;
+
   private markerShapes: Map<number, any> = new Map<number, any>();
+
   private hospitalMarkers: Map<IHospital, any> = new Map<IHospital, any>();
+  private hospitalShapes: Map<IHospital, any> = new Map<IHospital, any>();
+  private hospitalLines: Map<IHospital, any[]> = new Map<IHospital, any[]>();
 
   private timeout;
 
@@ -105,6 +112,8 @@ export class MapComponent implements AfterViewInit {
         provider.setCenter(provider.getLocation(38.468589, 21.143545));
         provider.setZoom(8);
         provider.addListener('bounds_changed', this.mapBoundsChanged.bind(this));
+        // provider.addListener('idle', this.mapIdle.bind(this));
+        //   provider.addListener('center_changed', this.centerChanged.bind(this))
       }).catch((err) => {
         this.log.error(`MapComponent: Error initializing map provider ${err}`);
         throw err;
@@ -112,86 +121,32 @@ export class MapComponent implements AfterViewInit {
     })
   }
 
-  // Event Handlers
-  private countryChanged = (country: ICountry): void => {
-    this.log.info(`MapComponent countryChanged to  ${country.name} (${country.id})`);
-    this.currentCountry = country;
-    this.currentProvider.setCenter(this.currentProvider.getLocation(country.center.lat, country.center.lng))
-    this.currentProvider.setBounds(country.bounds);
+  // Map events
+  private centerChanged = () => {
+    this.log.info('MapComponent centerChanged called')
+  }
 
-    this.currentHospitals = this.hcoService.getHospitals(country)
-      .do((hs: Array<IHospital>) => {
-        // this.onHospitalsLoading.emit(this.isLoading = false);
-        this.currentHospitals = Observable.of<Array<IHospital>>(hs.map<IHospital>((h: IHospital) => {
-          if ((!h.lat || !h.lng) || (h.lat === 0 && h.lng === 0)) {
-            h.visible = false;
-          } else {
-            h.visible = this.currentProvider.getBounds().contains({ lat: Number(h.lat), lng: Number(h.lng) });
-          }
-          return h;
-        }));
+  private jogMap() {
+    this.log.info('MapComponent mapIdle called');
+    const cnt = this.currentProvider.getCenter();
+    const lat = cnt.lat()
+    const lng = cnt.lng();
+
+    this.currentProvider.setCenter(this.currentProvider.getLocation((Number(lat) + 0.000001), Number(lng)));
+    this.currentProvider.setCenter(this.currentProvider.getLocation(lat, lng));
+  }
+
+  private mapIdle = () => {
+    this.log.info('MapComponent mapIdle called');
+    if (this.currentCountry) {
+      this.log.info('MapComponent mapIdle showing markers');
+      this.hospitalMarkers.forEach((marker: any, hospital: IHospital) => {
+        this.currentProvider.toggleMarker(marker, true);
       });
-  }
-
-
-  private hospitalListLoading = (loading: boolean) => {
-    if (this.currentHospitals && !loading) {
-      this.currentHospitals.subscribe((hs: Array<IHospital>) => {
-        hs.forEach((h: IHospital) => {
-          if (this.hospitalMarkers.has(h)) {
-            return this.currentProvider.setMarker(this.hospitalMarkers.get(h), false);
-          }
-
-          const options = <IMarkerOptions>{
-            title: h.name,
-            icon: this.pinSymbol(h.strokeCenter ? 'red' : 'white', h.representative ? 1.2 : 1.1),
-            animation: 2
-          };
-
-          const marker = this.currentProvider.getMarker(this.currentProvider.getLocation(h.lat, h.lng), options);
-          this.hospitalMarkers.set(h, marker)
-          this.currentProvider.setMarker(marker, false);
-          setTimeout(() => this.currentProvider.toggleMarker(marker, true), 10)
-        });
-        // this.ref.detectChanges();
-
-      });
+      setTimeout(() => {
+        this.jogMap();
+      }, 500);
     }
-  }
-
-  private hospitalLoading(hospital: IHospital): void {
-    this.log.info(`MapComponent hospitalLoading ${hospital.id}`);
-    const p = this.currentProvider;
-
-    if (this.hospitalMarkers.has(hospital)) {
-      return p.setMarker(this.hospitalMarkers.get(hospital), false);
-    }
-
-    const options = <IMarkerOptions>{
-      title: hospital.name,
-      icon: this.pinSymbol(hospital.strokeCenter ? 'red' : 'white', hospital.representative ? 1.2 : 1.1)
-    };
-
-    const marker = p.getMarker(p.getLocation(hospital.lat, hospital.lng), options);
-
-    this.hospitalMarkers.set(hospital, marker)
-    p.setMarker(marker, false);
-  }
-
-  private pinSymbol(color: string, scale: number): any {
-    return {
-      path: 'M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z',
-      fillColor: color,
-      fillOpacity: 1,
-      strokeColor: '#000',
-      strokeWeight: 1,
-      scale: scale,
-      labelOrigin: this.currentProvider.getPoint(0, -29)
-    };
-  }
-
-  private hospitalLoaded(hospital: IHospital) {
-    const d = 1;
   }
 
   private mapBoundsChanged = (): void => {
@@ -216,11 +171,106 @@ export class MapComponent implements AfterViewInit {
     }, 50);
   }
 
+  // Event Handlers
+  private countryChanged = (country: ICountry): void => {
+    this.log.info(`MapComponent countryChanged to  ${country.name} (${country.id})`);
+    this.currentCountry = country;
+    this.currentProvider.setCenter(this.currentProvider.getLocation(country.center.lat, country.center.lng))
+    this.currentProvider.setBounds(country.bounds);
 
-  private mapDragEnd = (): void => {
-    this.log.info('MapComponent mapDragEnd called');
-    const p = this.providers[this.currentProviderIndex];
-    this.dragEnd.emit(this.currentProvider.getBounds());
+    this.currentHospitals = this.hcoService.getHospitals(country)
+      .do((hs: Array<IHospital>) => {
+        // this.onHospitalsLoading.emit(this.isLoading = false);
+        this.currentHospitals = Observable.of<Array<IHospital>>(hs.map<IHospital>((h: IHospital) => {
+          if ((!h.lat || !h.lng) || (h.lat === 0 && h.lng === 0)) {
+            h.visible = false;
+          } else {
+            h.visible = this.currentProvider.getBounds().contains({ lat: Number(h.lat), lng: Number(h.lng) });
+          }
+          return h;
+        }));
+      });
+  }
+
+  private hospitalListLoading = (loading: boolean) => {
+    if (this.currentHospitals && !loading) {
+      this.currentProvider.addListenerOnce('idle', this.mapIdle.bind(this));
+      this.currentHospitals.subscribe((hs: Array<IHospital>) => {
+        hs.forEach((h: IHospital) => {
+          if (this.hospitalMarkers.has(h)) {
+            return;
+          }
+
+          const options = <IMarkerOptions>{
+            title: h.name,
+            icon: this.pinSymbol(h.strokeCenter ? 'red' : 'white', h.representative ? 1.2 : 1.1),
+            //     animation: google.maps.Animation.DROP
+          };
+
+          const marker = this.currentProvider.getMarker(this.currentProvider.getLocation(h.lat, h.lng), options);
+          this.hospitalMarkers.set(h, marker)
+          this.currentProvider.setMarker(marker, false);
+        });
+      });
+    }
+  }
+
+  private drawDrivingTime = (hospital: IHospital, minutes: number) => {
+    const p = this.currentProvider;
+    const shortenedRoutes = hospital.radiusDirections.map((r) => p.shortenRouteStepsByDuration(r, (minutes * 60)));
+    let shapepoints = shortenedRoutes.reduce((a, b) => a.concat(b));
+    shapepoints = p.getConvexHull(shapepoints)
+
+    const shapeoptions = p.getShapeOptions({});
+    const shape = p.getShape(shapepoints, shapeoptions);
+    p.setShape(shape, false);
+
+    shortenedRoutes.forEach((r) => {
+      const lineoptions = p.getLineOptions({});
+      const linepoints = [].concat.apply([], r);
+      p.setLine(p.getLine(lineoptions, linepoints), false);
+    });
+  }
+
+  private pinSymbol(color: string, scale: number): any {
+    return {
+      path: 'M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z',
+      fillColor: color,
+      fillOpacity: 1,
+      strokeColor: '#000',
+      strokeWeight: 1,
+      scale: scale,
+      labelOrigin: this.currentProvider.getPoint(0, -29)
+    };
+  }
+
+  // Fires when a hospital is fully loaded
+  private hospitalLoaded(hospital: IHospital): void {
+    const minutes = hospital.strokeCenter ? 45 : 30;
+    const p = this.currentProvider;
+    const shortenedRoutes = hospital.radiusDirections.map((r) => p.shortenRouteStepsByDuration(r, (minutes * 60)));
+    let shapepoints = shortenedRoutes.reduce((a, b) => a.concat(b));
+    shapepoints = p.getConvexHull(shapepoints)
+    const shapeoptions = p.getShapeOptions({});
+    const shape = p.getShape(shapepoints, shapeoptions);
+    p.setShape(shape, false);
+    this.hospitalShapes.set(hospital, shape)
+
+    const lines = [];
+    shortenedRoutes.forEach((r: any) => {
+      const lineoptions = p.getLineOptions({});
+      const linepoints = [].concat.apply([], r);
+      const line = p.getLine(linepoints, lineoptions);
+      lines.push(p.setLine(line, false));
+    });
+
+    this.hospitalLines.set(hospital, lines);
+  }
+
+  // Fires when all hospitals have loaded
+  private hospitalsLoaded(): void {
+    this.hospitalsFinished = true;
+    this.mapIdle();
   }
 
   // Data Promises
@@ -416,10 +466,17 @@ export class MapComponent implements AfterViewInit {
     this.currentProvider = provider;
   }
 
+  toggleRoutes = (on: boolean): void => {
+    this.log.info('MapComponent toggleRoutes called'); 
+    this.hospitalLines.forEach(lines => lines.forEach(line => this.currentProvider.toggleLine(line, on)));
+    this.hospitalShapes.forEach(shape => this.currentProvider.toggleShape(shape, on));
+  }
+
   clearMap = (): void => {
-    const p = this.providers[this.currentProviderIndex];
-    p.removeShapes();
-    p.removeLines();
+    this.log.info('MapComponent ClearMap called');
+    this.hospitalLines.forEach(lines => lines.forEach(line => this.currentProvider.toggleLine(line, false)));
+    this.hospitalShapes.forEach(shape => this.currentProvider.toggleShape(shape, false));
+    //    this.hospitalMarkers.forEach(marker => this.currentProvider.toggleMarker(marker, false));
   }
 
   // drawRoutes = (): void => {
@@ -452,20 +509,5 @@ export class MapComponent implements AfterViewInit {
   //   //   ).catch(err => { throw err; });
   // };
 
-  private drawDrivingTime = (hospital: IHospital, minutes: number) => {
-    const p = this.providers[this.currentProviderIndex];
-    const shortenedRoutes = hospital.radiusDirections.map((r) => p.shortenRouteStepsByDuration(r, (minutes * 60)));
-    let shapepoints = shortenedRoutes.reduce((a, b) => a.concat(b));
-    shapepoints = p.getConvexHull(shapepoints)
 
-    const shapeoptions = p.getShapeOptions({});
-    const shape = p.getShape(shapepoints, shapeoptions);
-    p.drawShape(shape);
-
-    shortenedRoutes.forEach((r) => {
-      const lineoptions = p.getLineOptions({});
-      const linepoints = [].concat.apply([], r);
-      p.drawLine(p.getLine(lineoptions, linepoints));
-    });
-  }
 }

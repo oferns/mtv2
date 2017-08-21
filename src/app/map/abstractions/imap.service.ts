@@ -20,7 +20,10 @@ export interface IMapService {
     getBounds(): any;
     getBoundsObj(nw: any, se: any): any;
     setZoom(zoom: number): void;
-    addListener(event: string, handler: (...args: Array<any>) => void): void;
+    addListener(event: string, handler: (...args: Array<any>) => void): any;
+    addListenerOnce(event: string, handler: (...args: Array<any>) => void): any;
+    removeListener(handle: any): void;
+    clearListeners(event?: string): void;
     geocode(location: string | any): Promise<Array<IGeoCodeResult>>;
     setMarker(marker: any, visible: boolean): any;
     getMarker(location: any, options: IMarkerOptions): any;
@@ -39,13 +42,15 @@ export interface IMapService {
 
     getShapeOptions(options: any): any;
     getShape(points: Array<any>, options: any): any;
-    drawShape(shape: any): any;
+    setShape(shape: any, visible: boolean): any;
+    toggleShape(shape: any, visible: boolean): any;
     removeShape(shape: any): any;
     removeShapes(): void;
     getConvexHull(points: Array<any>): Array<any>;
     getLineOptions(any): any;
     getLine(path: any, options: any): any;
-    drawLine(line: any): any;
+    setLine(line: any, visible: boolean): any;
+    toggleLine(line: any, visible: boolean): any;
     removeLine(line: any): any;
     removeLines(): void;
 }

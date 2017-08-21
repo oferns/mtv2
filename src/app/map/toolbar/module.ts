@@ -9,6 +9,7 @@ import {
     , MdIconModule
     , MdRadioModule
     , MdButtonToggleModule
+    , MdProgressBarModule
 } from '@angular/material';
 
 import { ToolbarComponent } from './component';
@@ -37,7 +38,8 @@ export { PROVIDERS } from './providerpicker/component';
         MdButtonModule,
         MdIconModule,
         MdRadioModule,
-        MdButtonToggleModule
+        MdButtonToggleModule,
+        MdProgressBarModule
     ],
     providers: [
     ],

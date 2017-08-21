@@ -34,7 +34,7 @@ export class GoogleMapService implements IMapService {
         script.type = 'text/javascript';
         script.async = true;
         script.defer = true;
-        script.src = `//maps.googleapis.com/maps/api/js?key=${env.GM_API_KEY}&callback=${this.provider}&libraries=geometry,drawing`;
+        script.src = `//maps.googleapis.com/maps/api/js?key=${env.GM_API_KEY}&v=3&callback=${this.provider}&libraries=geometry,drawing`;
 
         this.scriptLoadingPromise = new Promise<void>((res: Function, rej: Function) => {
             (<any>window)[this.provider] = (a) => {
@@ -61,7 +61,7 @@ export class GoogleMapService implements IMapService {
     async initMap(mapElement: HTMLElement, options: google.maps.MapOptions): Promise<google.maps.Map> {
         return await this.onReady().then(() => {
             this.map = new google.maps.Map(mapElement, options);
-            this.map.addListener('zoom_changed', () => google.maps.event.trigger(this.map, 'resize'));
+            // this.map.addListener('zoom_changed', () => google.maps.event.trigger(this.map, 'resize'));
             return this.map;
         });
     }
@@ -121,7 +121,7 @@ export class GoogleMapService implements IMapService {
     }
 
     setCenter(location: google.maps.LatLng): google.maps.LatLng {
-        this.map.setCenter(location);
+        this.map.panTo(location);
         return location;
     }
 
@@ -133,8 +133,24 @@ export class GoogleMapService implements IMapService {
         this.map.setZoom(zoom);
     }
 
-    addListener(event: string, handler: (...args: any[]) => void): void {
-        google.maps.event.addListener(this.map, event, handler);
+    addListener(event: string, handler: (...args: any[]) => void): google.maps.MapsEventListener {
+        return google.maps.event.addListener(this.map, event, handler);
+    }
+
+    addListenerOnce(event: string, handler: (...args: any[]) => void): google.maps.MapsEventListener {
+        return google.maps.event.addListenerOnce(this.map, event, handler);
+    }
+
+    removeListener(handle: google.maps.MapsEventListener): void {
+        google.maps.event.removeListener(handle);
+    }
+
+    clearListeners(event?: string): void {
+        if (event) {
+            google.maps.event.clearListeners(this.map, event)
+        } else {
+            google.maps.event.clearInstanceListeners(this.map);
+        }
     }
 
     setBounds(bounds: google.maps.LatLngBoundsLiteral): void {
@@ -191,9 +207,9 @@ export class GoogleMapService implements IMapService {
     }
 
     setMarker(marker: google.maps.Marker, visible: boolean = true): google.maps.Marker {
-        marker.setMap(this.map);
         marker.setVisible(visible);
         this._markers.push(marker);
+        marker.setMap(this.map);
         return marker;
     };
     toggleMarker(marker: google.maps.Marker, visible: boolean = true): google.maps.Marker {
@@ -260,14 +276,17 @@ export class GoogleMapService implements IMapService {
         return line;
     }
 
-
-    drawLine(line: google.maps.Polyline): google.maps.Polyline {
-
+    setLine(line: google.maps.Polyline, visible = true): google.maps.Polyline {
         if (this._lines.indexOf(line) === -1) {
             this._lines.push(line);
         }
         console.log('Drawing ' + line);
+        line.setVisible(visible);
         line.setMap(this.map);
+        return line;
+    }
+    toggleLine(line: google.maps.Polyline, visible = true): google.maps.Polyline {
+        line.setVisible(visible);
         return line;
     }
 
@@ -315,20 +334,19 @@ export class GoogleMapService implements IMapService {
         return shape;
     }
 
-    drawShape(shape: google.maps.Polygon): google.maps.Polygon {
+    setShape(shape: google.maps.Polygon, visible = true): google.maps.Polygon {
         if (this._shapes.indexOf(shape) === -1) {
             this._shapes.push(shape);
         }
-
-        shape.setMap(this.map);
+        shape.setVisible(visible)
+        if (!shape.getMap()) {
+            shape.setMap(this.map);
+        }
         return shape;
     }
 
-    hideShape(shape: google.maps.Polygon): google.maps.Polygon {
-        if (this._shapes.indexOf(shape) === -1) {
-            this._shapes.push(shape);
-        }
-        shape.setMap(null);
+    toggleShape(shape: google.maps.Polygon, visible = true): google.maps.Polygon {
+        shape.setVisible(visible);
         return shape;
     }
 

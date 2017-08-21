@@ -17,10 +17,13 @@
   <div>
     Showing {{visible}} of {{_data ? _data.length : 0}}
   </div>
+  <div>
+    <md-progress-bar [value]='_progress'>
+    </md-progress-bar>
+  </div>
   <md-list>
-    <md-list-item *ngFor="let h of hospitals | async" [style.display]='h.visible ? "Inherit" : "none"'>
-      <app-hospital #hospital [hospital]='h'>
-
+    <md-list-item *ngFor='let hospital of hospitals | async' [style.display]='hospital.visible ? "Inherit" : "none"'>
+      <app-hospital [hospital]='hospital' (onHospitalLoading)='hospitalLoading($event)' (onHospitalLoaded)='hospitalLoaded($event)'>
       </app-hospital>
     </md-list-item>
   </md-list>

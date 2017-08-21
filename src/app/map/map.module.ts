@@ -19,7 +19,8 @@ import {
     MdIconModule,
     MdButtonModule,
     MdProgressSpinnerModule,
-    MdButtonToggleModule
+    MdButtonToggleModule,
+    MdProgressBarModule
 } from '@angular/material';
 
 import { GoogleMapService } from './services/google.map.service';
@@ -44,7 +45,8 @@ import { BingMapService } from './services/bing.map.service';
         MdButtonToggleModule,
         MdCheckboxModule,
         MdIconModule,
-        MdProgressSpinnerModule
+        MdProgressSpinnerModule,
+        MdProgressBarModule
     ],
     providers: [
         { provide: PROVIDERS, useClass: GoogleMapService, multi: true }, // PROVIDERS can be any implementation of IMapService

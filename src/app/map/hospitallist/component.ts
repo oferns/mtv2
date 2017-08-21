@@ -6,9 +6,7 @@ import {
     QueryList,
     ElementRef,
     ViewChildren,
-    Inject,
-    OnChanges,
-    ChangeDetectorRef
+    Inject
 } from '@angular/core';
 
 import { IHospital } from '../../data/ihospital';
@@ -29,41 +27,43 @@ import 'rxjs/add/operator/toArray';
     styleUrls: ['./component.scss']
 })
 
-export class HospitalListComponent implements OnChanges {
+export class HospitalListComponent {
 
     private loading: boolean;
     private _data: Array<IHospital>;
 
-    private get visible(): Number {
+    private _loaded: Array<number> = new Array<number>();
+    private _progress: number;
+
+    private get visible(): number {
         return this._data ? this._data.filter(h => h.visible).length : 0;
     }
 
-    private get strokeCenters(): Number {
+    private get strokeCenters(): number {
         return this._data ? this._data.filter(h => h.strokeCenter).length : 0;
     }
 
-    private get strokeCentersInView(): Number {
+    private get strokeCentersInView(): number {
         return this._data ? this._data.filter(h => h.strokeCenter && h.visible).length : 0;
     }
 
-    private get registered(): Number {
+    private get registered(): number {
         return this._data ? this._data.filter((h: IHospital) => h.representative).length : 0;
     }
 
-    private get registeredInView(): Number {
+    private get registeredInView(): number {
         return this._data ? this._data.filter((h: IHospital) => h.representative && h.visible).length : 0;
     }
 
-    private get registeredStrokeCenters(): Number {
+    private get registeredStrokeCenters(): number {
         return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter).length : 0;
     }
 
-    private get registeredStrokeCentersInView(): Number {
+    private get registeredStrokeCentersInView(): number {
         return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter && h.visible).length : 0;
     }
 
-    @Input()
-    hospitals: Observable<IHospital[]>;
+    private hospitals: Observable<IHospital[]>;
 
     @Input()
     set country(country: ICountry) {
@@ -79,15 +79,34 @@ export class HospitalListComponent implements OnChanges {
     @Output()
     isLoading: EventEmitter<boolean>;
 
+    @Output()
+    onHospitalLoaded: EventEmitter<IHospital>;
+
+    @Output()
+    onHospitalsLoaded: EventEmitter<void>;
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger
     ) {
         this.log.info('HospitalList Component CTor called');
         this.isLoading = new EventEmitter<boolean>();
+        this.onHospitalLoaded = new EventEmitter<IHospital>();
+        this.onHospitalsLoaded = new EventEmitter<void>();
+        
     }
 
-    ngOnChanges(changes: any): void {
-        this.log.info('HospitalList Component ngOnChanges called');
+
+    hospitalLoading(hospital: IHospital): void {
+        this.log.info('HospitalList hospitalLoading called');
+    }
+
+    hospitalLoaded(hospital: IHospital): void {
+        this.log.info('HospitalList hospitalLoaded called');
+        this._loaded.push(hospital.id);
+        this._progress = Math.abs((this._loaded.length / this._data.length) * 100);
+        this.onHospitalLoaded.emit(hospital);
+        if (this._progress === 100) {
+            this.onHospitalsLoaded.emit();
+        }
     }
 }

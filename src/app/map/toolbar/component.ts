@@ -24,7 +24,15 @@ export class ToolbarComponent {
     isLoading: boolean;
 
     @Input()
+    set hospitalsLoaded(hospitalsLoaded: boolean) {
+        this.disableDrawRoutes = !hospitalsLoaded;
+    };
+
+    @Input()
     providers: Array<IMapService>;
+
+    @Output()
+    disableDrawRoutes: boolean;
 
     @Output()
     onCountryChanged: EventEmitter<ICountry>;
@@ -33,14 +41,14 @@ export class ToolbarComponent {
     @Output()
     onClearMapClicked: EventEmitter<void>;
     @Output()
-    onDrawRoutesClicked: EventEmitter<void>;
+    onToggleRoutes: EventEmitter<boolean>;
 
     constructor(private readonly log: Logger) {
 
         this.onCountryChanged = new EventEmitter<ICountry>();
         this.onProviderChanged = new EventEmitter<IMapService>();
         this.onClearMapClicked = new EventEmitter<void>();
-        this.onDrawRoutesClicked = new EventEmitter<void>();
+        this.onToggleRoutes = new EventEmitter<boolean>();
     }
     countryChanged(country: ICountry) {
         this.onCountryChanged.emit(country);
@@ -54,7 +62,7 @@ export class ToolbarComponent {
         this.onClearMapClicked.emit();
     }
 
-    drawRoutes(event: MouseEvent): void {
-        this.onDrawRoutesClicked.emit();
+    toggleRoutes(on: boolean): void {
+        this.onToggleRoutes.emit(on);
     }
 }

@@ -18,8 +18,6 @@ export class BingMapService implements IMapService {
 
 
 
-
-
     private map: Microsoft.Maps.Map;
     private searchManager: any;
     private scriptLoadingPromise: Promise<void>;
@@ -159,7 +157,7 @@ export class BingMapService implements IMapService {
     toggleMarker(marker: Microsoft.Maps.Pushpin, visible: boolean = true): Microsoft.Maps.Pushpin {
         return marker;
     }
-    
+
     getMarker(location: Microsoft.Maps.Location, options: IMarkerOptions): Microsoft.Maps.Pushpin {
         const newopts: Microsoft.Maps.IPushpinOptions = {};
         const pin = new Microsoft.Maps.Pushpin(location, newopts);
@@ -212,9 +210,13 @@ export class BingMapService implements IMapService {
     getShape(points: any[]) {
         throw new Error('Method not implemented.');
     }
-    drawShape(shape: any) {
+    setShape(shape: any, visible: boolean) {
         throw new Error('Method not implemented.');
     }
+    toggleShape(shape: any, visible: true) {
+        throw new Error('Method not implemented.');
+    }
+
     removeShape(shape: any) {
         throw new Error('Method not implemented.');
     }
@@ -231,7 +233,10 @@ export class BingMapService implements IMapService {
     getLine(path: any, options: any) {
         throw new Error('Method not implemented.');
     }
-    drawLine(line: any) {
+    setLine(line: any, visible: boolean) {
+        throw new Error('Method not implemented.');
+    }
+    toggleLine(line: any, visible: boolean) {
         throw new Error('Method not implemented.');
     }
     removeLine(line: any) {
@@ -253,6 +258,16 @@ export class BingMapService implements IMapService {
     }
 
     getPoint(x: number, y: number) {
+        throw new Error('Method not implemented.');
+    }
+
+    addListenerOnce(event: string, handler: (...args: any[]) => void) {
+        throw new Error('Method not implemented.');
+    }
+    removeListener(handle: any): void {
+        throw new Error('Method not implemented.');
+    }
+    clearListeners(event?: string): void {
         throw new Error('Method not implemented.');
     }
 }
