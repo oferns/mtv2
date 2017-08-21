@@ -44,13 +44,13 @@ export class AngelsService implements IHcoService {
     private readonly countriesPromise: Promise<Array<ICountry>>;
 
     private _countries: Observable<ICountry[]>;
-    private _hospitals: Map<ICountry, Observable<IHospital[]>>;
-    private _hospitalRoutes: Map<IHospital, Observable<IHospitalRoutes>>;
+    private _hospitals: Map<number, Observable<IHospital[]>>;
+    private _hospitalRoutes: Map<number, Observable<IHospitalRoutes>>;
 
     constructor(private readonly http: HttpClient, private readonly log: Logger) {
         this.log.info(`AngelsService CTor called`);
-        this._hospitals = new Map<ICountry, Observable<IHospital[]>>();
-        this._hospitalRoutes = new Map<IHospital, Observable<IHospitalRoutes>>();
+        this._hospitals = new Map<number, Observable<IHospital[]>>();
+        this._hospitalRoutes = new Map<number, Observable<IHospitalRoutes>>();
     }
 
     private handleError(error: any) {
@@ -90,20 +90,20 @@ export class AngelsService implements IHcoService {
     getHospitals = (country: ICountry): Observable<IHospital[]> => {
         this.log.info(`AngelsService getHospitals called for ${country.name} (${country.id})`);
 
-        if (this._hospitals.has(country)) {
+        if (this._hospitals.has(country.id)) {
             this.log.info(`AngelsService getHospitals ${country.name} (${country.id}) hospitals found in cache.`);
-            return this._hospitals.get(country);
+            return this._hospitals.get(country.id);
         }
 
         const url = hospitalsUrl + country.id;
 
-        return this._hospitals.set(country, this.http.get<IHospital[]>(url)
+        return this._hospitals.set(country.id, this.http.get<IHospital[]>(url)
             .do(hospitals => {
                 this.log.info(`AngelsService getHospitals returned ${hospitals.length} hopitals`)
             })
             .publishReplay(1)
             .refCount())
-            .get(country)
+            .get(country.id)
             .catch(this.handleError);
     }
 
@@ -120,21 +120,18 @@ export class AngelsService implements IHcoService {
     }
 
     getHospitalRoutes(hospital: IHospital): Observable<IHospitalRoutes> {
-        this.log.info(`AngelsService getHospitalRoutes called for ${hospital.name} (${hospital.id})`);
 
-        if (this._hospitalRoutes.has(hospital)) {
+        if (this._hospitalRoutes.has(hospital.id)) {
             this.log.info(`AngelsService getHospitals ${hospital.name} (${hospital.id}) hospitals found in cache.`);
-            return this._hospitalRoutes.get(hospital);
+            return this._hospitalRoutes.get(hospital.id);
         }
 
         const url = hospitalUrl + hospital.id;
 
-        return this._hospitalRoutes.set(hospital, this.http.get<IHospitalRoutes>(url).map(routes => routes)
-            .do(routes => this.log.info(`AngelsService getHospitalRoutes for returned 
-            ${routes.radiusDirections ? 'no' : ''} data for Hospital ${hospital.name}`))
+        return this._hospitalRoutes.set(hospital.id, this.http.get<IHospitalRoutes>(url).map(routes => routes)
             .publishReplay(1)
             .refCount())
-            .get(hospital)
+            .get(hospital.id)
             .catch(this.handleError);
     }
 }

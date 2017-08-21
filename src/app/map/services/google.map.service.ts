@@ -76,7 +76,7 @@ export class GoogleMapService implements IMapService {
         const maxRetry = 10;
 
         if (!retryCount) {
-            console.log(`Getting directions to ${request.destination}`);
+            this.log.info(`Getting directions to ${request.destination}`);
         }
 
         return await new Promise<google.maps.DirectionsResult>(function (res, rej) {
@@ -280,7 +280,6 @@ export class GoogleMapService implements IMapService {
         if (this._lines.indexOf(line) === -1) {
             this._lines.push(line);
         }
-        console.log('Drawing ' + line);
         line.setVisible(visible);
         line.setMap(this.map);
         return line;

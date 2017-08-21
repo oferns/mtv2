@@ -28,17 +28,13 @@ export class HospitalComponent {
         return this._hospital;
     }
 
+    @Input() routes: Observable<IHospitalRoutes>;
+
     @Input()
     set hospital(hospital: IHospital) {
         this._hospital = hospital;
         this.isLoading = true;
-        this.onHospitalLoading.emit(hospital);
-        this.hcoService.getHospitalRoutes(hospital).subscribe((r: IHospitalRoutes) => {
-            this.log.info('Getting routes');
-            hospital.radiusDirections = r.radiusDirections;
-            this.isLoading = false;
-            this.onHospitalLoaded.emit(hospital);
-        });
+        hospital.routes = this.hcoService.getHospitalRoutes(hospital);
     };
 
     @Input()
@@ -49,8 +45,6 @@ export class HospitalComponent {
 
     @Output()
     onHospitalLoaded: EventEmitter<IHospital>;
-
-    routes: Observable<IHospitalRoutes>;
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger) {

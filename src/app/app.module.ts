@@ -1,6 +1,6 @@
 import { BrowserModule, } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { Logger } from 'angular2-logger/core';
+import { Logger, Options } from 'angular2-logger/core';
 
 import { AppComponent } from './app.component';
 import { MapModule } from './map/map.module';
@@ -20,7 +20,8 @@ import { env } from '../env/env';
   providers: [
     { provide: 'IHcoService', useClass: AngelsService },
     ExcelService,
-    Logger
+    Logger,
+    Options
   ],
   bootstrap: [AppComponent]
 })

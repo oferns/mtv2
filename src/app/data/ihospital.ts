@@ -1,4 +1,6 @@
 import { IRouteStep } from '../map/abstractions/iroutestep';
+import { Observable } from 'rxjs/Observable';
+import { IHospitalRoutes } from '../data/ihospitalroutes';
 
 export interface IHospital {
     id: number;
@@ -12,5 +14,5 @@ export interface IHospital {
     strokeCenter: boolean;
     representative: string;
     visible?: boolean;
-    radiusDirections?: Array<Array<IRouteStep>>;
+    routes?: Observable<IHospitalRoutes>;
 }
