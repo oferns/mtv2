@@ -9,6 +9,7 @@ export interface IHcoService {
     getCountries(): Observable<ICountry[]>;
     getHospitals(country: ICountry): Observable<IHospital[]>;
     getHospitalRoutes(hospital: IHospital): Observable<IHospitalRoutes>;
+    getCountryRoutes(country: ICountry): Observable<IHospitalRoutes[]>;
     saveCountryData(country: ICountry): Observable<ICountry>;
     saveHospitalData(hospital: IHospital): Observable<IHospital>;
 }

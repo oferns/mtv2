@@ -30,6 +30,8 @@ const countryUrl = 'http://localhost:3000/mt/countries';
 const hospitalsUrl = 'http://localhost:3000/mt/country/';
 const saveCountryUrl = 'http://localhost:3000/mt/savecountry/';
 const hospitalUrl = 'http://localhost:3000/mt/hospitalroutes/';
+const routesUrl = 'http://localhost:3000/mt/countryroutes/';
+
 const saveHospitalUrl = 'http://localhost:3000/mt/savehospital/';
 
 // const saveCountryUrl = 'http://localhost:34562/mt/savecountry/';
@@ -46,11 +48,12 @@ export class AngelsService implements IHcoService {
     private _countries: Observable<ICountry[]>;
     private _hospitals: Map<number, Observable<IHospital[]>>;
     private _hospitalRoutes: Map<number, Observable<IHospitalRoutes>>;
-
+    private _countryRoutes: Map<number, Observable<IHospitalRoutes[]>>;
     constructor(private readonly http: HttpClient, private readonly log: Logger) {
         this.log.info(`AngelsService CTor called`);
         this._hospitals = new Map<number, Observable<IHospital[]>>();
         this._hospitalRoutes = new Map<number, Observable<IHospitalRoutes>>();
+        this._countryRoutes = new Map<number, Observable<IHospitalRoutes[]>>();
     }
 
     private handleError(error: any) {
@@ -121,6 +124,7 @@ export class AngelsService implements IHcoService {
 
     getHospitalRoutes(hospital: IHospital): Observable<IHospitalRoutes> {
 
+        this.log.info(`AngelsService getHospitalRoutes called for ${hospital.name} (${hospital.id})`);
         if (this._hospitalRoutes.has(hospital.id)) {
             this.log.info(`AngelsService getHospitals ${hospital.name} (${hospital.id}) hospitals found in cache.`);
             return this._hospitalRoutes.get(hospital.id);
@@ -128,10 +132,28 @@ export class AngelsService implements IHcoService {
 
         const url = hospitalUrl + hospital.id;
 
-        return this._hospitalRoutes.set(hospital.id, this.http.get<IHospitalRoutes>(url).map(routes => routes)
+        return this._hospitalRoutes.set(hospital.id, this.http.get<IHospitalRoutes>(url)
             .publishReplay(1)
             .refCount())
             .get(hospital.id)
+            .catch(this.handleError);
+    }
+
+    getCountryRoutes(country: ICountry): Observable<IHospitalRoutes[]> {
+
+        this.log.info(`AngelsService getCountryRoutes called for ${country.name} (${country.id})`);
+        if (this._countryRoutes.has(country.id)) {
+            this.log.info(`AngelsService getHospitals ${country.name} (${country.id}) hospitals found in cache.`);
+            return this._countryRoutes.get(country.id);
+        }
+
+        const url = routesUrl + country.id;
+
+        return this._countryRoutes.set(country.id, this.http.get<IHospitalRoutes[]>(url)
+            // .map(r => r.json())
+            .publishReplay(1)
+            .refCount())
+            .get(country.id)
             .catch(this.handleError);
     }
 }

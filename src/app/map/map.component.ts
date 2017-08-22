@@ -36,6 +36,7 @@ import { IHospital } from '../data/ihospital';
 import { ICountry } from '../data/icountry';
 import { PROVIDERS } from './toolbar/module';
 import { HospitalListComponent } from './hospitallist/component';
+import { IHospitalRoutes } from 'app/data/ihospitalroutes';
 
 @Component({
   selector: 'app-map',
@@ -67,6 +68,7 @@ export class MapComponent implements AfterViewInit {
 
   @Output() currentCountry: ICountry;
   @Output() currentHospitals: Observable<IHospital[]>;
+  @Output() currentRoutes: Observable<IHospitalRoutes[]>;
 
   @ViewChildren('map') private mapDivRefs: QueryList<ElementRef>
 
@@ -108,17 +110,6 @@ export class MapComponent implements AfterViewInit {
       labelOrigin: this.currentProvider.getPoint(0, -29)
     };
   }
-
-  private jogMap() {
-    this.log.info('MapComponent mapIdle called');
-    const cnt = this.currentProvider.getCenter();
-    const lat = cnt.lat()
-    const lng = cnt.lng();
-
-    this.currentProvider.setCenter(this.currentProvider.getLocation((Number(lat) + 0.000001), Number(lng)));
-    this.currentProvider.setCenter(this.currentProvider.getLocation(lat, lng));
-  }
-
   // Private Map events
   private mapIdle = () => {
     this.log.info('MapComponent mapIdle called');
@@ -162,24 +153,59 @@ export class MapComponent implements AfterViewInit {
 
     this.currentHospitals = this.hcoService.getHospitals(country)
       .do((hs: Array<IHospital>) => {
-
-        this.currentHospitals = Observable.of<Array<IHospital>>(hs.map<IHospital>((h: IHospital) => {
+        hs.forEach((h: IHospital) => {
           if ((!h.lat || !h.lng) || (h.lat === 0 && h.lng === 0)) {
             h.visible = false;
           } else {
             h.visible = this.currentProvider.getBounds().contains({ lat: Number(h.lat), lng: Number(h.lng) });
           }
           return h;
-        }));
+        });
       });
-    this.mapIdle();
+
+    const minutes = 30;
+
+    setTimeout(() => {
+      this.hcoService.getCountryRoutes(country).subscribe(routes => {
+        this.zone.runOutsideAngular(() => {
+
+          routes.map(route => {
+            if (route.radiusDirections) {
+              const shortenedRoutes = route.radiusDirections
+                .filter(r => r.length)
+                .map((d) => this.currentProvider.shortenRouteStepsByDuration(d, (minutes * 60)))
+              if (shortenedRoutes.length === 0) {
+                return;
+              }
+              let shapepoints = shortenedRoutes.reduce((a, b) => a.concat(b));
+              shapepoints = this.currentProvider.getConvexHull(shapepoints);
+              const shapeoptions = this.currentProvider.getShapeOptions({});
+              const shape = this.currentProvider.getShape(shapepoints, shapeoptions);
+              this.currentProvider.setShape(shape, true);
+              this.hospitalShapes.set(route.id, shape);
+
+              const lines = shortenedRoutes.map((sr: any) => {
+                const lineoptions = this.currentProvider.getLineOptions({});
+                const linepoints = [].concat.apply([], sr);
+                const line = this.currentProvider.getLine(linepoints, lineoptions);
+                return this.currentProvider.setLine(line, true);
+              });
+
+              this.hospitalLines.set(route.id, lines);
+            }
+          })
+          this.zone.run(() => { });
+        });
+      })
+    }, 100)
+    // this.mapIdle();
   }
 
   // Fires when the Hospital List is loading
   hospitalListLoading = (loading: boolean) => {
     if (this.currentHospitals && !loading) {
       this.zone.runOutsideAngular(() => {
-        this.currentHospitals.subscribe((hs: Array<IHospital>) => {
+        this.currentHospitals.subscribe((hs: Array<IHospital>) =>
           hs.map((h: IHospital) => {
             if (this.hospitalMarkers.has(h.id)) {
               return;
@@ -193,17 +219,10 @@ export class MapComponent implements AfterViewInit {
             const marker = this.currentProvider.getMarker(this.currentProvider.getLocation(h.lat, h.lng), options);
             this.currentProvider.setMarker(marker, true);
             this.hospitalMarkers.set(h.id, marker);
-            this.zone.run(() => h.routes);
-          });
-        });
-      });
+          }));
 
-      setTimeout(() => this.mapIdle(), 20);
-      // this.currentHospitals.mergeMap(hs => {
-      //   return hs.map(h => h.routes);
-      // }, null, 5).subscribe(r => {
-      //   const l = r;
-      // })
+        this.zone.run(() => { });
+      });
     }
   }
 
