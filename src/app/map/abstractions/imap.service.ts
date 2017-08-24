@@ -30,6 +30,13 @@ export interface IMapService {
     toggleMarker(marker: any, visible: boolean): any;
     removeMarker(marker: any): any;
     removeMarkers(): Array<any>;
+    clusterMarkers(markers: any, redraw: boolean): void;
+    removeClusters(): void;
+
+    getInfoWindowOptions(location: any): any;
+    getInfoWindow(options: any): any;
+    setInfoWindow(window: any): any;
+
     getOptions(options: IMapOptions): any;
     getPoint(x: number, y: number): any;
     getDirectionsRequest(request: IDirectionsRequest): any;

@@ -24,14 +24,13 @@ import 'rxjs/add/observable/throw';
 // const saveCountryUrl = '/mt/savecountry/';
 // const hospitalUrl = '/mt/hospitalroutes/';
 // const saveHospitalUrl = '/mt/savehospital/';
-
+// const routesUrl = '/mt/countryroutes/';
 
 const countryUrl = 'http://localhost:3000/mt/countries';
 const hospitalsUrl = 'http://localhost:3000/mt/country/';
 const saveCountryUrl = 'http://localhost:3000/mt/savecountry/';
 const hospitalUrl = 'http://localhost:3000/mt/hospitalroutes/';
 const routesUrl = 'http://localhost:3000/mt/countryroutes/';
-
 const saveHospitalUrl = 'http://localhost:3000/mt/savehospital/';
 
 // const saveCountryUrl = 'http://localhost:34562/mt/savecountry/';

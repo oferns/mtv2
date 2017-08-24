@@ -14,5 +14,6 @@ export interface IHospital {
     strokeCenter: boolean;
     representative: string;
     visible?: boolean;
+    inView?: boolean;
     routes?: Observable<IHospitalRoutes>;
 }

@@ -20,28 +20,19 @@ import { ICountry } from '../../data/icountry';
 
 export class ToolbarComponent {
 
-    @Input()
-    isLoading: boolean;
-
-    @Input()
-    set hospitalsLoaded(hospitalsLoaded: boolean) {
+    @Input() set hospitalsLoaded(hospitalsLoaded: boolean) {
         this.disableDrawRoutes = !hospitalsLoaded;
     };
 
-    @Input()
-    providers: Array<IMapService>;
+    @Input() providers: Array<IMapService>;
+    @Output() disableDrawRoutes: boolean;
+    @Input() isLoading: boolean;
 
-    @Output()
-    disableDrawRoutes: boolean;
-
-    @Output()
-    onCountryChanged: EventEmitter<ICountry>;
-    @Output()
-    onProviderChanged: EventEmitter<IMapService>;
-    @Output()
-    onClearMapClicked: EventEmitter<void>;
-    @Output()
-    onToggleRoutes: EventEmitter<boolean>;
+    @Output() onCountryChanged: EventEmitter<ICountry>;
+    @Output() onProviderChanged: EventEmitter<IMapService>;
+    @Output() onClearMapClicked: EventEmitter<void>;
+    @Output() onToggleRoutes: EventEmitter<boolean>;
+    @Output() onToggleCluster: EventEmitter<boolean>;
 
     constructor(private readonly log: Logger) {
 
@@ -49,6 +40,8 @@ export class ToolbarComponent {
         this.onProviderChanged = new EventEmitter<IMapService>();
         this.onClearMapClicked = new EventEmitter<void>();
         this.onToggleRoutes = new EventEmitter<boolean>();
+        this.onToggleCluster = new EventEmitter<boolean>();
+
     }
     countryChanged(country: ICountry) {
         this.onCountryChanged.emit(country);
@@ -64,5 +57,9 @@ export class ToolbarComponent {
 
     toggleRoutes(on: boolean): void {
         this.onToggleRoutes.emit(on);
+    }
+
+    toggleCluster(on: boolean): void {
+        this.onToggleCluster.emit(on);
     }
 }

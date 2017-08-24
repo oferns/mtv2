@@ -1,13 +1,16 @@
 export interface IMapOptions {
-
-    //   disableDefaultUI: true,
-    //   zoomControl: true,
-    //   zoomControlOptions: {
-    //     position: 'TOP_RIGHT'
-    //   },
-    //   mapTypeControl: true,
-    //   scaleControl: true,
-    //   streetViewControl: false,
-    //   rotateControl: true,
-    //   fullscreenControl: false
+    // backgroundColor: string;
+    // center: any;
+    // clickableIcons: boolean;
+    // disableDefaultUI: boolean;
+    // disableDoubleClickZoom: boolean;
+    // draggable: boolean;
+    // draggableCursor: string;
+    // draggingCursor: string;
+    // zoomControl: boolean,
+    // mapTypeControl: boolean,
+    // scaleControl: boolean,
+    // streetViewControl: boolean,
+    // rotateControl: boolean,
+    // fullscreenControl: boolean
 }

@@ -10,6 +10,7 @@ import {
     , MdRadioModule
     , MdButtonToggleModule
     , MdProgressBarModule
+    , MdToolbarModule
 } from '@angular/material';
 
 import { ToolbarComponent } from './component';
@@ -18,6 +19,8 @@ import { CountryPickerComponent } from './countrypicker/component';
 import { ProviderPickerComponent } from './providerpicker/component';
 import { ClearMapComponent } from './clearmap/component';
 import { DrawRoutesComponent } from './drawroutes/component';
+import { ClustererComponent } from './clusterer/component';
+
 import { IMapService } from '../abstractions/imap.service';
 
 export { PROVIDERS } from './providerpicker/component';
@@ -28,6 +31,7 @@ export { PROVIDERS } from './providerpicker/component';
         ProviderPickerComponent,
         ClearMapComponent,
         DrawRoutesComponent,
+        ClustererComponent,
         ToolbarComponent
     ],
     imports: [
@@ -39,7 +43,8 @@ export { PROVIDERS } from './providerpicker/component';
         MdIconModule,
         MdRadioModule,
         MdButtonToggleModule,
-        MdProgressBarModule
+        MdProgressBarModule,
+        MdToolbarModule
     ],
     providers: [
     ],

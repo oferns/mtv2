@@ -1,0 +1,20 @@
+<md-card>
+  <md-card-title>
+    <md-icon *ngIf='hospital?.strokeCenter'>verified_user</md-icon>
+    <md-icon *ngIf='hospital?.representative'>face</md-icon>
+    {{hospital?.name}}
+  </md-card-title>
+  <md-card-subtitle>
+    {{hospital?.address}}
+  </md-card-subtitle>
+  <md-card-subtitle *ngIf='hospital?.representative'>
+    Rep: {{hospital?.representative}}
+  </md-card-subtitle>
+
+  <md-card-actions>
+    <md-button-toggle (change)="toggle($event)" [checked]='on'>
+      <md-icon>create</md-icon>
+      Show routes
+    </md-button-toggle>
+  </md-card-actions>
+</md-card>

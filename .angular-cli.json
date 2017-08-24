@@ -26,6 +26,7 @@
         "../node_modules/material-design-icons/iconfont/material-icons.css"
       ],
       "scripts": [
+        "../ext/markerclusterer.js"
       ],
       "environmentSource": "environments/environment.ts",
       "environments": {

@@ -2,16 +2,24 @@
   position: absolute;
   height: 100%;
   width: 100%;
+  top:0;
+  left:0;
+}
+
+app-map-toolbar {
+  width: 90%;
+  height: auto;
+  margin: 2px auto 2px auto;  
+  display: block;
 }
 
 md-sidenav-container {
-  width: 100%;
-  height: 100%;
+  width: 90%;
+  height: 80%;
   border: 1px solid rgba(0, 0, 0, 0.5);
+  margin: auto;
 }
 
 md-sidenav {
-  max-width:400px;
-  background-color: #EDF5FF;
-  opacity: 70%;
+  width:25%;
 }

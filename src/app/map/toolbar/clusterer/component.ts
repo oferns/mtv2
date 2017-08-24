@@ -3,13 +3,13 @@ import { MdButtonToggleChange } from '@angular/material';
 import { MdButtonToggle } from '@angular/material';
 
 @Component({
-    selector: 'app-map-drawroutes',
+    selector: 'app-map-clusterer',
     templateUrl: './component.html',
     styleUrls: ['./component.scss'],
     providers: []
 })
 
-export class DrawRoutesComponent {
+export class ClustererComponent {
 
     @ViewChild(MdButtonToggle)
     button: MdButtonToggle;
@@ -18,13 +18,13 @@ export class DrawRoutesComponent {
     disabled: boolean;
 
     @Output()
-    onToggleRoutes: EventEmitter<boolean>;
+    onToggleCluster: EventEmitter<boolean>;
 
     constructor() {
-        this.onToggleRoutes = new EventEmitter<boolean>();
+        this.onToggleCluster = new EventEmitter<boolean>();
     }
 
     toggle(event: MdButtonToggleChange) {
-        this.onToggleRoutes.emit(event.source.checked);
+        this.onToggleCluster.emit(event.source.checked);
     }
 }

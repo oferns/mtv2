@@ -1,17 +1,25 @@
 <h1 i18n></h1>
-<app-map-toolbar [hospitalsLoaded]='hospitalsFinished' (onCountryChanged)="countryChanged($event)" (onProviderChanged)="providerChanged($event)"
-  (onClearMapClicked)="clearMap()" (onToggleRoutes)="toggleRoutes($event)">
+<app-map-toolbar [hospitalsLoaded]='hospitalsFinished' (onCountryChanged)='countryChanged($event)' (onProviderChanged)='providerChanged($event)'
+  (onClearMapClicked)='clearMap()' (onToggleRoutes)='toggleRoutes($event)' (onToggleCluster)='toggleCluster($event)'>
 </app-map-toolbar>
 <md-sidenav-container>
-  <md-sidenav mode="side" [opened]='currentCountry' #sidenav>
-    <button md-icon-button class="example-fab" style='float:right' (click)="sidenav.toggle()">
+  <md-sidenav #sidenav mode='side' [opened]='currentCountry'>
+    <button md-icon-button style='float:right' (click)='sidenav.toggle()'>
           <md-icon>add</md-icon>
     </button>
     <br />
-    <app-hospital-list [country]='currentCountry' (isLoading)='hospitalListLoading($event)' (onHospitalLoaded)='hospitalLoaded($event)'
-      (onHospitalsLoaded)='hospitalsLoaded()'>
+    <app-hospital-list [country]='currentCountry' (isLoading)='hospitalListLoading($event)' (onToggleRegistered)='toggleRegistered($event)'
+    (onToggleStrokeCenters)='toggleStrokeCenters($event)' (onToggleUnregistered)='toggleUnregistered($event)' >
     </app-hospital-list>
   </md-sidenav>
-  <div *ngFor="let provider of providers" class="map" [style.zIndex]="(provider == currentProvider) ? '1' : '-1'" #map>
+  <button md-icon-button [style.display]='!sidenav.opened && currentCountry ? "Inherit" : "none"' style='z-index:2;background-color:#303030'
+    (click)='sidenav.toggle()'>
+      <md-icon>add</md-icon>
+  </button>
+  <span #hospitalInfo style='z-index:0'>
+      <app-hospital-info [hospital]='currentHospital' (onToggleRoute)='toggleRoute($event)' [on]='currentHospitalRoutesVisible' ></app-hospital-info>
+    </span>
+
+  <div #map *ngFor='let provider of providers' class='map' [style.zIndex]='(provider == currentProvider) ? 1 : -1'>
   </div>
 </md-sidenav-container>

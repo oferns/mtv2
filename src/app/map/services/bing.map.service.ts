@@ -270,4 +270,23 @@ export class BingMapService implements IMapService {
     clearListeners(event?: string): void {
         throw new Error('Method not implemented.');
     }
+
+    clusterMarkers(markers: any, redraw: boolean): void {
+        throw new Error('Method not implemented.');
+    }
+    removeClusters(): void {
+        throw new Error('Method not implemented.');
+    }
+
+    getInfoWindowOptions(): any {
+        throw new Error('Method not implemented.');
+    }
+    getInfoWindow(options: any): any {
+        throw new Error('Method not implemented.');
+    }
+
+    setInfoWindow(window: any): any {
+        throw new Error('Method not implemented.');
+    }
+
 }

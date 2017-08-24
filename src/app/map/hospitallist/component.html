@@ -3,31 +3,27 @@
 </span>
 
 <div [hidden]='loading'>
-  <div>
-    <md-icon>face</md-icon> Showing {{registeredInView}} of {{registered}}
-  </div>
-  <div>
-    <md-icon>verified_user</md-icon> Showing {{strokeCentersInView}} of {{strokeCenters}}
-  </div>
-  <div>
-    <md-icon>face</md-icon>
-    <md-icon>add</md-icon>
-    <md-icon>verified_user</md-icon> Showing {{registeredStrokeCentersInView}} of {{registeredStrokeCenters}}
-  </div>
-  <div>
-    Showing {{visible}} of {{_data ? _data.length : 0}}
-  </div>
-  <div>
-    <md-progress-bar [value]='_progress'>
-    </md-progress-bar>
-  </div>
+  <h5>{{visible}} of {{_data ? _data.length : 0}} visible</h5>
   <md-list>
-    <md-list-item *ngFor='let hospital of hospitals | async' [style.display]='hospital.visible ? "Inherit" : "none"'>
-      <md-button-toggle [checked]='hospital.visible'>
-        <md-icon *ngIf='hospital.strokeCenter'>verified_user</md-icon>
-        <md-icon *ngIf='hospital.representative'>face</md-icon>
-        {{hospital.name}}
+    <md-list-item mdTooltip='Showing {{registeredInView}} of {{registered}}'>
+      <md-button-toggle (change)='toggleRegistered($event)' [checked]='registeredInView' [disabled]='!registered'>
+        <md-icon>face</md-icon> Registered Hospitals
       </md-button-toggle>
+    </md-list-item>
+    <md-list-item mdTooltip='Showing {{strokeCentersInView}} of {{strokeCenters}}'>
+      <md-button-toggle (change)='toggleStrokeCenters($event)' [checked]='strokeCentersInView' [disabled]='!strokeCenters'>
+        <md-icon>verified_user</md-icon> Stroke Centers
+      </md-button-toggle>
+    </md-list-item>
+    <md-list-item mdTooltip='Showing {{visible - registeredInView}} of {{visible}}'>
+      <md-button-toggle (change)='toggleUnregistered($event)' [checked]='unregisteredInView' [disabled]='!unregistered'>
+        <md-icon>block</md-icon> Unregistered Hospitals
+      </md-button-toggle>
+    </md-list-item>
+  </md-list>
+  <md-list>
+    <md-list-item *ngFor='let h of hospitals | async' [style.display]='h.inView ? "Inherit" : "none"'>
+      <app-hospital [hospital]='h'></app-hospital>
     </md-list-item>
   </md-list>
 </div>

@@ -1,4 +1,5 @@
 import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular/core';
+import { Logger } from 'angular2-logger/core';
 
 @Component({
     selector: 'app-map-clear',
@@ -10,8 +11,12 @@ import { Component, OnInit, Inject, Input, Output, EventEmitter } from '@angular
 export class ClearMapComponent {
 
     @Output()
-    clearMap: EventEmitter<MouseEvent> = new EventEmitter();
+    clearMap: EventEmitter<MouseEvent>;
 
+    constructor(private readonly log: Logger) {
+        this.clearMap = new EventEmitter<MouseEvent>()
+    }
+    
     clicked(event: MouseEvent) {
         this.clearMap.emit(event);
     }

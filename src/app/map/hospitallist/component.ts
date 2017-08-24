@@ -35,8 +35,20 @@ export class HospitalListComponent {
     _loaded: Array<number> = new Array<number>();
     _progress: number;
 
+    get total(): number {
+        return this._data ? this._data.length : 0
+    }
+
+    get unregistered(): number {
+        return this.total - this.registered;
+    }
+
+    get unregisteredInView(): number {
+        return this.visible - this.registeredInView;
+    }
+
     get visible(): number {
-        return this._data ? this._data.filter(h => h.visible).length : 0;
+        return this._data ? this._data.filter(h => h.inView && h.visible).length : 0;
     }
 
     get strokeCenters(): number {
@@ -44,7 +56,7 @@ export class HospitalListComponent {
     }
 
     get strokeCentersInView(): number {
-        return this._data ? this._data.filter(h => h.strokeCenter && h.visible).length : 0;
+        return this._data ? this._data.filter(h => h.strokeCenter && h.inView && h.visible).length : 0;
     }
 
     get registered(): number {
@@ -52,7 +64,7 @@ export class HospitalListComponent {
     }
 
     get registeredInView(): number {
-        return this._data ? this._data.filter((h: IHospital) => h.representative && h.visible).length : 0;
+        return this._data ? this._data.filter((h: IHospital) => h.representative && h.inView && h.visible).length : 0;
     }
 
     get registeredStrokeCenters(): number {
@@ -60,7 +72,7 @@ export class HospitalListComponent {
     }
 
     get registeredStrokeCentersInView(): number {
-        return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter && h.visible).length : 0;
+        return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter && h.inView && h.visible).length : 0;
     }
 
     hospitals: Observable<IHospital[]>;
@@ -76,36 +88,30 @@ export class HospitalListComponent {
         }
     }
 
-    @Output()
-    isLoading: EventEmitter<boolean>;
-
-    @Output()
-    onHospitalLoaded: EventEmitter<IHospital>;
-
-    @Output()
-    onHospitalsLoaded: EventEmitter<void>;
+    @Output() isLoading: EventEmitter<boolean>;
+    @Output() onToggleRegistered: EventEmitter<boolean>;
+    @Output() onToggleStrokeCenters: EventEmitter<boolean>;
+    @Output() onToggleUnregistered: EventEmitter<boolean>;
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger
     ) {
         this.log.info('HospitalList Component CTor called');
         this.isLoading = new EventEmitter<boolean>();
-        this.onHospitalLoaded = new EventEmitter<IHospital>();
-        this.onHospitalsLoaded = new EventEmitter<void>();
+        this.onToggleRegistered = new EventEmitter<boolean>();
+        this.onToggleStrokeCenters = new EventEmitter<boolean>();
+        this.onToggleUnregistered = new EventEmitter<boolean>();
     }
 
-
-    hospitalLoading(hospital: IHospital): void {
-        this.log.info('HospitalList hospitalLoading called');
+    toggleRegistered = (event: any) => {
+        this.onToggleRegistered.emit(event.source.checked);
     }
 
-    hospitalLoaded(hospital: IHospital): void {
-        this.log.info('HospitalList hospitalLoaded called');
-        this._loaded.push(hospital.id);
-        this._progress = Math.abs((this._loaded.length / this._data.length) * 100);
-        this.onHospitalLoaded.emit(hospital);
-        if (this._progress === 100) {
-            this.onHospitalsLoaded.emit();
-        }
+    toggleStrokeCenters = (event: any) => {
+        this.onToggleStrokeCenters.emit(event.source.checked);
+    }
+
+    toggleUnregistered = (event: any) => {
+        this.onToggleUnregistered.emit(event.source.checked);
     }
 }

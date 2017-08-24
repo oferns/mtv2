@@ -10,8 +10,10 @@ import { IMarkerOptions } from '../abstractions/imarker.options';
 import { IGeoCodeResult } from '../abstractions/igeocode.result';
 import { IDirectionsRequest } from '../abstractions/idirections.request';
 import { env } from '../../../env/env';
+import { } from '../../../../ext/markerclusterer.js'
 
 declare var google: any;
+declare var MarkerClusterer: any;
 
 @Injectable()
 export class GoogleMapService implements IMapService {
@@ -20,12 +22,7 @@ export class GoogleMapService implements IMapService {
     private scriptLoadingPromise: Promise<void>;
     private geocoder: google.maps.Geocoder;
     private dirService: google.maps.DirectionsService;
-
-    // Internal tracking of objects. GM doesnt do this for us
-    private _markers: Array<google.maps.Marker> = new Array<google.maps.Marker>();
-    private _shapes: Array<google.maps.Polygon> = new Array<google.maps.Polygon>();
-    private _lines: Array<google.maps.Polyline> = new Array<google.maps.Polyline>();
-
+    private cluster: any;
     public provider = 'Google';
 
     constructor(private readonly log: Logger) {
@@ -49,6 +46,7 @@ export class GoogleMapService implements IMapService {
         window.document.body.appendChild(script);
 
         this.onReady().then(() => {
+
             this.geocoder = new google.maps.Geocoder();
             this.dirService = new google.maps.DirectionsService();
         });
@@ -61,13 +59,42 @@ export class GoogleMapService implements IMapService {
     async initMap(mapElement: HTMLElement, options: google.maps.MapOptions): Promise<google.maps.Map> {
         return await this.onReady().then(() => {
             this.map = new google.maps.Map(mapElement, options);
+
+            setTimeout(() => {
+                this.cluster = new MarkerClusterer(this.map, null, {
+                    imagePath: 'assets/img/m',
+                    minimumClusterSize: 1,
+                    averageCenter: true,
+                    zoomOnClick: true,
+                    maxZoom: 8
+                });
+
+            }, 0)
+
             // this.map.addListener('zoom_changed', () => google.maps.event.trigger(this.map, 'resize'));
             return this.map;
         });
     }
 
     getOptions(options: IMapOptions): google.maps.MapOptions {
-        return new google.maps.MapOptions();
+        return {
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            // zoom: zoom,
+            // center: center,
+            disableDefaultUI: true,
+            zoomControl: true,
+            zoomControlOptions: {
+                position: google.maps.ControlPosition.TOP_RIGHT
+            },
+            mapTypeControlOptions: {
+                position: google.maps.ControlPosition.TOP_RIGHT
+            },
+            mapTypeControl: true,
+            scaleControl: true,
+            streetViewControl: false,
+            rotateControl: true,
+            fullscreenControl: false
+        };
     }
 
     directions = async (request: google.maps.DirectionsRequest, retryCount?: number): Promise<google.maps.DirectionsResult> => {
@@ -206,13 +233,12 @@ export class GoogleMapService implements IMapService {
         });
     }
 
-    setMarker(marker: google.maps.Marker, visible: boolean = true): google.maps.Marker {
+    setMarker(marker: google.maps.Marker, visible: boolean): google.maps.Marker {
         marker.setVisible(visible);
-        this._markers.push(marker);
         marker.setMap(this.map);
         return marker;
     };
-    toggleMarker(marker: google.maps.Marker, visible: boolean = true): google.maps.Marker {
+    toggleMarker(marker: google.maps.Marker, visible: boolean): google.maps.Marker {
         marker.setVisible(visible);
         return marker;
     }
@@ -236,27 +262,37 @@ export class GoogleMapService implements IMapService {
         return marker;
     };
 
+    getInfoWindowOptions(location: google.maps.LatLng): google.maps.InfoWindowOptions {
+        return {
+            position: location
+        };
+    }
+    getInfoWindow(options: google.maps.InfoWindowOptions): google.maps.InfoWindow {
+        return new google.maps.InfoWindow(options);
+    }
+
+    setInfoWindow(window: google.maps.InfoWindow): google.maps.InfoWindow {
+        window.open(this.map);
+        return window;
+    }
+
     removeMarker(marker: google.maps.Marker): google.maps.Marker {
         marker.setMap(null);
-
-        const i = this._markers.indexOf(marker)
-
-        if (i > -1) {
-            this._markers.splice(i, 1);
-        }
-
         return marker;
     };
 
     removeMarkers(): google.maps.Marker[] {
-        const markers = [];
-        let len = this._markers.length;
-        while (len--) {
-            this._markers[len].setMap(null);
-            markers.push(this._markers.splice(len, 1));
-        }
-        this._markers = [];
-        return markers;
+
+        return [];
+    }
+
+    clusterMarkers(markers: Array<google.maps.Marker>, redraw: boolean): void {
+        this.cluster.addMarkers(markers, redraw);
+        this.cluster.repaint();
+    }
+
+    removeClusters() {
+        this.cluster.clearMarkers();
     }
 
     getLineOptions(options: any): google.maps.PolylineOptions {
@@ -272,14 +308,10 @@ export class GoogleMapService implements IMapService {
     getLine(path: Array<google.maps.LatLng>, options: google.maps.PolylineOptions): google.maps.Polyline {
         options.path = path;
         const line = new google.maps.Polyline(options);
-        this._lines.push(line);
         return line;
     }
 
     setLine(line: google.maps.Polyline, visible = true): google.maps.Polyline {
-        if (this._lines.indexOf(line) === -1) {
-            this._lines.push(line);
-        }
         line.setVisible(visible);
         line.setMap(this.map);
         return line;
@@ -290,29 +322,17 @@ export class GoogleMapService implements IMapService {
     }
 
     hideLine(line: google.maps.Polyline): google.maps.Polyline {
-        if (this._lines.indexOf(line) === -1) {
-            this._lines.push(line);
-        }
-        line.setMap(null);
+        line.setVisible(false);
         return line;
     }
 
     removeLine(line: google.maps.Polyline): void {
-        const index = this._lines.indexOf(line);
-        if (index > -1) {
-            this._lines.splice(index, 1);
-        }
-
         line.setMap(null);
         line = null;
     }
 
     removeLines(): void {
-        let len = this._lines.length;
-        while (len--) {
-            this.removeLine(this._lines[len]);
-        }
-        this._lines = [];
+
     }
 
     getShapeOptions(options: any): google.maps.PolygonOptions {
@@ -329,14 +349,10 @@ export class GoogleMapService implements IMapService {
     getShape(paths: google.maps.LatLng[], options: google.maps.PolygonOptions): google.maps.Polygon {
         options.paths = paths;
         const shape = new google.maps.Polygon(options);
-        this._shapes.push(shape);
         return shape;
     }
 
     setShape(shape: google.maps.Polygon, visible = true): google.maps.Polygon {
-        if (this._shapes.indexOf(shape) === -1) {
-            this._shapes.push(shape);
-        }
         shape.setVisible(visible)
         if (!shape.getMap()) {
             shape.setMap(this.map);
@@ -350,21 +366,12 @@ export class GoogleMapService implements IMapService {
     }
 
     removeShape(shape: google.maps.Polygon): void {
-        const index = this._shapes.indexOf(shape);
-        if (index > -1) {
-            this._shapes.splice(index, 1);
-        }
-
         shape.setMap(null);
         shape = null;
     }
 
     removeShapes(): void {
-        let len = this._shapes.length;
-        while (len--) {
-            this.removeLine(this._shapes[len]);
-        }
-        this._shapes = [];
+
     }
 
     getPoint(x: number, y: number): google.maps.Point {

@@ -11,6 +11,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MapComponent } from './map.component';
 import { HospitalListComponent } from './hospitallist/component';
 import { HospitalComponent } from './hospital/component';
+import { HospitalInfoComponent } from './hospitalinfo/component';
 
 import {
     MdSidenavModule,
@@ -20,7 +21,9 @@ import {
     MdButtonModule,
     MdProgressSpinnerModule,
     MdButtonToggleModule,
-    MdProgressBarModule
+    MdProgressBarModule,
+    MdCardModule,
+    MdTooltipModule
 } from '@angular/material';
 
 import { GoogleMapService } from './services/google.map.service';
@@ -31,7 +34,8 @@ import { BingMapService } from './services/bing.map.service';
     declarations: [
         MapComponent,
         HospitalListComponent,
-        HospitalComponent
+        HospitalComponent,
+        HospitalInfoComponent
     ],
     imports: [
         CommonModule,
@@ -46,7 +50,9 @@ import { BingMapService } from './services/bing.map.service';
         MdCheckboxModule,
         MdIconModule,
         MdProgressSpinnerModule,
-        MdProgressBarModule
+        MdProgressBarModule,
+        MdCardModule,
+        MdTooltipModule
     ],
     providers: [
         { provide: PROVIDERS, useClass: GoogleMapService, multi: true }, // PROVIDERS can be any implementation of IMapService

@@ -22,32 +22,13 @@ import { IHospitalRoutes } from '../../data/ihospitalroutes';
 
 export class HospitalComponent {
 
-    private _hospital: IHospital;
+    @Input() hospital: IHospital;
+    @Input() isLoading: boolean;
 
-    get hospital(): IHospital {
-        return this._hospital;
-    }
+    @Output() onHospitalLoading: EventEmitter<IHospital>;
+    @Output() onHospitalLoaded: EventEmitter<IHospital>;
 
-    @Input() routes: Observable<IHospitalRoutes>;
-
-    @Input()
-    set hospital(hospital: IHospital) {
-        this._hospital = hospital;
-        this.isLoading = true;
-        hospital.routes = this.hcoService.getHospitalRoutes(hospital);
-    };
-
-    @Input()
-    isLoading: boolean;
-
-    @Output()
-    onHospitalLoading: EventEmitter<IHospital>;
-
-    @Output()
-    onHospitalLoaded: EventEmitter<IHospital>;
-
-    constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
-        private readonly log: Logger) {
+    constructor(private readonly log: Logger) {
         // this.log.info('HospitalComponent Ctor called');
         this.onHospitalLoading = new EventEmitter<IHospital>();
         this.onHospitalLoaded = new EventEmitter<IHospital>();
