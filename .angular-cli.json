@@ -28,10 +28,10 @@
       "scripts": [
         "../ext/markerclusterer.js"
       ],
-      "environmentSource": "environments/environment.ts",
+      "environmentSource": "env/env.ts",
       "environments": {
-        "dev": "environments/environment.ts",
-        "prod": "environments/environment.prod.ts"
+        "dev": "env/env.ts",
+        "prod": "env/env.prod.ts"
       }
     }
   ],

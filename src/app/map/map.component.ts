@@ -210,7 +210,7 @@ export class MapComponent implements AfterViewInit {
       });
       this.hospitalsFinished = true;
     });
-    //    this.mapIdle();
+
   }
 
   // Fires when the Hospital List is loading
@@ -223,10 +223,14 @@ export class MapComponent implements AfterViewInit {
             return this.hospitalMarkers.get(h.id);
           }
 
+          let color = h.representative ? 'grey' : 'white';
+          color = h.newTarget ? 'yellow' : color;
+          color = h.strokeCenter ? 'red' : color;
+
           const options = <IMarkerOptions>{
             id: h.id,
             title: h.name,
-            icon: this.pinSymbol(h.strokeCenter ? 'red' : 'white', h.representative ? 1.2 : 1.1),
+            icon: this.pinSymbol(color, h.representative ? 1.2 : 1.1),
             onClick: this.markerClicked.bind(this)
           };
 
@@ -322,6 +326,37 @@ export class MapComponent implements AfterViewInit {
         this.ref.detectChanges();
       });
     }
+  }
+
+
+  toggleStrokeCenter = (on: boolean) => {
+    this.currentHospital.strokeCenter = on;
+    const hospital = this.currentHospital;
+    this.log.info(`MapComponent toggleStrokeCenter to ${hospital.name} (${hospital.id})`);
+    if (this.hospitalMarkers.has(hospital.id)) {
+      const marker = this.hospitalMarkers.get(hospital.id);
+      let color = hospital.representative ? 'grey' : 'white';
+      color = hospital.newTarget ? 'yellow' : color;
+      color = on ? 'red' : color;
+      marker.setIcon(this.pinSymbol(color, hospital.representative ? 1.2 : 1.1));
+      this.ref.detectChanges();
+    }
+  }
+
+
+  toggleNewTarget = (on: boolean) => {
+    this.currentHospital.newTarget = on;
+    const hospital = this.currentHospital;
+    this.log.info(`MapComponent toggleNewTarget to ${hospital.name} (${hospital.id})`);
+    if (this.hospitalMarkers.has(hospital.id)) {
+      const marker = this.hospitalMarkers.get(hospital.id);
+      let color = hospital.representative ? 'grey' : 'white';
+      color = on ? 'yellow' : color;
+      color = hospital.strokeCenter ? 'red' : color;
+      marker.setIcon(this.pinSymbol(color, hospital.representative ? 1.2 : 1.1));
+      this.ref.detectChanges();
+    }
+
   }
 
 
@@ -452,15 +487,6 @@ export class MapComponent implements AfterViewInit {
   // Fires when the map provider changes
   providerChanged = (provider: IMapService): void => {
     this.currentProvider = provider;
-  }
-
-
-  closeSidenav = (): void => {
-    const l = 1;
-  }
-
-  openSidenav = (): void => {
-    const l = 1;
   }
 
   private drawLinesAndShapes() {

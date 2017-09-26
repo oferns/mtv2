@@ -12,6 +12,7 @@ export interface IHospital {
     lat: number;
     lng: number;
     strokeCenter: boolean;
+    newTarget: boolean;
     representative: string;
     visible?: boolean;
     inView?: boolean;

@@ -7,17 +7,17 @@
   <md-list>
     <md-list-item mdTooltip='Showing {{registeredInView}} of {{registered}}'>
       <md-button-toggle (change)='toggleRegistered($event)' [checked]='registeredInView' [disabled]='!registered'>
-        <md-icon>face</md-icon> Registered Hospitals
+        <md-icon>face</md-icon> Registered Hospitals {{registeredInView}}
       </md-button-toggle>
     </md-list-item>
     <md-list-item mdTooltip='Showing {{strokeCentersInView}} of {{strokeCenters}}'>
       <md-button-toggle (change)='toggleStrokeCenters($event)' [checked]='strokeCentersInView' [disabled]='!strokeCenters'>
-        <md-icon>verified_user</md-icon> Stroke Centers
+        <md-icon>verified_user</md-icon> Stroke Centers {{strokeCentersInView}}
       </md-button-toggle>
     </md-list-item>
     <md-list-item mdTooltip='Showing {{visible - registeredInView}} of {{visible}}'>
       <md-button-toggle (change)='toggleUnregistered($event)' [checked]='unregisteredInView' [disabled]='!unregistered'>
-        <md-icon>block</md-icon> Unregistered Hospitals
+        <md-icon>block</md-icon> Unregistered Hospitals {{unregisteredInView}}
       </md-button-toggle>
     </md-list-item>
   </md-list>

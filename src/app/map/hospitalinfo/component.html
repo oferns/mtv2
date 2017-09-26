@@ -12,9 +12,18 @@
   </md-card-subtitle>
 
   <md-card-actions>
-    <md-button-toggle (change)="toggle($event)" [checked]='on'>
+    <md-button-toggle (change)='toggleRoutes($event)' [checked]='on'>
       <md-icon>create</md-icon>
       Show routes
     </md-button-toggle>
+    <md-button-toggle (change)='toggleNewTarget($event)' [checked]='hospital?.newTarget'>
+      <md-icon>create</md-icon>
+      New Target
+    </md-button-toggle>
+    <md-button-toggle (change)='toggleStrokeCenter($event)' [checked]='hospital?.strokeCenter'>
+      <md-icon>create</md-icon>
+      Stroke Center
+    </md-button-toggle>
+
   </md-card-actions>
 </md-card>

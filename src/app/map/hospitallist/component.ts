@@ -64,7 +64,10 @@ export class HospitalListComponent {
     }
 
     get registeredInView(): number {
-        return this._data ? this._data.filter((h: IHospital) => h.representative && h.inView && h.visible).length : 0;
+        const hs = this._data ? this._data.filter((h: IHospital) => {
+            return h.representative && h.inView && h.visible;
+        }) : [];
+        return hs.length;
     }
 
     get registeredStrokeCenters(): number {
@@ -75,6 +78,7 @@ export class HospitalListComponent {
         return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter && h.inView && h.visible).length : 0;
     }
 
+    @Input()
     hospitals: Observable<IHospital[]>;
 
     @Input()
