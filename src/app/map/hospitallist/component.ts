@@ -118,6 +118,11 @@ export class HospitalListComponent {
         this.onToggleUnregistered = new EventEmitter<boolean>();
     }
 
+
+    filterHcos = (event: any) => {
+        this.hospitals.subscribe(hs => hs.forEach(h => h.visible = h.name.indexOf(event.data) > -1));
+    }
+
     toggleRegistered = (event: any) => {
         this.onToggleRegistered.emit(event.source.checked);
     }

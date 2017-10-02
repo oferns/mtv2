@@ -4,25 +4,32 @@
 
 <div [hidden]='loading'>
   <h5>{{visible}} of {{_data ? _data.length : 0}} visible</h5>
+
+
   <md-list>
+    <md-list-item>
+      <md-form-field>
+        <input mdInput placeholder="Filter Hospitals" (input)='filterHcos($event)'>
+      </md-form-field>
+    </md-list-item>
     <md-list-item mdTooltip='Showing {{registeredInView}} of {{registered}}'>
       <md-button-toggle (change)='toggleRegistered($event)' [checked]='registeredInView' [disabled]='!registered'>
-        <md-icon>face</md-icon> {{registeredInView}} Registered Hospitals 
+        <md-icon>face</md-icon> {{registeredInView}} Registered Hospitals
       </md-button-toggle>
     </md-list-item>
     <md-list-item mdTooltip='Showing {{strokeCentersInView}} of {{strokeCenters}}'>
       <md-button-toggle (change)='toggleStrokeCenters($event)' [checked]='strokeCentersInView' [disabled]='!strokeCenters'>
-        <md-icon>verified_user</md-icon> {{strokeCentersInView}} Stroke Centers 
+        <md-icon>verified_user</md-icon> {{strokeCentersInView}} Stroke Centers
       </md-button-toggle>
     </md-list-item>
     <md-list-item mdTooltip='Showing {{newTargetsInView}} of {{newTargets}}'>
       <md-button-toggle (change)='toggleNewTargets($event)' [checked]='newTargetsInView' [disabled]='!newTargets'>
-        <md-icon>verified_user</md-icon> {{newTargetsInView}} New Targets 
+        <md-icon>verified_user</md-icon> {{newTargetsInView}} New Targets
       </md-button-toggle>
     </md-list-item>
     <md-list-item mdTooltip='Showing {{visible - registeredInView}} of {{visible}}'>
       <md-button-toggle (change)='toggleUnregistered($event)' [checked]='unregisteredInView' [disabled]='!unregistered'>
-        <md-icon>block</md-icon> {{unregisteredInView}} Unregistered Hospitals 
+        <md-icon>block</md-icon> {{unregisteredInView}} Unregistered Hospitals
       </md-button-toggle>
     </md-list-item>
   </md-list>

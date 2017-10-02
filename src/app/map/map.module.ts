@@ -23,7 +23,8 @@ import {
     MdButtonToggleModule,
     MdProgressBarModule,
     MdCardModule,
-    MdTooltipModule
+    MdTooltipModule,
+    MdAutocompleteModule
 } from '@angular/material';
 
 import { GoogleMapService } from './services/google.map.service';
@@ -52,7 +53,8 @@ import { BingMapService } from './services/bing.map.service';
         MdProgressSpinnerModule,
         MdProgressBarModule,
         MdCardModule,
-        MdTooltipModule
+        MdTooltipModule,
+        MdAutocompleteModule
     ],
     providers: [
         { provide: PROVIDERS, useClass: GoogleMapService, multi: true }, // PROVIDERS can be any implementation of IMapService
