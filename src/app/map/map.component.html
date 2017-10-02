@@ -1,5 +1,5 @@
 <h1 i18n></h1>
-<app-map-toolbar [hospitalsLoaded]='hospitalsFinished' (onCountryChanged)='countryChanged($event)' (onProviderChanged)='providerChanged($event)'
+<app-map-toolbar [hospitalsLoaded]='hospitalsFinished' (onCountryChanged)='countryChanged($event)'
   (onClearMapClicked)='clearMap()' (onToggleRoutes)='toggleRoutes($event)' (onToggleCluster)='toggleCluster($event)'>
 </app-map-toolbar>
 <md-sidenav-container>
@@ -9,7 +9,7 @@
     </button>
     <br />
     <app-hospital-list [country]='currentCountry' [hospitals]='currentHospitals' (isLoading)='hospitalListLoading($event)' (onToggleRegistered)='toggleRegistered($event)'
-    (onToggleStrokeCenters)='toggleStrokeCenters($event)' (onToggleUnregistered)='toggleUnregistered($event)' >
+    (onToggleStrokeCenters)='toggleStrokeCenters($event)' (onToggleUnregistered)='toggleUnregistered($event)' (onToggleNewTargets)='toggleNewTargets($event)' >
     </app-hospital-list>
   </md-sidenav>
   <button md-icon-button [style.display]='!sidenav.opened && currentCountry ? "Inherit" : "none"' style='z-index:2;background-color:#303030'

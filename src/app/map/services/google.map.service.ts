@@ -255,7 +255,7 @@ export class GoogleMapService implements IMapService {
 
         if (options.onClick) {
             google.maps.event.addListener(marker, 'click', function (args, e) {
-                options.onClick.apply(this, [{ marker: marker, args: args }])
+                options.onClick.apply(this, [{ marker: marker, args: args, id: options.id }])
             });
         }
 
@@ -308,12 +308,15 @@ export class GoogleMapService implements IMapService {
     getLine(path: Array<google.maps.LatLng>, options: google.maps.PolylineOptions): google.maps.Polyline {
         options.path = path;
         const line = new google.maps.Polyline(options);
+        line.setMap(this.map);
         return line;
     }
 
     setLine(line: google.maps.Polyline, visible = true): google.maps.Polyline {
         line.setVisible(visible);
-        line.setMap(this.map);
+        if (!line.getMap()) {
+            line.setMap(this.map);
+        }
         return line;
     }
     toggleLine(line: google.maps.Polyline, visible = true): google.maps.Polyline {

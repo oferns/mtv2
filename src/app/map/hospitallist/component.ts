@@ -40,11 +40,12 @@ export class HospitalListComponent {
     }
 
     get unregistered(): number {
-        return this.total - this.registered;
+        return this._data ? this._data.filter(h => !h.representative && !h.newTarget && !h.strokeCenter).length : 0;
     }
 
     get unregisteredInView(): number {
-        return this.visible - this.registeredInView;
+        return this._data ?
+            this._data.filter(h => !h.representative && !h.newTarget && !h.strokeCenter && h.inView && h.visible).length : 0;
     }
 
     get visible(): number {
@@ -57,6 +58,14 @@ export class HospitalListComponent {
 
     get strokeCentersInView(): number {
         return this._data ? this._data.filter(h => h.strokeCenter && h.inView && h.visible).length : 0;
+    }
+
+    get newTargets(): number {
+        return this._data ? this._data.filter(h => h.newTarget).length : 0;
+    }
+
+    get newTargetsInView(): number {
+        return this._data ? this._data.filter(h => h.newTarget && h.inView && h.visible).length : 0;
     }
 
     get registered(): number {
@@ -95,6 +104,7 @@ export class HospitalListComponent {
     @Output() isLoading: EventEmitter<boolean>;
     @Output() onToggleRegistered: EventEmitter<boolean>;
     @Output() onToggleStrokeCenters: EventEmitter<boolean>;
+    @Output() onToggleNewTargets: EventEmitter<boolean>;
     @Output() onToggleUnregistered: EventEmitter<boolean>;
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
@@ -104,6 +114,7 @@ export class HospitalListComponent {
         this.isLoading = new EventEmitter<boolean>();
         this.onToggleRegistered = new EventEmitter<boolean>();
         this.onToggleStrokeCenters = new EventEmitter<boolean>();
+        this.onToggleNewTargets = new EventEmitter<boolean>();
         this.onToggleUnregistered = new EventEmitter<boolean>();
     }
 
@@ -113,6 +124,10 @@ export class HospitalListComponent {
 
     toggleStrokeCenters = (event: any) => {
         this.onToggleStrokeCenters.emit(event.source.checked);
+    }
+
+    toggleNewTargets = (event: any) => {
+        this.onToggleNewTargets.emit(event.source.checked);
     }
 
     toggleUnregistered = (event: any) => {

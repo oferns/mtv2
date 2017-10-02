@@ -95,7 +95,8 @@ export class AngelsService implements IHcoService {
                 .map(countries => countries)
                 .do(countries => this.log.debug(`AngelsService getCountries returned ${countries.length} countries`))
                 .publishReplay(1)
-                .refCount();
+                .refCount()
+                .catch(this.handleError);
         }
         return this._countries;
     }

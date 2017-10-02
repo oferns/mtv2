@@ -25,12 +25,7 @@ export class HospitalComponent {
     @Input() hospital: IHospital;
     @Input() isLoading: boolean;
 
-    @Output() onHospitalLoading: EventEmitter<IHospital>;
-    @Output() onHospitalLoaded: EventEmitter<IHospital>;
-
     constructor(private readonly log: Logger) {
         // this.log.info('HospitalComponent Ctor called');
-        this.onHospitalLoading = new EventEmitter<IHospital>();
-        this.onHospitalLoaded = new EventEmitter<IHospital>();
     }
 }
