@@ -168,8 +168,39 @@ export class MapComponent implements AfterViewInit {
           return marker;
         });
 
-        this.toggleCluster(this.cluster ? true : false);
+        this.zone.runOutsideAngular(() => {
+
+          this.hospitalMarkers.forEach((k, v) => {
+            const hos = this._data.find(d => d.id === v);
+            this.currentProvider.setMarker(k, hos.visible);
+          });
+        })
       });
+    }
+  }
+
+  filterChanged(term: string) {
+    this.zone.runOutsideAngular(() => {
+
+      this.hospitalMarkers.forEach((k, v) => {
+        const hos = this._data.find(d => d.id === v);
+        hos.visible = hos.name.toLowerCase().indexOf(term.toLowerCase()) > -1;
+        this.currentProvider.setMarker(k, hos.visible);
+      });
+    })
+  }
+
+  hospitalMouseEnter(event: IHospital) {
+    if (this.hospitalMarkers.has(event.id)) {
+      const m = this.hospitalMarkers.get(event.id);
+      m.setAnimation(1);
+    }
+  }
+
+  hospitalMouseLeave(event: IHospital) {
+    if (this.hospitalMarkers.has(event.id)) {
+      const m = this.hospitalMarkers.get(event.id);
+      m.setAnimation(null);
     }
   }
 

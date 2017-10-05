@@ -8,8 +8,8 @@
           <md-icon>add</md-icon>
     </button>
     <br />
-    <app-hospital-list [country]='currentCountry' [hospitals]='currentHospitals' (isLoading)='hospitalListLoading($event)' (onToggleRegistered)='toggleRegistered($event)'
-    (onToggleStrokeCenters)='toggleStrokeCenters($event)' (onToggleUnregistered)='toggleUnregistered($event)' (onToggleNewTargets)='toggleNewTargets($event)' >
+    <app-hospital-list [country]='currentCountry' [hospitals]='currentHospitals' (isLoading)='hospitalListLoading($event)' (onToggleRegistered)='toggleRegistered($event)' (onHospitalMouseEnter)='hospitalMouseEnter($event)' (onHospitalMouseLeave)='hospitalMouseLeave($event)'
+    (onToggleStrokeCenters)='toggleStrokeCenters($event)' (onToggleUnregistered)='toggleUnregistered($event)' (onToggleNewTargets)='toggleNewTargets($event)' (onFilterChanged)='filterChanged($event)' >
     </app-hospital-list>
   </md-sidenav>
   <button md-icon-button [style.display]='!sidenav.opened && currentCountry ? "Inherit" : "none"' style='z-index:2;background-color:#303030'

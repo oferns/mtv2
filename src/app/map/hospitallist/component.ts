@@ -20,6 +20,7 @@ import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/count';
 import 'rxjs/add/operator/toArray';
+import 'rxjs/add/observable/from'
 
 @Component({
     selector: 'app-hospital-list',
@@ -106,6 +107,9 @@ export class HospitalListComponent {
     @Output() onToggleStrokeCenters: EventEmitter<boolean>;
     @Output() onToggleNewTargets: EventEmitter<boolean>;
     @Output() onToggleUnregistered: EventEmitter<boolean>;
+    @Output() onFilterChanged: EventEmitter<string>;
+    @Output() onHospitalMouseEnter: EventEmitter<IHospital>;
+    @Output() onHospitalMouseLeave: EventEmitter<IHospital>;
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger
@@ -116,11 +120,22 @@ export class HospitalListComponent {
         this.onToggleStrokeCenters = new EventEmitter<boolean>();
         this.onToggleNewTargets = new EventEmitter<boolean>();
         this.onToggleUnregistered = new EventEmitter<boolean>();
+        this.onFilterChanged = new EventEmitter<string>();
+        this.onHospitalMouseEnter = new EventEmitter<IHospital>();
+        this.onHospitalMouseLeave = new EventEmitter<IHospital>();
+
     }
 
-
     filterHcos = (event: any) => {
-        this.hospitals.subscribe(hs => hs.forEach(h => h.visible = h.name.indexOf(event.data) > -1));
+        this.onFilterChanged.emit(event.target.value);
+    }
+
+    hospitalMouseEnter = (event: IHospital) => {
+        this.onHospitalMouseEnter.emit(event);
+    }
+
+    hospitalMouseLeave = (event: IHospital) => {
+        this.onHospitalMouseLeave.emit(event);
     }
 
     toggleRegistered = (event: any) => {

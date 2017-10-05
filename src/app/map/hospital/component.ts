@@ -25,7 +25,21 @@ export class HospitalComponent {
     @Input() hospital: IHospital;
     @Input() isLoading: boolean;
 
+    @Output() onMouseEnter: EventEmitter<IHospital>;
+    @Output() onMouseLeave: EventEmitter<IHospital>;
+
     constructor(private readonly log: Logger) {
         // this.log.info('HospitalComponent Ctor called');
+        this.onMouseEnter = new EventEmitter<IHospital>();
+        this.onMouseLeave = new EventEmitter<IHospital>();
     }
+
+    mouseEnter = (event: any) => {
+        this.onMouseEnter.emit(this.hospital);
+    }
+
+    mouseLeave = (event: any) => {
+        this.onMouseLeave.emit(this.hospital);
+    }
+
 }
