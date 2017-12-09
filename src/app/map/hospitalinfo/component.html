@@ -1,6 +1,6 @@
 <md-card>
   <md-card-title>
-    <md-icon *ngIf='hospital?.strokeCenter'>verified_user</md-icon>
+    <md-icon *ngIf='hospital?.strokeReady'>verified_user</md-icon>
     <md-icon *ngIf='hospital?.representative'>face</md-icon>
     {{hospital?.name}}
   </md-card-title>
@@ -16,14 +16,17 @@
       <md-icon>create</md-icon>
       Show routes
     </md-button-toggle>
-    <md-button-toggle (change)='toggleNewTarget($event)' [checked]='hospital?.newTarget'>
+    <md-button-toggle (change)='toggleTreatingNoAngels($event)' [checked]='hospital?.treatingNoAngels'>
       <md-icon>create</md-icon>
-      New Target
+      Treating/No Angels
     </md-button-toggle>
-    <md-button-toggle (change)='toggleStrokeCenter($event)' [checked]='hospital?.strokeCenter'>
+    <md-button-toggle (change)='toggleStrokeReady($event)' [checked]='hospital?.strokeReady'>
       <md-icon>create</md-icon>
-      Stroke Center
+      Stroke Ready
     </md-button-toggle>
-
+    <md-button-toggle (change)='toggleConsulting($event)' [checked]='hospital?.consulting'>
+      <md-icon>create</md-icon>
+      Consulting
+    </md-button-toggle>
   </md-card-actions>
 </md-card>

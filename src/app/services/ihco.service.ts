@@ -12,6 +12,8 @@ export interface IHcoService {
     getCountryRoutes(country: ICountry): Observable<IHospitalRoutes[]>;
     saveCountryData(country: ICountry): Observable<ICountry>;
     saveHospitalData(hospital: IHospital): Observable<IHospital>;
-    toggleStrokeCenter(hospital: IHospital): Observable<IHospital>;
-    toggleNewTarget(hospital: IHospital): Observable<IHospital>;
+    toggleStrokeReady(hospital: IHospital): Observable<IHospital>;
+    toggleTreatingNoAngels(hospital: IHospital): Observable<IHospital>;
+    toggleConsulting(hospital: IHospital): Observable<IHospital>;
+    
 }

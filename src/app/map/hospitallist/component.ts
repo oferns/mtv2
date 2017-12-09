@@ -41,32 +41,32 @@ export class HospitalListComponent {
     }
 
     get unregistered(): number {
-        return this._data ? this._data.filter(h => !h.representative && !h.newTarget && !h.strokeCenter).length : 0;
+        return this._data ? this._data.filter(h => !h.representative && !h.treatingNoAngels && !h.strokeReady).length : 0;
     }
 
     get unregisteredInView(): number {
         return this._data ?
-            this._data.filter(h => !h.representative && !h.newTarget && !h.strokeCenter && h.inView && h.visible).length : 0;
+            this._data.filter(h => !h.representative && !h.treatingNoAngels && !h.strokeReady && h.inView && h.visible).length : 0;
     }
 
     get visible(): number {
         return this._data ? this._data.filter(h => h.inView && h.visible).length : 0;
     }
 
-    get strokeCenters(): number {
-        return this._data ? this._data.filter(h => h.strokeCenter).length : 0;
+    get strokeReadys(): number {
+        return this._data ? this._data.filter(h => h.strokeReady).length : 0;
     }
 
-    get strokeCentersInView(): number {
-        return this._data ? this._data.filter(h => h.strokeCenter && h.inView && h.visible).length : 0;
+    get strokeReadysInView(): number {
+        return this._data ? this._data.filter(h => h.strokeReady && h.inView && h.visible).length : 0;
     }
 
-    get newTargets(): number {
-        return this._data ? this._data.filter(h => h.newTarget).length : 0;
+    get treatingNoAngelss(): number {
+        return this._data ? this._data.filter(h => h.treatingNoAngels).length : 0;
     }
 
-    get newTargetsInView(): number {
-        return this._data ? this._data.filter(h => h.newTarget && h.inView && h.visible).length : 0;
+    get treatingNoAngelssInView(): number {
+        return this._data ? this._data.filter(h => h.treatingNoAngels && h.inView && h.visible).length : 0;
     }
 
     get registered(): number {
@@ -80,12 +80,12 @@ export class HospitalListComponent {
         return hs.length;
     }
 
-    get registeredStrokeCenters(): number {
-        return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter).length : 0;
+    get registeredStrokeReadys(): number {
+        return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeReady).length : 0;
     }
 
-    get registeredStrokeCentersInView(): number {
-        return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeCenter && h.inView && h.visible).length : 0;
+    get registeredStrokeReadysInView(): number {
+        return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeReady && h.inView && h.visible).length : 0;
     }
 
     @Input()
@@ -104,8 +104,10 @@ export class HospitalListComponent {
 
     @Output() isLoading: EventEmitter<boolean>;
     @Output() onToggleRegistered: EventEmitter<boolean>;
-    @Output() onToggleStrokeCenters: EventEmitter<boolean>;
-    @Output() onToggleNewTargets: EventEmitter<boolean>;
+    @Output() onToggleStrokeReadys: EventEmitter<boolean>;
+    @Output() onToggleTreatingNoAngelss: EventEmitter<boolean>;
+    @Output() onToggleConsultingss: EventEmitter<boolean>;
+    
     @Output() onToggleUnregistered: EventEmitter<boolean>;
     @Output() onFilterChanged: EventEmitter<string>;
     @Output() onHospitalMouseEnter: EventEmitter<IHospital>;
@@ -117,8 +119,10 @@ export class HospitalListComponent {
         this.log.info('HospitalList Component CTor called');
         this.isLoading = new EventEmitter<boolean>();
         this.onToggleRegistered = new EventEmitter<boolean>();
-        this.onToggleStrokeCenters = new EventEmitter<boolean>();
-        this.onToggleNewTargets = new EventEmitter<boolean>();
+        this.onToggleStrokeReadys = new EventEmitter<boolean>();
+        this.onToggleTreatingNoAngelss = new EventEmitter<boolean>();
+        this.onToggleConsultingss = new EventEmitter<boolean>();
+        
         this.onToggleUnregistered = new EventEmitter<boolean>();
         this.onFilterChanged = new EventEmitter<string>();
         this.onHospitalMouseEnter = new EventEmitter<IHospital>();
@@ -142,14 +146,17 @@ export class HospitalListComponent {
         this.onToggleRegistered.emit(event.source.checked);
     }
 
-    toggleStrokeCenters = (event: any) => {
-        this.onToggleStrokeCenters.emit(event.source.checked);
+    toggleStrokeReadys = (event: any) => {
+        this.onToggleStrokeReadys.emit(event.source.checked);
     }
 
-    toggleNewTargets = (event: any) => {
-        this.onToggleNewTargets.emit(event.source.checked);
+    toggleTreatingNoAngelss = (event: any) => {
+        this.onToggleTreatingNoAngelss.emit(event.source.checked);
     }
 
+    toggleConsultingss = (event: any) => {
+        this.onToggleConsultingss.emit(event.source.checked);
+    }
     toggleUnregistered = (event: any) => {
         this.onToggleUnregistered.emit(event.source.checked);
     }

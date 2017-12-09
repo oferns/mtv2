@@ -24,32 +24,42 @@ export class HospitalInfoComponent {
     @Input() on: boolean;
 
     @Output() onToggleRoute: EventEmitter<boolean>;
-    @Output() onToggleStrokeCenter: EventEmitter<boolean>;
-    @Output() onToggleNewTarget: EventEmitter<boolean>;
+    @Output() onToggleStrokeReady: EventEmitter<boolean>;
+    @Output() onToggleTreatingNoAngels: EventEmitter<boolean>;
+    @Output() onToggleConsulting: EventEmitter<boolean>;
+    
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger
     ) {
         this.log.info('HospitalInfoComponent Ctor called');
         this.onToggleRoute = new EventEmitter<boolean>();
-        this.onToggleStrokeCenter = new EventEmitter<boolean>();
-        this.onToggleNewTarget = new EventEmitter<boolean>();
+        this.onToggleStrokeReady = new EventEmitter<boolean>();
+        this.onToggleTreatingNoAngels = new EventEmitter<boolean>();
+        this.onToggleConsulting = new EventEmitter<boolean>();
     }
 
     toggleRoutes(event: MdButtonToggleChange) {
         this.onToggleRoute.emit(event.source.checked);
     }
 
-    toggleStrokeCenter(event: MdButtonToggleChange) {
-        this.onToggleStrokeCenter.emit(event.source.checked);
-        this.hospital.strokeCenter = event.source.checked;
-        this.hcoService.toggleStrokeCenter(this.hospital).subscribe(h => this.hospital = h);
+    toggleStrokeReady(event: MdButtonToggleChange) {
+        this.onToggleStrokeReady.emit(event.source.checked);
+        this.hospital.strokeReady = event.source.checked;
+        this.hcoService.toggleStrokeReady(this.hospital).subscribe(h => this.hospital = h);
 
     }
-    toggleNewTarget(event: MdButtonToggleChange) {
-        this.onToggleNewTarget.emit(event.source.checked);
-        this.hospital.newTarget = event.source.checked;
-        this.hcoService.toggleNewTarget(this.hospital).subscribe(h => this.hospital = h);
+    toggleTreatingNoAngels(event: MdButtonToggleChange) {
+        this.onToggleTreatingNoAngels.emit(event.source.checked);
+        this.hospital.treatingNoAngels = event.source.checked;
+        this.hcoService.toggleTreatingNoAngels(this.hospital).subscribe(h => this.hospital = h);
     }
+    toggleConsulting(event: MdButtonToggleChange) {
+        this.onToggleConsulting.emit(event.source.checked);
+        this.hospital.consulting = event.source.checked;
+        this.hcoService.toggleConsulting(this.hospital).subscribe(h => this.hospital = h);
+    }
+
+
 }
 

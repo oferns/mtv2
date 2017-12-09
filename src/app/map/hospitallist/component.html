@@ -16,14 +16,19 @@
         <md-icon>face</md-icon> {{registeredInView}} Registered Hospitals
       </md-button-toggle>
     </md-list-item>
-    <md-list-item mdTooltip='Showing {{strokeCentersInView}} of {{strokeCenters}}'>
-      <md-button-toggle (change)='toggleStrokeCenters($event)' [checked]='strokeCentersInView' [disabled]='!strokeCenters'>
-        <md-icon>verified_user</md-icon> {{strokeCentersInView}} Stroke Centers
+    <md-list-item mdTooltip='Showing {{strokeReadysInView}} of {{strokeReadys}}'>
+      <md-button-toggle (change)='toggleStrokeReadys($event)' [checked]='strokeReadysInView' [disabled]='!strokeReadys'>
+        <md-icon>verified_user</md-icon> {{strokeReadysInView}} Stroke Ready
       </md-button-toggle>
     </md-list-item>
-    <md-list-item mdTooltip='Showing {{newTargetsInView}} of {{newTargets}}'>
-      <md-button-toggle (change)='toggleNewTargets($event)' [checked]='newTargetsInView' [disabled]='!newTargets'>
-        <md-icon>verified_user</md-icon> {{newTargetsInView}} New Targets
+    <md-list-item mdTooltip='Showing {{treatingNoAngelssInView}} of {{treatingNoAngelss}}'>
+      <md-button-toggle (change)='toggleTreatingNoAngelss($event)' [checked]='treatingNoAngelssInView' [disabled]='!treatingNoAngelss'>
+        <md-icon>verified_user</md-icon> {{treatingNoAngelssInView}} Treating/No Angels
+      </md-button-toggle>
+    </md-list-item>
+    <md-list-item mdTooltip='Showing {{consultingssInView}} of {{consultingss}}'>
+      <md-button-toggle (change)='consultingss($event)' [checked]='consultingssInView' [disabled]='!consultingss'>
+        <md-icon>verified_user</md-icon> {{consultingssInView}} Consultings
       </md-button-toggle>
     </md-list-item>
     <md-list-item mdTooltip='Showing {{visible - registeredInView}} of {{visible}}'>

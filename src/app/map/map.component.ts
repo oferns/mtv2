@@ -153,8 +153,8 @@ export class MapComponent implements AfterViewInit {
           }
 
           let color = h.representative ? 'grey' : 'white';
-          color = h.newTarget ? 'yellow' : color;
-          color = h.strokeCenter ? 'red' : color;
+          color = h.treatingNoAngels ? 'yellow' : color;
+          color = h.strokeReady ? 'red' : color;
 
           const options = <IMarkerOptions>{
             id: h.id,
@@ -246,13 +246,13 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  toggleStrokeCenters(on: boolean): void {
+  toggleStrokeReadys(on: boolean): void {
     if (this.currentHospitals) {
       this.currentHospitals.subscribe((hs: Array<IHospital>) => {
         this.zone.runOutsideAngular(() => {
 
           hs.forEach((h: IHospital) => {
-            if (h.strokeCenter) {
+            if (h.strokeReady) {
               h.visible = on
               const marker = this.hospitalMarkers.get(h.id);
               this.currentProvider.setMarker(marker, on);
@@ -267,13 +267,34 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  toggleNewTargets(on: boolean): void {
+  toggleTreatingNoAngelss(on: boolean): void {
     if (this.currentHospitals) {
       this.currentHospitals.subscribe((hs: Array<IHospital>) => {
         this.zone.runOutsideAngular(() => {
 
           hs.forEach((h: IHospital) => {
-            if (h.newTarget) {
+            if (h.treatingNoAngels) {
+              h.visible = on
+              const marker = this.hospitalMarkers.get(h.id);
+              this.currentProvider.setMarker(marker, on);
+            }
+
+          });
+          this.zone.run(() => { });
+        });
+        this.currentHospitals = Observable.of(hs);
+        this.ref.detectChanges();
+      });
+    }
+  }
+
+  toggleConsultingss(on: boolean): void {
+    if (this.currentHospitals) {
+      this.currentHospitals.subscribe((hs: Array<IHospital>) => {
+        this.zone.runOutsideAngular(() => {
+
+          hs.forEach((h: IHospital) => {
+            if (h.treatingNoAngels) {
               h.visible = on
               const marker = this.hospitalMarkers.get(h.id);
               this.currentProvider.setMarker(marker, on);
@@ -293,7 +314,7 @@ export class MapComponent implements AfterViewInit {
       this.currentHospitals.subscribe((hs: Array<IHospital>) => {
         this.zone.runOutsideAngular(() => {
           hs.forEach((h: IHospital) => {
-            if (!h.representative && !h.newTarget && !h.strokeCenter) {
+            if (!h.representative && !h.treatingNoAngels && !h.strokeReady) {
               h.visible = on
               const marker = this.hospitalMarkers.get(h.id);
               this.currentProvider.setMarker(marker, on);
@@ -308,33 +329,48 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  toggleStrokeCenter(on: boolean): void {
-    this.currentHospital.strokeCenter = on;
+  toggleStrokeReady(on: boolean): void {
+    this.currentHospital.strokeReady = on;
     const hospital = this.currentHospital;
-    this.log.info(`MapComponent toggleStrokeCenter to ${hospital.name} (${hospital.id})`);
+    this.log.info(`MapComponent toggleStrokeReady to ${hospital.name} (${hospital.id})`);
     if (this.hospitalMarkers.has(hospital.id)) {
       const marker = this.hospitalMarkers.get(hospital.id);
       let color = hospital.representative ? 'grey' : 'white';
-      color = hospital.newTarget ? 'yellow' : color;
-      color = on ? 'red' : color;
+      color = hospital.treatingNoAngels ? 'red' : color;
+      color = on ? 'green' : color;
       marker.setIcon(this.pinSymbol(color, hospital.representative ? 1.2 : 1.1));
       this.ref.detectChanges();
     }
   }
 
-  toggleNewTarget(on: boolean): void {
-    this.currentHospital.newTarget = on;
+  toggleTreatingNoAngels(on: boolean): void {
+    this.currentHospital.treatingNoAngels = on;
     const hospital = this.currentHospital;
-    this.log.info(`MapComponent toggleNewTarget to ${hospital.name} (${hospital.id})`);
+    this.log.info(`MapComponent toggleTreatingNoAngels to ${hospital.name} (${hospital.id})`);
     if (this.hospitalMarkers.has(hospital.id)) {
       const marker = this.hospitalMarkers.get(hospital.id);
       let color = hospital.representative ? 'grey' : 'white';
-      color = on ? 'yellow' : color;
-      color = hospital.strokeCenter ? 'red' : color;
+      color = on ? 'red' : color;
+      color = hospital.strokeReady ? 'green' : color;
       marker.setIcon(this.pinSymbol(color, hospital.representative ? 1.2 : 1.1));
       this.ref.detectChanges();
     }
   }
+
+  toggleConsultings(on: boolean): void {
+    this.currentHospital.treatingNoAngels = on;
+    const hospital = this.currentHospital;
+    this.log.info(`MapComponent toggleConsultings to ${hospital.name} (${hospital.id})`);
+    if (this.hospitalMarkers.has(hospital.id)) {
+      const marker = this.hospitalMarkers.get(hospital.id);
+      let color = hospital.representative ? 'grey' : 'white';
+      color = on ? 'yellow' : color;
+      marker.setIcon(this.pinSymbol(color, hospital.representative ? 1.2 : 1.1));
+      this.ref.detectChanges();
+    }
+  }
+
+
   // Fires when the toggle routes button is clicked
   toggleRoutes(on: boolean): void {
     this.log.info(`MapComponent toggleRoutes called ${on}`);
@@ -467,7 +503,7 @@ export class MapComponent implements AfterViewInit {
     }
 
     const routes = this.hospitalRoutes.get(hospital.id);
-    const minutes = hospital.strokeCenter ? 45 : 30;
+    const minutes = hospital.strokeReady ? 45 : 30;
     const p = this.currentProvider;
     const shortenedRoutes = routes.radiusDirections.map((d) => p.shortenRouteStepsByDuration(d, (minutes * 60)));
 
@@ -493,7 +529,7 @@ export class MapComponent implements AfterViewInit {
     }
 
     const routes = this.hospitalRoutes.get(hospital.id);
-    const minutes = hospital.strokeCenter ? 45 : 30;
+    const minutes = hospital.strokeReady ? 45 : 30;
     const p = this.currentProvider;
     const shortenedRoutes = routes.radiusDirections.map((d) => p.shortenRouteStepsByDuration(d, (minutes * 60)));
     let shapepoints = shortenedRoutes.reduce((a, b) => a.concat(b));

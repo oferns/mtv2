@@ -11,8 +11,9 @@ export interface IHospital {
     country: number;
     lat: number;
     lng: number;
-    strokeCenter: boolean;
-    newTarget: boolean;
+    strokeReady: boolean;
+    treatingNoAngels: boolean;
+    consulting: boolean;    
     representative: string;
     visible?: boolean;
     inView?: boolean;

@@ -25,8 +25,8 @@ import 'rxjs/add/observable/throw';
 // const hospitalUrl = '/mt/hospitalroutes/';
 // const saveHospitalUrl = '/mt/savehospital/';
 // const routesUrl = '/mt/countryroutes/';
-// const toggleStrokeCenterUrl = '/mt/togglestrokecenter/';
-// const toggleNewTargetUrl = '/mt/togglenewtarget/';
+// const toggleStrokeReadyUrl = '/mt/togglestrokecenter/';
+// const toggleTreatingNoAngelsUrl = '/mt/togglenewtarget/';
 
 // const countryUrl = 'http://localhost:3000/mt/countries';
 // const hospitalsUrl = 'http://localhost:3000/mt/country/';
@@ -34,25 +34,26 @@ import 'rxjs/add/observable/throw';
 // const hospitalUrl = 'http://localhost:3000/mt/hospitalroutes/';
 // const routesUrl = 'http://localhost:3000/mt/countryroutes/';
 // const saveHospitalUrl = 'http://localhost:3000/mt/savehospital/';
-// const toggleStrokeCenterUrl = 'http://localhost:3000/mt/togglestrokecenter/';
-// const toggleNewTargetUrl = 'http://localhost:3000/mt/togglenewtarget/';
+// const toggleStrokeReadyUrl = 'http://localhost:3000/mt/togglestrokecenter/';
+// const toggleTreatingNoAngelsUrl = 'http://localhost:3000/mt/togglenewtarget/';
 
 // const saveCountryUrl = 'http://localhost:34562/mt/savecountry/';
 // const countryUrl = 'http://localhost:34562/mt/countries';
 // const hospitalsUrl = 'http://localhost:34562/mt/country/';
 // const saveHospitalUrl = 'http://localhost:34562/mt/savehospital/';
 // const hospitalUrl = 'http://localhost:34562/mt/hospitalroutes/';
-// const toggleStrokeCenterUrl = 'http://localhost:34562/mt/togglestrokecenter/';
-// const toggleNewTargetUrl = 'http://localhost:34562/mt/togglenewtarget/';
+// const toggleStrokeReadyUrl = 'http://localhost:34562/mt/togglestrokecenter/';
+// const toggleTreatingNoAngelsUrl = 'http://localhost:34562/mt/togglenewtarget/';
 
-const countryUrl = 'http://10.0.0.15:3000/mt/countries';
-const hospitalsUrl = 'http://10.0.0.15:3000/mt/country/';
-const saveCountryUrl = 'http://10.0.0.15:3000/mt/savecountry/';
-const hospitalUrl = 'http://10.0.0.15:3000/mt/hospitalroutes/';
-const routesUrl = 'http://10.0.0.15:3000/mt/countryroutes/';
-const saveHospitalUrl = 'http://10.0.0.15:3000/mt/savehospital/';
-const toggleStrokeCenterUrl = 'http://10.0.0.15:3000/mt/togglestrokecenter/';
-const toggleNewTargetUrl = 'http://10.0.0.15:3000/mt/togglenewtarget/';
+const countryUrl = 'http://angels.test/mt/countries';
+const hospitalsUrl = 'http://angels.test/mt/country/';
+const saveCountryUrl = 'http://angels.test/mt/savecountry/';
+const hospitalUrl = 'http://angels.test/mt/hospitalroutes/';
+const routesUrl = 'http://angels.test/mt/countryroutes/';
+const saveHospitalUrl = 'http://angels.test/mt/savehospital/';
+const toggleStrokeReadyUrl = 'http://angels.test/mt/togglestrokeready/';
+const toggleTreatingNoAngelsUrl = 'http://angels.test/mt/toggletreating/';
+const toggleConsultingUrl = 'http://angels.test/mt/toggleconsulting/';
 
 // const countryUrl = 'http://10.2.0.2/mt/countries';
 // const hospitalsUrl = 'http://10.2.0.2/mt/country/';
@@ -60,8 +61,8 @@ const toggleNewTargetUrl = 'http://10.0.0.15:3000/mt/togglenewtarget/';
 // const hospitalUrl = 'http://10.2.0.2/mt/hospitalroutes/';
 // const routesUrl = 'http://10.2.0.2/mt/countryroutes/';
 // const saveHospitalUrl = 'http://10.2.0.2/mt/savehospital/';
-// const toggleStrokeCenterUrl = 'http://10.2.0.2/mt/togglestrokecenter/';
-// const toggleNewTargetUrl = 'http://10.2.0.2/mt/togglenewtarget/';
+// const toggleStrokeReadyUrl = 'http://10.2.0.2/mt/togglestrokecenter/';
+// const toggleTreatingNoAngelsUrl = 'http://10.2.0.2/mt/togglenewtarget/';
 
 
 
@@ -181,11 +182,11 @@ export class AngelsService implements IHcoService {
             .catch(this.handleError);
     }
 
-    toggleStrokeCenter(hospital: IHospital): Observable<IHospital> {
+    toggleStrokeReady(hospital: IHospital): Observable<IHospital> {
         this.log.info(`AngelsService saveHospitalData called for ${hospital.name} (${hospital.id})`);
 
-        const url = toggleStrokeCenterUrl + hospital.id;
-        this.log.info(`AngelsService toggleStrokeCenterUrl saving ${hospital.name} (${hospital.id}) to ${url}`);
+        const url = toggleStrokeReadyUrl + hospital.id;
+        this.log.info(`AngelsService toggleStrokeReadyUrl saving ${hospital.name} (${hospital.id}) to ${url}`);
         return this.http.post<IHospital>(url, hospital)
             .do(h => {
                 this.log.info(`AngelsService saveHospitalData Saved ${h.name} (${h.id}) to ${url}`);
@@ -193,11 +194,22 @@ export class AngelsService implements IHcoService {
             .catch(this.handleError);
     }
 
-    toggleNewTarget(hospital: IHospital): Observable<IHospital> {
+    toggleTreatingNoAngels(hospital: IHospital): Observable<IHospital> {
         this.log.info(`AngelsService saveHospitalData called for ${hospital.name} (${hospital.id})`);
 
-        const url = toggleNewTargetUrl + hospital.id;
-        this.log.info(`AngelsService toggleNewTargetUrl saving ${hospital.name} (${hospital.id}) to ${url}`);
+        const url = toggleTreatingNoAngelsUrl + hospital.id;
+        this.log.info(`AngelsService toggleTreatingNoAngelsUrl saving ${hospital.name} (${hospital.id}) to ${url}`);
+        return this.http.post<IHospital>(url, hospital)
+            .do(h => {
+                this.log.info(`AngelsService saveHospitalData Saved ${h.name} (${h.id}) to ${url}`);
+            })
+            .catch(this.handleError);
+    }
+    toggleConsulting(hospital: IHospital): Observable<IHospital> {
+        this.log.info(`AngelsService saveHospitalData called for ${hospital.name} (${hospital.id})`);
+
+        const url = toggleTreatingNoAngelsUrl + hospital.id;
+        this.log.info(`AngelsService toggleConsulting saving ${hospital.name} (${hospital.id}) to ${url}`);
         return this.http.post<IHospital>(url, hospital)
             .do(h => {
                 this.log.info(`AngelsService saveHospitalData Saved ${h.name} (${h.id}) to ${url}`);
