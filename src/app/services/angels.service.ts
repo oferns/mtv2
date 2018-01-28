@@ -25,25 +25,10 @@ import 'rxjs/add/observable/throw';
 // const hospitalUrl = '/mt/hospitalroutes/';
 // const saveHospitalUrl = '/mt/savehospital/';
 // const routesUrl = '/mt/countryroutes/';
-// const toggleStrokeReadyUrl = '/mt/togglestrokecenter/';
-// const toggleTreatingNoAngelsUrl = '/mt/togglenewtarget/';
+// const toggleStrokeReadyUrl = '/mt/togglestrokeready/';
+// const toggleTreatingNoAngelsUrl = '/mt/toggletreating/';
+// const toggleConsultingUrl = '/mt/toggleconsulting/';
 
-// const countryUrl = 'http://localhost:3000/mt/countries';
-// const hospitalsUrl = 'http://localhost:3000/mt/country/';
-// const saveCountryUrl = 'http://localhost:3000/mt/savecountry/';
-// const hospitalUrl = 'http://localhost:3000/mt/hospitalroutes/';
-// const routesUrl = 'http://localhost:3000/mt/countryroutes/';
-// const saveHospitalUrl = 'http://localhost:3000/mt/savehospital/';
-// const toggleStrokeReadyUrl = 'http://localhost:3000/mt/togglestrokecenter/';
-// const toggleTreatingNoAngelsUrl = 'http://localhost:3000/mt/togglenewtarget/';
-
-// const saveCountryUrl = 'http://localhost:34562/mt/savecountry/';
-// const countryUrl = 'http://localhost:34562/mt/countries';
-// const hospitalsUrl = 'http://localhost:34562/mt/country/';
-// const saveHospitalUrl = 'http://localhost:34562/mt/savehospital/';
-// const hospitalUrl = 'http://localhost:34562/mt/hospitalroutes/';
-// const toggleStrokeReadyUrl = 'http://localhost:34562/mt/togglestrokecenter/';
-// const toggleTreatingNoAngelsUrl = 'http://localhost:34562/mt/togglenewtarget/';
 
 const countryUrl = 'http://angels.test/mt/countries';
 const hospitalsUrl = 'http://angels.test/mt/country/';
@@ -54,16 +39,6 @@ const saveHospitalUrl = 'http://angels.test/mt/savehospital/';
 const toggleStrokeReadyUrl = 'http://angels.test/mt/togglestrokeready/';
 const toggleTreatingNoAngelsUrl = 'http://angels.test/mt/toggletreating/';
 const toggleConsultingUrl = 'http://angels.test/mt/toggleconsulting/';
-
-// const countryUrl = 'http://10.2.0.2/mt/countries';
-// const hospitalsUrl = 'http://10.2.0.2/mt/country/';
-// const saveCountryUrl = 'http://10.2.0.2/mt/savecountry/';
-// const hospitalUrl = 'http://10.2.0.2/mt/hospitalroutes/';
-// const routesUrl = 'http://10.2.0.2/mt/countryroutes/';
-// const saveHospitalUrl = 'http://10.2.0.2/mt/savehospital/';
-// const toggleStrokeReadyUrl = 'http://10.2.0.2/mt/togglestrokecenter/';
-// const toggleTreatingNoAngelsUrl = 'http://10.2.0.2/mt/togglenewtarget/';
-
 
 
 @Injectable()
@@ -208,7 +183,7 @@ export class AngelsService implements IHcoService {
     toggleConsulting(hospital: IHospital): Observable<IHospital> {
         this.log.info(`AngelsService saveHospitalData called for ${hospital.name} (${hospital.id})`);
 
-        const url = toggleTreatingNoAngelsUrl + hospital.id;
+        const url = toggleConsultingUrl + hospital.id;
         this.log.info(`AngelsService toggleConsulting saving ${hospital.name} (${hospital.id}) to ${url}`);
         return this.http.post<IHospital>(url, hospital)
             .do(h => {

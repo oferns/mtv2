@@ -66,7 +66,15 @@ export class HospitalListComponent {
     }
 
     get treatingNoAngelssInView(): number {
-        return this._data ? this._data.filter(h => h.treatingNoAngels && h.inView && h.visible).length : 0;
+        return this._data ? this._data.filter(h => h.consulting && h.inView && h.visible).length : 0;
+    }
+
+    get consultingss(): number {
+        return this._data ? this._data.filter(h => h.consulting).length : 0;
+    }
+
+    get consultingssInView(): number {
+        return this._data ? this._data.filter(h => h.consulting && h.inView && h.visible).length : 0;
     }
 
     get registered(): number {
@@ -87,6 +95,7 @@ export class HospitalListComponent {
     get registeredStrokeReadysInView(): number {
         return this._data ? this._data.filter((h: IHospital) => h.representative && h.strokeReady && h.inView && h.visible).length : 0;
     }
+    
 
     @Input()
     hospitals: Observable<IHospital[]>;

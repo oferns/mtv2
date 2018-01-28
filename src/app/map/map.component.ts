@@ -357,10 +357,10 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  toggleConsultings(on: boolean): void {
-    this.currentHospital.treatingNoAngels = on;
+  toggleConsulting(on: boolean): void {
+    this.currentHospital.consulting = on;
     const hospital = this.currentHospital;
-    this.log.info(`MapComponent toggleConsultings to ${hospital.name} (${hospital.id})`);
+    this.log.info(`MapComponent toggleConsulting to ${hospital.name} (${hospital.id})`);
     if (this.hospitalMarkers.has(hospital.id)) {
       const marker = this.hospitalMarkers.get(hospital.id);
       let color = hospital.representative ? 'grey' : 'white';
