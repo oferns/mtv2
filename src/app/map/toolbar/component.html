@@ -1,6 +1,6 @@
-<md-toolbar>
+<mat-toolbar>
     <app-map-country (onCountryChanged)="countryChanged($event)"></app-map-country>
     <app-map-clear (clearMap)="clearMap($event)"></app-map-clear>
     <app-map-drawroutes (onToggleRoutes)="toggleRoutes($event)" [disabled]='disableDrawRoutes'></app-map-drawroutes>
     <app-map-clusterer (onToggleCluster)="toggleCluster($event)" [disabled]='disableDrawRoutes'></app-map-clusterer>
-</md-toolbar>
+</mat-toolbar>

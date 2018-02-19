@@ -9,7 +9,7 @@ import {
 import { Logger } from 'angular2-logger/core';
 
 import { IHospital } from '../../data/ihospital';
-import { MdButtonToggleChange } from '@angular/material';
+import { MatButtonToggleChange } from '@angular/material';
 import { IHcoService } from 'app/services/ihco.service';
 
 @Component({
@@ -24,42 +24,31 @@ export class HospitalInfoComponent {
     @Input() on: boolean;
 
     @Output() onToggleRoute: EventEmitter<boolean>;
-    @Output() onToggleStrokeReady: EventEmitter<boolean>;
     @Output() onToggleTreatingNoAngels: EventEmitter<boolean>;
-    @Output() onToggleConsulting: EventEmitter<boolean>;
-    
+    @Output() onToggleFutureTarget: EventEmitter<boolean>;
 
     constructor( @Inject('IHcoService') private readonly hcoService: IHcoService,
         private readonly log: Logger
     ) {
         this.log.info('HospitalInfoComponent Ctor called');
         this.onToggleRoute = new EventEmitter<boolean>();
-        this.onToggleStrokeReady = new EventEmitter<boolean>();
         this.onToggleTreatingNoAngels = new EventEmitter<boolean>();
-        this.onToggleConsulting = new EventEmitter<boolean>();
+        this.onToggleFutureTarget = new EventEmitter<boolean>();
     }
 
-    toggleRoutes(event: MdButtonToggleChange) {
+    toggleRoutes(event: MatButtonToggleChange) {
         this.onToggleRoute.emit(event.source.checked);
     }
 
-    toggleStrokeReady(event: MdButtonToggleChange) {
-        this.onToggleStrokeReady.emit(event.source.checked);
-        this.hospital.strokeReady = event.source.checked;
-        this.hcoService.toggleStrokeReady(this.hospital).subscribe(h => this.hospital = h);
-
-    }
-    toggleTreatingNoAngels(event: MdButtonToggleChange) {
+    toggleTreatingNoAngels(event: MatButtonToggleChange) {
         this.onToggleTreatingNoAngels.emit(event.source.checked);
         this.hospital.treatingNoAngels = event.source.checked;
         this.hcoService.toggleTreatingNoAngels(this.hospital).subscribe(h => this.hospital = h);
     }
-    toggleConsulting(event: MdButtonToggleChange) {
-        this.onToggleConsulting.emit(event.source.checked);
-        this.hospital.consulting = event.source.checked;
-        this.hcoService.toggleConsulting(this.hospital).subscribe(h => this.hospital = h);
+
+    toggleFutureTarget(event: MatButtonToggleChange) {
+        this.onToggleFutureTarget.emit(event.source.checked);
+        this.hospital.futureTarget = event.source.checked;
+        this.hcoService.toggleFutureTarget(this.hospital).subscribe(h => this.hospital = h);
     }
-
-
 }
-

@@ -3,14 +3,14 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 
 import {
-    MdSelectModule
-    , MdProgressSpinnerModule
-    , MdButtonModule
-    , MdIconModule
-    , MdRadioModule
-    , MdButtonToggleModule
-    , MdProgressBarModule
-    , MdToolbarModule
+    MatSelectModule
+    , MatProgressSpinnerModule
+    , MatButtonModule
+    , MatIconModule
+    , MatRadioModule
+    , MatButtonToggleModule
+    , MatProgressBarModule
+    , MatToolbarModule
 } from '@angular/material';
 
 import { ToolbarComponent } from './component';
@@ -37,14 +37,14 @@ export { PROVIDERS } from './providerpicker/component';
     imports: [
         BrowserModule,
         FormsModule,
-        MdSelectModule,
-        MdProgressSpinnerModule,
-        MdButtonModule,
-        MdIconModule,
-        MdRadioModule,
-        MdButtonToggleModule,
-        MdProgressBarModule,
-        MdToolbarModule
+        MatSelectModule,
+        MatProgressSpinnerModule,
+        MatButtonModule,
+        MatIconModule,
+        MatRadioModule,
+        MatButtonToggleModule,
+        MatProgressBarModule,
+        MatToolbarModule
     ],
     providers: [
     ],

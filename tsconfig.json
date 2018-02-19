@@ -1,5 +1,11 @@
 {
   "compileOnSave": false,
+  "include": [
+    "node_modules/angular2-logger/app/core/level.ts",
+    "node_modules/angular2-logger/app/core/logger.ts",
+    "node_modules/angular2-logger/app/core/providers.ts",
+    "**/*.ts"
+],
   "compilerOptions": {
     "outDir": "./dist/out-tsc",
     "baseUrl": "src",
@@ -11,14 +17,10 @@
     "target": "es5",
     "typeRoots": [
       "node_modules/@types"
-    ],
-    "angularCompilerOptions": {
-      "genDir": "aot",
-      "skipMetadataEmit": true
-    },
+    ],    
     "lib": [
       "es2015",
       "dom"
-    ]
+    ],
   }
 }

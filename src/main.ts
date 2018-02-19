@@ -9,6 +9,5 @@ if (env.production) {
   enableProdMode();
 }
 
-getTranslationProvider().then(provider => {
-  platformBrowserDynamic().bootstrapModule(AppModule, { providers: provider });
-});
+platformBrowserDynamic().bootstrapModule(AppModule);
+

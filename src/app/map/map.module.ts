@@ -14,17 +14,19 @@ import { HospitalComponent } from './hospital/component';
 import { HospitalInfoComponent } from './hospitalinfo/component';
 
 import {
-    MdSidenavModule,
-    MdListModule,
-    MdCheckboxModule,
-    MdIconModule,
-    MdButtonModule,
-    MdProgressSpinnerModule,
-    MdButtonToggleModule,
-    MdProgressBarModule,
-    MdCardModule,
-    MdTooltipModule,
-    MdAutocompleteModule
+    MatSidenavModule,
+    MatListModule,
+    MatCheckboxModule,
+    MatIconModule,
+    MatButtonModule,
+    MatProgressSpinnerModule,
+    MatButtonToggleModule,
+    MatProgressBarModule,
+    MatCardModule,
+    MatTooltipModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule
 } from '@angular/material';
 
 import { GoogleMapService } from './services/google.map.service';
@@ -44,17 +46,19 @@ import { BingMapService } from './services/bing.map.service';
         FormsModule,
         HttpClientModule,
         ToolbarModule,
-        MdSidenavModule,
-        MdListModule,
-        MdButtonModule,
-        MdButtonToggleModule,
-        MdCheckboxModule,
-        MdIconModule,
-        MdProgressSpinnerModule,
-        MdProgressBarModule,
-        MdCardModule,
-        MdTooltipModule,
-        MdAutocompleteModule
+        MatSidenavModule,
+        MatListModule,
+        MatButtonModule,
+        MatButtonToggleModule,
+        MatCheckboxModule,
+        MatIconModule,
+        MatProgressSpinnerModule,
+        MatProgressBarModule,
+        MatCardModule,
+        MatTooltipModule,
+        MatAutocompleteModule,
+        MatFormFieldModule,
+        MatInputModule
     ],
     providers: [
         { provide: PROVIDERS, useClass: GoogleMapService, multi: true }, // PROVIDERS can be any implementation of IMapService

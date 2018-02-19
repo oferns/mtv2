@@ -1,32 +1,28 @@
-<md-card>
-  <md-card-title>
-    <md-icon *ngIf='hospital?.strokeReady'>verified_user</md-icon>
-    <md-icon *ngIf='hospital?.representative'>face</md-icon>
+<mat-card>
+  <mat-card-title>
+    <mat-icon *ngIf='hospital?.registered'>verified_user</mat-icon>
+    <mat-icon *ngIf='hospital?.representative'>face</mat-icon>
     {{hospital?.name}}
-  </md-card-title>
-  <md-card-subtitle>
+  </mat-card-title>
+  <mat-card-subtitle>
     {{hospital?.address}}
-  </md-card-subtitle>
-  <md-card-subtitle *ngIf='hospital?.representative'>
+  </mat-card-subtitle>
+  <mat-card-subtitle *ngIf='hospital?.representative'>
     Rep: {{hospital?.representative}}
-  </md-card-subtitle>
+  </mat-card-subtitle>
 
-  <md-card-actions>
-    <md-button-toggle (change)='toggleRoutes($event)' [checked]='on'>
-      <md-icon>create</md-icon>
+  <mat-card-actions>
+    <mat-button-toggle (change)='toggleRoutes($event)' [checked]='on'>
+      <mat-icon>create</mat-icon>
       Show routes
-    </md-button-toggle>
-    <md-button-toggle (change)='toggleTreatingNoAngels($event)' [checked]='hospital?.treatingNoAngels'>
-      <md-icon>create</md-icon>
+    </mat-button-toggle>
+    <mat-button-toggle *ngIf='!hospital?.registered' (change)='toggleTreatingNoAngels($event)' [checked]='hospital?.treatingNoAngels'>
+      <mat-icon>create</mat-icon>
       Treating/No Angels
-    </md-button-toggle>
-    <md-button-toggle (change)='toggleStrokeReady($event)' [checked]='hospital?.strokeReady'>
-      <md-icon>create</md-icon>
-      Stroke Ready
-    </md-button-toggle>
-    <md-button-toggle (change)='toggleConsulting($event)' [checked]='hospital?.consulting'>
-      <md-icon>create</md-icon>
-      Consulting
-    </md-button-toggle>
-  </md-card-actions>
-</md-card>
+    </mat-button-toggle>
+    <mat-button-toggle *ngIf='!hospital?.registered' (change)='toggleFutureTarget($event)' [checked]='hospital?.futureTarget'>
+      <mat-icon>create</mat-icon>
+      Future targets
+    </mat-button-toggle>
+  </mat-card-actions>
+</mat-card>

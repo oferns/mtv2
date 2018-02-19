@@ -447,9 +447,12 @@ export class GoogleMapService implements IMapService {
             const step = routeSteps[x];
             const points = google.maps.geometry.encoding.decodePath(step.encoded_lat_lngs);
             if (totalDuration + step.durationInSeconds > durationInSeconds) {
+                const t1 = totalDuration + step.durationInSeconds;
+                const t2 =  t1 - durationInSeconds;
+                const t3 = step.durationInSeconds - t2;
 
-                const secondsneeded = Math.max(durationInSeconds - totalDuration, totalDuration);
-                const percentageOfTotal = (secondsneeded / step.durationInSeconds) * 100;
+                // const secondsneeded = Math.max(durationInSeconds - totalDuration, totalDuration);
+                const percentageOfTotal = (t3 / step.durationInSeconds) * 100;
                 const lastPoint = ((points.length / 100) * percentageOfTotal);
 
                 results = results.concat(points.filter((p, i: number) => i <= lastPoint));

@@ -1,6 +1,6 @@
-<md-radio-group *ngIf='providers && providers.length > 1'>
-    <md-radio-button *ngFor='let provider of providers; let i = index' [value]='provider' (change)='providerChanged($event.value)' [checked]='i===0'>
+<mat-radio-group *ngIf='providers && providers.length > 1'>
+    <mat-radio-button *ngFor='let provider of providers; let i = index' [value]='provider' (change)='providerChanged($event.value)' [checked]='i===0'>
             {{provider.provider}}
-    </md-radio-button>
-</md-radio-group>
+    </mat-radio-button>
+</mat-radio-group>
  

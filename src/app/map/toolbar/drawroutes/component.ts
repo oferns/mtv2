@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, ViewChild } from '@angular/core';
-import { MdButtonToggleChange } from '@angular/material';
-import { MdButtonToggle } from '@angular/material';
+import { MatButtonToggleChange } from '@angular/material';
+import { MatButtonToggle } from '@angular/material';
 
 @Component({
     selector: 'app-map-drawroutes',
@@ -11,8 +11,8 @@ import { MdButtonToggle } from '@angular/material';
 
 export class DrawRoutesComponent {
 
-    @ViewChild(MdButtonToggle)
-    button: MdButtonToggle;
+    @ViewChild(MatButtonToggle)
+    button: MatButtonToggle;
 
     @Input()
     disabled: boolean;
@@ -24,7 +24,7 @@ export class DrawRoutesComponent {
         this.onToggleRoutes = new EventEmitter<boolean>();
     }
 
-    toggle(event: MdButtonToggleChange) {
+    toggle(event: MatButtonToggleChange) {
         this.onToggleRoutes.emit(event.source.checked);
     }
 }

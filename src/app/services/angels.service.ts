@@ -19,26 +19,24 @@ import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
 
 
-// const countryUrl = '/mt/countries';
-// const hospitalsUrl = '/mt/country/';
-// const saveCountryUrl = '/mt/savecountry/';
-// const hospitalUrl = '/mt/hospitalroutes/';
-// const saveHospitalUrl = '/mt/savehospital/';
-// const routesUrl = '/mt/countryroutes/';
-// const toggleStrokeReadyUrl = '/mt/togglestrokeready/';
-// const toggleTreatingNoAngelsUrl = '/mt/toggletreating/';
-// const toggleConsultingUrl = '/mt/toggleconsulting/';
+const countryUrl = '/mt/countries';
+const hospitalsUrl = '/mt/country/';
+const saveCountryUrl = '/mt/savecountry/';
+const hospitalUrl = '/mt/hospitalroutes/';
+const saveHospitalUrl = '/mt/savehospital/';
+const routesUrl = '/mt/countryroutes/';
+const toggleTreatingNoAngelsUrl = '/mt/toggletreating/';
+const toggleFutureTargetUrl = '/mt/togglefuture/';
 
+// const countryUrl = 'http://angels.test/mt/countries';
+// const hospitalsUrl = 'http://angels.test/mt/country/';
+// const saveCountryUrl = 'http://angels.test/mt/savecountry/';
+// const hospitalUrl = 'http://angels.test/mt/hospitalroutes/';
+// const routesUrl = 'http://angels.test/mt/countryroutes/';
+// const saveHospitalUrl = 'http://angels.test/mt/savehospital/';
+// const toggleTreatingNoAngelsUrl = 'http://angels.test/mt/toggletreating/';
+// const toggleFutureTargetUrl = 'http://angels.test/mt/togglefuture/';
 
-const countryUrl = 'http://angels.test/mt/countries';
-const hospitalsUrl = 'http://angels.test/mt/country/';
-const saveCountryUrl = 'http://angels.test/mt/savecountry/';
-const hospitalUrl = 'http://angels.test/mt/hospitalroutes/';
-const routesUrl = 'http://angels.test/mt/countryroutes/';
-const saveHospitalUrl = 'http://angels.test/mt/savehospital/';
-const toggleStrokeReadyUrl = 'http://angels.test/mt/togglestrokeready/';
-const toggleTreatingNoAngelsUrl = 'http://angels.test/mt/toggletreating/';
-const toggleConsultingUrl = 'http://angels.test/mt/toggleconsulting/';
 
 
 @Injectable()
@@ -157,20 +155,8 @@ export class AngelsService implements IHcoService {
             .catch(this.handleError);
     }
 
-    toggleStrokeReady(hospital: IHospital): Observable<IHospital> {
-        this.log.info(`AngelsService saveHospitalData called for ${hospital.name} (${hospital.id})`);
-
-        const url = toggleStrokeReadyUrl + hospital.id;
-        this.log.info(`AngelsService toggleStrokeReadyUrl saving ${hospital.name} (${hospital.id}) to ${url}`);
-        return this.http.post<IHospital>(url, hospital)
-            .do(h => {
-                this.log.info(`AngelsService saveHospitalData Saved ${h.name} (${h.id}) to ${url}`);
-            })
-            .catch(this.handleError);
-    }
-
     toggleTreatingNoAngels(hospital: IHospital): Observable<IHospital> {
-        this.log.info(`AngelsService saveHospitalData called for ${hospital.name} (${hospital.id})`);
+        this.log.info(`AngelsService toggleTreatingNoAngels called for ${hospital.name} (${hospital.id})`);
 
         const url = toggleTreatingNoAngelsUrl + hospital.id;
         this.log.info(`AngelsService toggleTreatingNoAngelsUrl saving ${hospital.name} (${hospital.id}) to ${url}`);
@@ -180,16 +166,18 @@ export class AngelsService implements IHcoService {
             })
             .catch(this.handleError);
     }
-    toggleConsulting(hospital: IHospital): Observable<IHospital> {
-        this.log.info(`AngelsService saveHospitalData called for ${hospital.name} (${hospital.id})`);
 
-        const url = toggleConsultingUrl + hospital.id;
-        this.log.info(`AngelsService toggleConsulting saving ${hospital.name} (${hospital.id}) to ${url}`);
+    toggleFutureTarget(hospital: IHospital): Observable<IHospital> {
+        this.log.info(`AngelsService toggleFutureTarget called for ${hospital.name} (${hospital.id})`);
+
+        const url = toggleFutureTargetUrl + hospital.id;
+        this.log.info(`AngelsService toggleFutureTargetUrl saving ${hospital.name} (${hospital.id}) to ${url}`);
         return this.http.post<IHospital>(url, hospital)
             .do(h => {
-                this.log.info(`AngelsService saveHospitalData Saved ${h.name} (${h.id}) to ${url}`);
+                this.log.info(`AngelsService toggleFutureTarget Saved ${h.name} (${h.id}) to ${url}`);
             })
             .catch(this.handleError);
     }
+
 
 }

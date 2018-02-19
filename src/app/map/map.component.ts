@@ -152,9 +152,13 @@ export class MapComponent implements AfterViewInit {
             return this.hospitalMarkers.get(h.id);
           }
 
-          let color = h.representative ? 'grey' : 'white';
-          color = h.treatingNoAngels ? 'yellow' : color;
-          color = h.strokeReady ? 'red' : color;
+          let color = 'white';
+          if (h.registered) {
+            color = 'grey';
+          } else {
+            color = h.treatingNoAngels ? 'yellow' : color;
+            color = h.futureTarget ? 'red' : color;
+          }
 
           const options = <IMarkerOptions>{
             id: h.id,
@@ -220,7 +224,7 @@ export class MapComponent implements AfterViewInit {
         this.zone.runOutsideAngular(() => {
 
           hs.forEach((h: IHospital) => {
-            if (h.representative) {
+            if (h.registered) {
               h.visible = on
 
               const marker = this.hospitalMarkers.get(h.id);
@@ -238,28 +242,7 @@ export class MapComponent implements AfterViewInit {
               }
             }
           });
-          this.zone.run(() => { });
-        });
-        this.currentHospitals = Observable.of(hs);
-        this.ref.detectChanges();
-      });
-    }
-  }
-
-  toggleStrokeReadys(on: boolean): void {
-    if (this.currentHospitals) {
-      this.currentHospitals.subscribe((hs: Array<IHospital>) => {
-        this.zone.runOutsideAngular(() => {
-
-          hs.forEach((h: IHospital) => {
-            if (h.strokeReady) {
-              h.visible = on
-              const marker = this.hospitalMarkers.get(h.id);
-              this.currentProvider.setMarker(marker, on);
-            }
-
-          });
-          this.zone.run(() => { });
+          //       this.zone.run(() => { });
         });
         this.currentHospitals = Observable.of(hs);
         this.ref.detectChanges();
@@ -275,12 +258,23 @@ export class MapComponent implements AfterViewInit {
           hs.forEach((h: IHospital) => {
             if (h.treatingNoAngels) {
               h.visible = on
+
               const marker = this.hospitalMarkers.get(h.id);
+              const shape = this.hospitalShapes.get(h.id);
+              const lines = this.hospitalLines.get(h.id);
+
               this.currentProvider.setMarker(marker, on);
+              if (shape) {
+                this.currentProvider.setShape(shape, on);
+              }
+              if (lines) {
+                lines.forEach(l => {
+                  this.currentProvider.setLine(l, on);
+                });
+              }
             }
 
           });
-          this.zone.run(() => { });
         });
         this.currentHospitals = Observable.of(hs);
         this.ref.detectChanges();
@@ -288,40 +282,62 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  toggleConsultingss(on: boolean): void {
+  toggleFutureTargets(on: boolean): void {
     if (this.currentHospitals) {
       this.currentHospitals.subscribe((hs: Array<IHospital>) => {
         this.zone.runOutsideAngular(() => {
 
           hs.forEach((h: IHospital) => {
-            if (h.treatingNoAngels) {
+            if (h.futureTarget) {
               h.visible = on
+
               const marker = this.hospitalMarkers.get(h.id);
+              const shape = this.hospitalShapes.get(h.id);
+              const lines = this.hospitalLines.get(h.id);
+
               this.currentProvider.setMarker(marker, on);
+              if (shape) {
+                this.currentProvider.setShape(shape, on);
+              }
+              if (lines) {
+                lines.forEach(l => {
+                  this.currentProvider.setLine(l, on);
+                });
+              }
             }
 
           });
-          this.zone.run(() => { });
         });
         this.currentHospitals = Observable.of(hs);
         this.ref.detectChanges();
       });
     }
   }
+
 
   toggleUnregistered(on: boolean): void {
     if (this.currentHospitals) {
       this.currentHospitals.subscribe((hs: Array<IHospital>) => {
         this.zone.runOutsideAngular(() => {
           hs.forEach((h: IHospital) => {
-            if (!h.representative && !h.treatingNoAngels && !h.strokeReady) {
+            if (!h.registered) {
               h.visible = on
-              const marker = this.hospitalMarkers.get(h.id);
-              this.currentProvider.setMarker(marker, on);
-            }
 
+              const marker = this.hospitalMarkers.get(h.id);
+              const shape = this.hospitalShapes.get(h.id);
+              const lines = this.hospitalLines.get(h.id);
+
+              this.currentProvider.setMarker(marker, on);
+              if (shape) {
+                this.currentProvider.setShape(shape, on);
+              }
+              if (lines) {
+                lines.forEach(l => {
+                  this.currentProvider.setLine(l, on);
+                });
+              }
+            }
           });
-          this.zone.run(() => { });
         });
         this.currentHospitals = Observable.of(hs);
         this.ref.detectChanges();
@@ -329,19 +345,6 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  toggleStrokeReady(on: boolean): void {
-    this.currentHospital.strokeReady = on;
-    const hospital = this.currentHospital;
-    this.log.info(`MapComponent toggleStrokeReady to ${hospital.name} (${hospital.id})`);
-    if (this.hospitalMarkers.has(hospital.id)) {
-      const marker = this.hospitalMarkers.get(hospital.id);
-      let color = hospital.representative ? 'grey' : 'white';
-      color = hospital.treatingNoAngels ? 'red' : color;
-      color = on ? 'green' : color;
-      marker.setIcon(this.pinSymbol(color, hospital.representative ? 1.2 : 1.1));
-      this.ref.detectChanges();
-    }
-  }
 
   toggleTreatingNoAngels(on: boolean): void {
     this.currentHospital.treatingNoAngels = on;
@@ -349,27 +352,33 @@ export class MapComponent implements AfterViewInit {
     this.log.info(`MapComponent toggleTreatingNoAngels to ${hospital.name} (${hospital.id})`);
     if (this.hospitalMarkers.has(hospital.id)) {
       const marker = this.hospitalMarkers.get(hospital.id);
-      let color = hospital.representative ? 'grey' : 'white';
-      color = on ? 'red' : color;
-      color = hospital.strokeReady ? 'green' : color;
-      marker.setIcon(this.pinSymbol(color, hospital.representative ? 1.2 : 1.1));
+      let color = 'white';
+      if (hospital.registered) {
+        color = 'grey'
+      } else {
+        color = on ? 'yellow' : color;
+      }
+      marker.setIcon(this.pinSymbol(color, hospital.representative ? 1.2 : 1));
       this.ref.detectChanges();
     }
   }
 
-  toggleConsulting(on: boolean): void {
-    this.currentHospital.consulting = on;
+  toggleFutureTarget(on: boolean): void {
+    this.currentHospital.futureTarget = on;
     const hospital = this.currentHospital;
-    this.log.info(`MapComponent toggleConsulting to ${hospital.name} (${hospital.id})`);
+    this.log.info(`MapComponent toggleFutureTarget to ${hospital.name} (${hospital.id})`);
     if (this.hospitalMarkers.has(hospital.id)) {
       const marker = this.hospitalMarkers.get(hospital.id);
-      let color = hospital.representative ? 'grey' : 'white';
-      color = on ? 'yellow' : color;
+      let color = 'white';
+      if (hospital.registered) {
+        color = 'grey'
+      } else {
+        color = on ? 'red' : color;
+      }
       marker.setIcon(this.pinSymbol(color, hospital.representative ? 1.2 : 1.1));
       this.ref.detectChanges();
     }
   }
-
 
   // Fires when the toggle routes button is clicked
   toggleRoutes(on: boolean): void {
@@ -406,7 +415,7 @@ export class MapComponent implements AfterViewInit {
           this.currentProvider.setMarker(m, !on);
         });
       }
-      this.zone.run(() => { });
+      // this.zone.run(() => { });
     });
     this.ref.detectChanges();
   }
@@ -417,7 +426,7 @@ export class MapComponent implements AfterViewInit {
       this.hospitalLines.forEach(lines => lines.forEach(line => this.currentProvider.setLine(line, false)));
       this.hospitalShapes.forEach(shape => this.currentProvider.setShape(shape, false));
     });
-    this.zone.run(() => { });
+    // this.zone.run(() => { });
   }
 
   private pinSymbol(color: string, scale: number): any {
@@ -503,9 +512,8 @@ export class MapComponent implements AfterViewInit {
     }
 
     const routes = this.hospitalRoutes.get(hospital.id);
-    const minutes = hospital.strokeReady ? 45 : 30;
     const p = this.currentProvider;
-    const shortenedRoutes = routes.radiusDirections.map((d) => p.shortenRouteStepsByDuration(d, (minutes * 60)));
+    const shortenedRoutes = routes.radiusDirections.map((d) => p.shortenRouteStepsByDuration(d, (30 * 60)));
 
     this.hospitalLines.set(routes.id, shortenedRoutes.map((sr: any) => {
       const lineoptions = p.getLineOptions({});
@@ -529,9 +537,8 @@ export class MapComponent implements AfterViewInit {
     }
 
     const routes = this.hospitalRoutes.get(hospital.id);
-    const minutes = hospital.strokeReady ? 45 : 30;
     const p = this.currentProvider;
-    const shortenedRoutes = routes.radiusDirections.map((d) => p.shortenRouteStepsByDuration(d, (minutes * 60)));
+    const shortenedRoutes = routes.radiusDirections.map((d) => p.shortenRouteStepsByDuration(d, (30 * 60)));
     let shapepoints = shortenedRoutes.reduce((a, b) => a.concat(b));
     shapepoints = p.getConvexHull(shapepoints);
     const shapeoptions = p.getShapeOptions({});

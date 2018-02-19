@@ -1,45 +1,40 @@
 <span [hidden]='!loading'>
-      <md-spinner strokeWidth='10'></md-spinner> Loading hospitals
+      <mat-spinner strokeWidth='10'></mat-spinner> Loading hospitals
 </span>
 
 <div [hidden]='loading'>
 
 
-  <md-list>
-    <md-list-item>
-      <md-form-field>
-        <input mdInput placeholder="Filter Hospitals" (input)='filterHcos($event)'>
-      </md-form-field>
-    </md-list-item>
-    <md-list-item mdTooltip='Showing {{registeredInView}} of {{registered}}'>
-      <md-button-toggle (change)='toggleRegistered($event)' [checked]='registeredInView' [disabled]='!registered'>
-        <md-icon>face</md-icon> {{registeredInView}} Registered Hospitals
-      </md-button-toggle>
-    </md-list-item>
-    <md-list-item mdTooltip='Showing {{strokeReadysInView}} of {{strokeReadys}}'>
-      <md-button-toggle (change)='toggleStrokeReadys($event)' [checked]='strokeReadysInView' [disabled]='!strokeReadys'>
-        <md-icon>verified_user</md-icon> {{strokeReadysInView}} Stroke Ready
-      </md-button-toggle>
-    </md-list-item>
-    <md-list-item mdTooltip='Showing {{treatingNoAngelssInView}} of {{treatingNoAngelss}}'>
-      <md-button-toggle (change)='toggleTreatingNoAngelss($event)' [checked]='treatingNoAngelssInView' [disabled]='!treatingNoAngelss'>
-        <md-icon>verified_user</md-icon> {{treatingNoAngelssInView}} Treating/No Angels
-      </md-button-toggle>
-    </md-list-item>
-    <md-list-item mdTooltip='Showing {{consultingssInView}} of {{consultingss}}'>
-      <md-button-toggle (change)='consultingss($event)' [checked]='consultingssInView' [disabled]='!consultingss'>
-        <md-icon>verified_user</md-icon> {{consultingssInView}} Consultings
-      </md-button-toggle>
-    </md-list-item>
-    <md-list-item mdTooltip='Showing {{visible - registeredInView}} of {{visible}}'>
-      <md-button-toggle (change)='toggleUnregistered($event)' [checked]='unregisteredInView' [disabled]='!unregistered'>
-        <md-icon>block</md-icon> {{unregisteredInView}} Unregistered Hospitals
-      </md-button-toggle>
-    </md-list-item>
-  </md-list>
-  <md-list>
-    <md-list-item *ngFor='let h of hospitals | async' [style.display]='h.inView && h.visible ? "Inherit" : "none"'>
+  <mat-list>
+    <mat-list-item>
+      <mat-form-field>
+        <input matInput placeholder="Filter Hospitals" (input)='filterHcos($event)' >
+      </mat-form-field>
+    </mat-list-item>
+    <mat-list-item matTooltip='Showing {{registeredInView}} of {{registered}}'>
+      <mat-button-toggle (change)='toggleRegistered($event)' [checked]='registeredInView' [disabled]='!registered'>
+        <mat-icon>face</mat-icon> {{registeredInView}} Registered Hospitals
+      </mat-button-toggle>
+    </mat-list-item>
+    <mat-list-item matTooltip='Showing {{visible - registeredInView}} of {{visible}}'>
+      <mat-button-toggle (change)='toggleUnregistered($event)' [checked]='unregisteredInView' [disabled]='!unregistered'>
+        <mat-icon>block</mat-icon> {{unregisteredInView}} Unregistered Hospitals
+      </mat-button-toggle>    
+    </mat-list-item>
+    <mat-list-item style="margin-left:30px;" matTooltip='Showing {{treatingNoAngelssInView}} of {{treatingNoAngelss}}'>
+        <mat-button-toggle (change)='toggleTreatingNoAngelss($event)' [checked]='treatingNoAngelssInView' [disabled]='!treatingNoAngelss'>
+          <mat-icon>verified_user</mat-icon> {{treatingNoAngelssInView}} Treating/No Angels
+        </mat-button-toggle>
+    </mat-list-item>
+    <mat-list-item style="margin-left:30px;" matTooltip='Showing {{futureTargetsInView}} of {{futureTargets}}'>
+      <mat-button-toggle (change)='toggleFutureTargets($event)' [checked]='futureTargetsInView' [disabled]='!futureTargets'>
+        <mat-icon>verified_user</mat-icon> {{futureTargetsInView}} Future targets
+      </mat-button-toggle>
+  </mat-list-item>
+  </mat-list>
+  <mat-list>
+    <mat-list-item *ngFor='let h of hospitals | async' [style.display]='h.inView && h.visible ? "Inherit" : "none"'>
       <app-hospital [hospital]='h' (onMouseEnter)='hospitalMouseEnter($event)' (onMouseLeave)='hospitalMouseLeave($event)'></app-hospital>
-    </md-list-item>
-  </md-list>
+    </mat-list-item>
+  </mat-list>
 </div>

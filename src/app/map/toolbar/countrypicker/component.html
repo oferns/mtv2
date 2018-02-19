@@ -1,11 +1,11 @@
 <span [hidden]='!loading'>
-  <md-spinner strokeWidth='10'></md-spinner> Loading countries...
+  <mat-spinner strokeWidth='10'></mat-spinner> Loading countries...
 </span>
 <span [hidden]='loading'>
-<md-select  placeholder="Select a country" (change)="countryChanged($event.value)" name="country">
-  <md-option>None</md-option>
-  <md-option *ngFor="let country of countries | async" [value]=country>
+<mat-select  placeholder="Select a country" (change)="countryChanged($event.value)" name="country">
+  <mat-option>None</mat-option>
+  <mat-option *ngFor="let country of countries | async" [value]=country>
     {{country.name}}
-  </md-option>
-</md-select>
+  </mat-option>
+</mat-select>
 </span>

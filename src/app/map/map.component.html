@@ -1,25 +1,30 @@
 <h1 i18n></h1>
-<app-map-toolbar [hospitalsLoaded]='hospitalsFinished' (onCountryChanged)='countryChanged($event)'
-  (onClearMapClicked)='clearMap()' (onToggleRoutes)='toggleRoutes($event)' (onToggleCluster)='toggleCluster($event)'>
+<app-map-toolbar [hospitalsLoaded]='hospitalsFinished' (onCountryChanged)='countryChanged($event)' (onClearMapClicked)='clearMap()'
+  (onToggleRoutes)='toggleRoutes($event)' (onToggleCluster)='toggleCluster($event)'>
 </app-map-toolbar>
-<md-sidenav-container>
-  <md-sidenav #sidenav mode='side' [opened]='currentCountry'>
-    <button md-icon-button style='float:right' (click)='sidenav.toggle()'>
-          <md-icon>add</md-icon>
+<mat-sidenav-container>
+  <mat-sidenav #sidenav mode='side' [opened]='currentCountry'>
+    <button mat-icon-button style='float:right' (click)='sidenav.toggle()'>
+      <mat-icon>add</mat-icon>
     </button>
     <br />
-    <app-hospital-list [country]='currentCountry' [hospitals]='currentHospitals' (isLoading)='hospitalListLoading($event)' (onToggleRegistered)='toggleRegistered($event)' (onHospitalMouseEnter)='hospitalMouseEnter($event)' (onHospitalMouseLeave)='hospitalMouseLeave($event)'
-    (onToggleStrokeReadys)='toggleStrokeReadys($event)' (onToggleUnregistered)='toggleUnregistered($event)' (onToggleTreatingNoAngelss)='toggleTreatingNoAngelss($event)' (onToggleConsultingss)='toggleConsultingss($event)' (onFilterChanged)='filterChanged($event)' >
+    <app-hospital-list [country]='currentCountry' [hospitals]='currentHospitals' (isLoading)='hospitalListLoading($event)' (onToggleRegistered)='toggleRegistered($event)'
+      (onHospitalMouseEnter)='hospitalMouseEnter($event)' (onHospitalMouseLeave)='hospitalMouseLeave($event)'
+      (onToggleUnregistered)='toggleUnregistered($event)' (onToggleTreatingNoAngelss)='toggleTreatingNoAngelss($event)' (onToggleFutureTargets)='toggleFutureTargets($event)'
+      (onFilterChanged)='filterChanged($event)'>
     </app-hospital-list>
-  </md-sidenav>
-  <button md-icon-button [style.display]='!sidenav.opened && currentCountry ? "Inherit" : "none"' style='z-index:2;background-color:#303030'
-    (click)='sidenav.toggle()'>
-      <md-icon>add</md-icon>
-  </button>
-  <span #hospitalInfo style='z-index:0'>
-      <app-hospital-info [hospital]='currentHospital' (onToggleRoute)='toggleRoute($event)' (onToggleStrokeReady)='toggleStrokeReady($event)' (onToggleTreatingNoAngels)='toggleTreatingNoAngels($event)' (onToggleConsulting)='toggleConsulting($event)' [on]='currentHospitalRoutesVisible' ></app-hospital-info>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <button mat-icon-button [style.display]='!sidenav.opened && currentCountry ? "Inherit" : "none"' style='z-index:2;background-color:#303030'
+      (click)='sidenav.toggle()'>
+      <mat-icon>add</mat-icon>
+    </button>
+    <span #hospitalInfo style='z-index:0'>
+      <app-hospital-info [hospital]='currentHospital' (onToggleRoute)='toggleRoute($event)' 
+        (onToggleTreatingNoAngels)='toggleTreatingNoAngels($event)' (onToggleFutureTarget)='toggleFutureTarget($event)' [on]='currentHospitalRoutesVisible'></app-hospital-info>
     </span>
 
-  <div #map *ngFor='let provider of providers' class='map' [style.zIndex]='(provider == currentProvider) ? 1 : -1'>
-  </div>
-</md-sidenav-container>
+    <div #map *ngFor='let provider of providers' class='map' [style.zIndex]='(provider == currentProvider) ? 1 : -1'>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
