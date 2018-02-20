@@ -19,23 +19,23 @@ import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
 
 
-const countryUrl = '/mt/countries';
-const hospitalsUrl = '/mt/country/';
-const saveCountryUrl = '/mt/savecountry/';
-const hospitalUrl = '/mt/hospitalroutes/';
-const saveHospitalUrl = '/mt/savehospital/';
-const routesUrl = '/mt/countryroutes/';
-const toggleTreatingNoAngelsUrl = '/mt/toggletreating/';
-const toggleFutureTargetUrl = '/mt/togglefuture/';
+// const countryUrl = '/mt/countries';
+// const hospitalsUrl = '/mt/country/';
+// const saveCountryUrl = '/mt/savecountry/';
+// const hospitalUrl = '/mt/hospitalroutes/';
+// const saveHospitalUrl = '/mt/savehospital/';
+// const routesUrl = '/mt/countryroutes/';
+// const toggleTreatingNoAngelsUrl = '/mt/toggletreating/';
+// const toggleFutureTargetUrl = '/mt/togglefuture/';
 
-// const countryUrl = 'http://angels.test/mt/countries';
-// const hospitalsUrl = 'http://angels.test/mt/country/';
-// const saveCountryUrl = 'http://angels.test/mt/savecountry/';
-// const hospitalUrl = 'http://angels.test/mt/hospitalroutes/';
-// const routesUrl = 'http://angels.test/mt/countryroutes/';
-// const saveHospitalUrl = 'http://angels.test/mt/savehospital/';
-// const toggleTreatingNoAngelsUrl = 'http://angels.test/mt/toggletreating/';
-// const toggleFutureTargetUrl = 'http://angels.test/mt/togglefuture/';
+const countryUrl = 'http://angels.test/mt/countries';
+const hospitalsUrl = 'http://angels.test/mt/country/';
+const saveCountryUrl = 'http://angels.test/mt/savecountry/';
+const hospitalUrl = 'http://angels.test/mt/hospitalroutes/';
+const routesUrl = 'http://angels.test/mt/countryroutes/';
+const saveHospitalUrl = 'http://angels.test/mt/savehospital/';
+const toggleTreatingNoAngelsUrl = 'http://angels.test/mt/toggletreating/';
+const toggleFutureTargetUrl = 'http://angels.test/mt/togglefuture/';
 
 
 

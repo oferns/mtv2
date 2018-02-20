@@ -43,12 +43,18 @@ export class HospitalInfoComponent {
     toggleTreatingNoAngels(event: MatButtonToggleChange) {
         this.onToggleTreatingNoAngels.emit(event.source.checked);
         this.hospital.treatingNoAngels = event.source.checked;
+        if (event.source.checked) {
+            this.hospital.futureTarget = !event.source.checked;
+        }
         this.hcoService.toggleTreatingNoAngels(this.hospital).subscribe(h => this.hospital = h);
     }
 
     toggleFutureTarget(event: MatButtonToggleChange) {
         this.onToggleFutureTarget.emit(event.source.checked);
         this.hospital.futureTarget = event.source.checked;
+        if (event.source.checked) {
+            this.hospital.treatingNoAngels = !event.source.checked;
+        }
         this.hcoService.toggleFutureTarget(this.hospital).subscribe(h => this.hospital = h);
     }
 }

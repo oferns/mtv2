@@ -256,7 +256,7 @@ export class MapComponent implements AfterViewInit {
         this.zone.runOutsideAngular(() => {
 
           hs.forEach((h: IHospital) => {
-            if (h.treatingNoAngels) {
+            if (h.treatingNoAngels && !h.futureTarget) {
               h.visible = on
 
               const marker = this.hospitalMarkers.get(h.id);
@@ -288,7 +288,7 @@ export class MapComponent implements AfterViewInit {
         this.zone.runOutsideAngular(() => {
 
           hs.forEach((h: IHospital) => {
-            if (h.futureTarget) {
+            if (h.futureTarget && !h.treatingNoAngels) {
               h.visible = on
 
               const marker = this.hospitalMarkers.get(h.id);
@@ -320,7 +320,7 @@ export class MapComponent implements AfterViewInit {
       this.currentHospitals.subscribe((hs: Array<IHospital>) => {
         this.zone.runOutsideAngular(() => {
           hs.forEach((h: IHospital) => {
-            if (!h.registered) {
+            if (!h.registered && !h.futureTarget && !h.treatingNoAngels) {
               h.visible = on
 
               const marker = this.hospitalMarkers.get(h.id);
