@@ -5,7 +5,8 @@ export const env = {
   logger: {
     level: Level.WARN
   },
-  GM_API_KEY: 'AIzaSyAQW-eSdGKdaAQGQdFIHihlJ0bq63qRKmg',
+  GM_API_KEY: 'AIzaSyBNyMgceLGcfLDP9Zqjli1aWAVpbLXMH4Y',
+
   BM_API_KEY: 'An79vnBp7nhzQWaCmoVrKTZLngj4RvNRtB7ebt3FfVU9pyaGl7dAjCm4Y6gubOV9'
 
 };

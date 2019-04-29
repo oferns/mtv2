@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { } from '@types/googlemaps';
+import { } from 'googlemaps';
 
 import { IRouteStep } from '../../abstractions/iroutestep';
 
