@@ -83,6 +83,7 @@ export class AngelsService implements IHcoService {
         return this.http.post<ICountry>(url, country)
             .map((result) => {
                 this.log.info(`AngelsService saveCountryData saved country data for ${country.name} (${country.id}) to ${url}`);
+                return result;
             })
             .catch(this.handleError);
 

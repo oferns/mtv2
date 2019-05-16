@@ -1,3 +1,6 @@
+/// <reference types="@types/googlemaps" />
+/// <reference types="@types/bingmaps" />
+
 import { Component } from '@angular/core';
 
 @Component({

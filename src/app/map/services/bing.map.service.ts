@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { } from '@types/bingmaps';
+import { } from 'bingmaps';
 
 import { IMapService } from '../abstractions/imap.service';
 import { IMapOptions } from '../abstractions/imap.options';
