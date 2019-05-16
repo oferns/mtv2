@@ -2,7 +2,7 @@
   <mat-spinner strokeWidth='10'></mat-spinner> Loading countries...
 </span>
 <span [hidden]='loading'>
-<mat-select  placeholder="Select a country" (change)="countryChanged($event.value)" name="country">
+<mat-select  placeholder="Select a country" (selectionChange)="countryChanged($event.value)" name="country">
   <mat-option>None</mat-option>
   <mat-option *ngFor="let country of countries | async" [value]=country>
     {{country.name}}
