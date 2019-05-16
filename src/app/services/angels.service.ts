@@ -28,14 +28,14 @@ import 'rxjs/add/observable/throw';
 // const toggleTreatingNoAngelsUrl = '/mt/toggletreating/';
 // const toggleFutureTargetUrl = '/mt/togglefuture/';
 
-const countryUrl = 'http://angels.test/mt/countries';
-const hospitalsUrl = 'http://angels.test/mt/country/';
-const saveCountryUrl = 'http://angels.test/mt/savecountry/';
-const hospitalUrl = 'http://angels.test/mt/hospitalroutes/';
-const routesUrl = 'http://angels.test/mt/countryroutes/';
-const saveHospitalUrl = 'http://angels.test/mt/savehospital/';
-const toggleTreatingNoAngelsUrl = 'http://angels.test/mt/toggletreating/';
-const toggleFutureTargetUrl = 'http://angels.test/mt/togglefuture/';
+const countryUrl = 'http://localhost:8081/mt/countries';
+const hospitalsUrl = 'http://localhost:8081/mt/country/';
+const saveCountryUrl = 'http://localhost:8081/mt/savecountry/';
+const hospitalUrl = 'http://localhost:8081/mt/hospitalroutes/';
+const routesUrl = 'http://localhost:8081/mt/countryroutes/';
+const saveHospitalUrl = 'http://localhost:8081/mt/savehospital/';
+const toggleTreatingNoAngelsUrl = 'http://localhost:8081/mt/toggletreating/';
+const toggleFutureTargetUrl = 'http://localhost:8081/mt/togglefuture/';
 
 
 
