@@ -12,7 +12,7 @@ export const env = {
   logger: {
     level: Level.DEBUG
   },
-  GM_API_KEY: 'AIzaSyAQW-eSdGKdaAQGQdFIHihlJ0bq63qRKmg',
+  GM_API_KEY: 'AIzaSyDf-K64SeHNpqofgxO0mN4odfUefIxcdiQ',
   BM_API_KEY: 'An79vnBp7nhzQWaCmoVrKTZLngj4RvNRtB7ebt3FfVU9pyaGl7dAjCm4Y6gubOV9'
 
 };

@@ -2,12 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch (Chrome)",            
+            "name": "Launch (Chrome)",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:4200",
             "port": 9223,
             "sourceMaps": true,
+            "runtimeExecutable": "C:/Program Files (x86)/Google/Chrome Dev/Application/chrome.exe" ,
             "trace": "verbose",
             "webRoot": "${workspaceRoot}",
             "runtimeArgs": [
